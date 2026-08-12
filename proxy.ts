@@ -3,9 +3,16 @@ import { NextResponse, type NextRequest } from "next/server";
 
 const PUBLIC_PATHS = ["/login", "/auth"];
 
-// The marketing landing page is public; everything else requires a session.
+// Public surface: marketing page, auth, and crawler files. Everything else
+// requires a session.
+const PUBLIC_FILES = ["/sitemap.xml", "/robots.txt", "/opengraph-image", "/icon"];
+
 function isPublicPath(pathname: string) {
-  return pathname === "/" || PUBLIC_PATHS.some((p) => pathname.startsWith(p));
+  return (
+    pathname === "/" ||
+    PUBLIC_PATHS.some((p) => pathname.startsWith(p)) ||
+    PUBLIC_FILES.some((p) => pathname.startsWith(p))
+  );
 }
 
 export default async function proxy(request: NextRequest) {

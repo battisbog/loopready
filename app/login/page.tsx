@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
@@ -37,9 +38,19 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center px-4">
-      <div className="w-full max-w-sm">
-        <h1 className="text-2xl font-semibold tracking-tight">LoopReady</h1>
+    <main className="relative flex min-h-screen items-center justify-center px-4">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute left-1/2 top-0 h-[26rem] w-[42rem] -translate-x-1/2 rounded-full bg-emerald-500/10 blur-[110px]"
+      />
+      <div className="relative w-full max-w-sm">
+        <Link
+          href="/"
+          className="text-xs text-zinc-500 transition-colors hover:text-zinc-300"
+        >
+          ← Back to home
+        </Link>
+        <h1 className="mt-4 text-2xl font-semibold tracking-tight">LoopReady</h1>
         <p className="mt-1 text-sm text-zinc-400">
           Voice mock interviews, calibrated to what passes a FAANG loop.
         </p>
