@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { generateObject } from "ai";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { FEEDBACK_MODEL } from "@/lib/ai";
+import { feedbackModel } from "@/lib/ai";
 import { feedbackSchema } from "@/lib/feedback/schema";
 import { FEEDBACK_SYSTEM_PROMPT, feedbackUserPrompt } from "@/lib/feedback/prompt";
 
@@ -63,7 +63,7 @@ export async function POST(request: Request) {
     .join("\n\n");
 
   const { object } = await generateObject({
-    model: FEEDBACK_MODEL,
+    model: feedbackModel(),
     schema: feedbackSchema,
     system: FEEDBACK_SYSTEM_PROMPT,
     prompt: feedbackUserPrompt(transcript),

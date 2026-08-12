@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { generateText, type ModelMessage } from "ai";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { INTERVIEW_MODEL } from "@/lib/ai";
+import { interviewModel } from "@/lib/ai";
 import {
   MAX_FOLLOWUPS,
   QUESTIONS,
@@ -31,7 +31,7 @@ function opening(firstQuestion: Question): string {
 
 async function llm(system: string, messages: ModelMessage[]): Promise<string> {
   const { text } = await generateText({
-    model: INTERVIEW_MODEL,
+    model: interviewModel(),
     system,
     messages,
     providerOptions: { gateway: { tags: ["feature:interview"] } },
