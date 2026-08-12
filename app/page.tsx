@@ -77,17 +77,26 @@ export default async function Landing() {
 
       {/* ---------- Product shot ---------- */}
       <section className="relative">
-        <div className="mx-auto w-full max-w-6xl px-6 pb-20">
+        <div className="mx-auto w-full max-w-5xl px-6 pb-20">
           <figure>
-            <div className="overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-950 shadow-2xl shadow-emerald-500/5">
+            <div className="overflow-hidden rounded-xl border border-zinc-800 bg-zinc-950 shadow-2xl shadow-emerald-500/10">
+              <div className="flex items-center gap-1.5 border-b border-zinc-800 bg-zinc-900/80 px-4 py-2.5">
+                <span className="h-2.5 w-2.5 rounded-full bg-zinc-700" />
+                <span className="h-2.5 w-2.5 rounded-full bg-zinc-700" />
+                <span className="h-2.5 w-2.5 rounded-full bg-zinc-700" />
+                <span className="ml-3 font-mono text-[11px] text-zinc-600">
+                  loopready.app/session
+                </span>
+              </div>
               <Image
-                src="/coding-round-preview.jpg"
+                src="/coding-round-preview.png"
                 alt="The LoopReady interview workspace: an interviewer panel on the left, a Python editor on the right, and a console showing test cases passing and failing."
-                width={1600}
-                height={900}
+                width={1672}
+                height={941}
                 priority
+                quality={95}
                 className="h-auto w-full"
-                sizes="(max-width: 1024px) 100vw, 1024px"
+                sizes="(max-width: 1024px) 100vw, 976px"
               />
             </div>
             <figcaption className="mt-3 text-center text-xs text-zinc-600">
