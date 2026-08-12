@@ -1,34 +1,26 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
 type Provider = "google" | "github";
 
 export default function LoginPage() {
-  return (
-    <Suspense>
-      <LoginForm />
-    </Suspense>
-  );
-}
-
-function LoginForm() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [status, setStatus] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [showEmail, setShowEmail] = useState(false);
 
-  // Surface OAuth failures redirected back from /auth/callback.
+  // Surface OAuth failures redirected back from /auth/callback. Read from
+  // window rather than useSearchParams, which would opt this page out of SSR.
   useEffect(() => {
-    const err = searchParams.get("error");
+    const err = new URLSearchParams(window.location.search).get("error");
     if (err) setStatus(err);
-  }, [searchParams]);
+  }, []);
 
   async function signInWithProvider(provider: Provider) {
     setBusy(provider);
