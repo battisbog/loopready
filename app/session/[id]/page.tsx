@@ -3,6 +3,8 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import VoiceInterview from "./voice-interview";
+import { getContext } from "@/lib/interview/companies";
+import { ROUND_LABEL, type RoundType } from "@/lib/interview/rounds";
 
 export default async function SessionPage({
   params,
@@ -31,6 +33,25 @@ export default async function SessionPage({
     .eq("session_id", id)
     .order("created_at", { ascending: true });
 
+  let header: string | undefined;
+  if (session.loop_id) {
+    const { data: loop } = await admin
+      .from("loops")
+      .select("company, level, rounds")
+      .eq("id", session.loop_id)
+      .single();
+    const ctx = loop ? getContext(loop.company, loop.level) : null;
+    if (ctx) {
+      const roundPos =
+        loop!.rounds.length > 1
+          ? ` · ${ROUND_LABEL[session.round_type as RoundType]} ${
+              (session.round_order ?? 0) + 1
+            }/${loop!.rounds.length}`
+          : "";
+      header = `${ctx.profile.displayName} ${ctx.levelLabel}${roundPos}`;
+    }
+  }
+
   if (session.status === "active") {
     return (
       <VoiceInterview
@@ -38,6 +59,7 @@ export default async function SessionPage({
         initialTurns={turns ?? []}
         questionIndex={session.question_index}
         questionCount={session.questions?.length ?? 3}
+        header={header}
       />
     );
   }
@@ -47,7 +69,9 @@ export default async function SessionPage({
     <main className="mx-auto w-full max-w-2xl px-4 py-12">
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">Transcript</h1>
+          <h1 className="text-xl font-semibold tracking-tight">
+            {header ?? "Transcript"}
+          </h1>
           <p className="mt-1 text-sm text-zinc-500">
             {new Date(session.started_at).toLocaleString(undefined, {
               dateStyle: "medium",

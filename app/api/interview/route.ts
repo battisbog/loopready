@@ -3,12 +3,9 @@ import { generateText, type ModelMessage } from "ai";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { interviewModel } from "@/lib/ai";
-import {
-  MAX_FOLLOWUPS,
-  QUESTIONS,
-  pickSessionQuestions,
-  type Question,
-} from "@/lib/interview/questions";
+import { MAX_FOLLOWUPS, QUESTIONS, type Question } from "@/lib/interview/questions";
+import { startSession } from "@/lib/interview/start";
+import { getContext } from "@/lib/interview/companies";
 import {
   closingPrompt,
   interviewerSystemPrompt,
@@ -21,6 +18,8 @@ export const maxDuration = 60;
 interface Body {
   sessionId?: string;
   roundType?: string;
+  company?: string;
+  level?: string;
   userMessage?: string;
   artifact?: object;
 }
@@ -61,26 +60,18 @@ export async function POST(request: Request) {
         { status: 501 }
       );
     }
-    const questions = pickSessionQuestions();
-    const { data: session, error } = await admin
-      .from("sessions")
-      .insert({ user_id: user.id, questions, round_type: roundType })
-      .select()
-      .single();
-    if (error || !session) {
+    try {
+      const started = await startSession({
+        admin,
+        userId: user.id,
+        roundType,
+        company: body.company ?? null,
+        level: body.level ?? null,
+      });
+      return NextResponse.json(started);
+    } catch {
       return NextResponse.json({ error: "Failed to create session" }, { status: 500 });
     }
-    const reply = opening(questions[0]);
-    await admin
-      .from("turns")
-      .insert({ session_id: session.id, role: "interviewer", text: reply });
-    return NextResponse.json({
-      sessionId: session.id,
-      reply,
-      done: false,
-      questionIndex: 0,
-      questionCount: questions.length,
-    });
   }
 
   // --- Existing session: advance the state machine ---
@@ -133,6 +124,17 @@ export async function POST(request: Request) {
     ),
   ];
 
+  // Company/level config lives on the loop this session belongs to.
+  let ctx = null;
+  if (session.loop_id) {
+    const { data: loop } = await admin
+      .from("loops")
+      .select("company, level")
+      .eq("id", session.loop_id)
+      .single();
+    if (loop) ctx = getContext(loop.company, loop.level);
+  }
+
   const questions: Question[] = session.questions ?? QUESTIONS;
   let questionIndex: number = session.question_index;
   let followupCount: number = session.followup_count;
@@ -143,7 +145,7 @@ export async function POST(request: Request) {
   let advance = followupCount >= MAX_FOLLOWUPS;
   if (!advance) {
     const probe = await llm(
-      interviewerSystemPrompt(questions[questionIndex], followupCount),
+      interviewerSystemPrompt(questions[questionIndex], followupCount, ctx),
       messages
     );
     if (probe.startsWith("[NEXT]")) {
@@ -161,7 +163,7 @@ export async function POST(request: Request) {
       done = true;
       reply = await llm(closingPrompt(), messages);
     } else {
-      reply = await llm(transitionPrompt(questions[questionIndex]), messages);
+      reply = await llm(transitionPrompt(questions[questionIndex], ctx), messages);
     }
   }
 
@@ -177,9 +179,40 @@ export async function POST(request: Request) {
     })
     .eq("id", session.id);
 
+  // Full-loop sequencing: if this round finished and the loop has more rounds,
+  // tell the client where to go next.
+  let nextRound: { roundType: string; sessionId: string } | null = null;
+  if (done && session.loop_id) {
+    const { data: loop } = await admin
+      .from("loops")
+      .select("company, level, rounds")
+      .eq("id", session.loop_id)
+      .single();
+    const nextOrder = (session.round_order ?? 0) + 1;
+    const upcoming = loop?.rounds?.[nextOrder];
+    if (loop && upcoming && isRoundType(upcoming) && ROUND_IMPLEMENTED[upcoming]) {
+      const started = await startSession({
+        admin,
+        userId: user.id,
+        roundType: upcoming,
+        loopId: session.loop_id,
+        roundOrder: nextOrder,
+        company: loop.company,
+        level: loop.level,
+      });
+      nextRound = { roundType: upcoming, sessionId: started.sessionId };
+    } else if (loop) {
+      await admin
+        .from("loops")
+        .update({ status: "completed" })
+        .eq("id", session.loop_id);
+    }
+  }
+
   return NextResponse.json({
     sessionId: session.id,
     reply: reply!,
+    nextRound,
     done,
     questionIndex: Math.min(questionIndex, questions.length - 1),
     questionCount: questions.length,

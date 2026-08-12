@@ -141,13 +141,24 @@ export const QUESTIONS: Question[] = [
   QUESTION_BANK[6],
 ];
 
-export function pickSessionQuestions(count = 3): Question[] {
+// Picks `count` questions from different competencies. When a company is
+// configured, its emphasized competencies are drawn first (Amazon leans
+// ownership/failure/conflict, Google ambiguity/conflict/influence, etc.) so
+// two companies produce recognizably different interviews.
+export function pickSessionQuestions(
+  count = 3,
+  emphasis: Competency[] = []
+): Question[] {
   const byCompetency = new Map<Competency, Question[]>();
   for (const q of QUESTION_BANK) {
     byCompetency.set(q.competency, [...(byCompetency.get(q.competency) ?? []), q]);
   }
-  const competencies = [...byCompetency.keys()].sort(() => Math.random() - 0.5);
-  return competencies.slice(0, count).map((c) => {
+  const shuffled = (arr: Competency[]) => [...arr].sort(() => Math.random() - 0.5);
+  const emphasized = shuffled(emphasis.filter((c) => byCompetency.has(c)));
+  const rest = shuffled(
+    [...byCompetency.keys()].filter((c) => !emphasized.includes(c))
+  );
+  return [...emphasized, ...rest].slice(0, count).map((c) => {
     const qs = byCompetency.get(c)!;
     return qs[Math.floor(Math.random() * qs.length)];
   });

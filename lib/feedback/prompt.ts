@@ -1,3 +1,5 @@
+import { TIER_GUIDANCE, type InterviewContext } from "@/lib/interview/companies";
+
 export const FEEDBACK_SYSTEM_PROMPT = `You are an expert FAANG interview coach who has conducted hundreds of
 behavioral interviews and calibrated hiring decisions. Below is a
 transcript of a candidate's behavioral mock interview.
@@ -48,6 +50,19 @@ transcript is short or the candidate ended early, evaluate only what
 exists and say plainly that there wasn't enough signal — thin evidence is
 itself a no-hire outcome in a real loop.`;
 
-export function feedbackUserPrompt(transcript: string): string {
-  return `Here is the full interview transcript:\n\n${transcript}\n\nWrite the calibrated debrief now.`;
+export function feedbackUserPrompt(
+  transcript: string,
+  ctx: InterviewContext | null = null
+): string {
+  const config = ctx
+    ? `This was a mock interview targeting ${ctx.profile.displayName} at ${ctx.levelLabel} (${ctx.tier} bar).
+Judge it against THAT company's bar, not a generic one.
+How this company evaluates behavioral answers: ${ctx.profile.behavioralStyle}
+Values/competencies they score against: ${ctx.profile.valuesList.join("; ")}.
+Level calibration: ${TIER_GUIDANCE[ctx.tier]}
+Name the specific value or competency each answer would be scored against (e.g. for Amazon, the specific Leadership Principle), and say plainly whether it clears the ${ctx.tier} bar at ${ctx.profile.displayName}.
+
+`
+    : "";
+  return `${config}Here is the full interview transcript:\n\n${transcript}\n\nWrite the calibrated debrief now.`;
 }

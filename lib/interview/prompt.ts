@@ -1,8 +1,22 @@
+import { TIER_GUIDANCE, type InterviewContext } from "./companies";
 import { COMPETENCY_PROBES, MAX_FOLLOWUPS, type Question } from "./questions";
+
+function companyBlock(ctx: InterviewContext | null): string {
+  if (!ctx) return "";
+  return `
+You are interviewing for ${ctx.profile.displayName} at ${ctx.levelLabel} (${ctx.tier} bar).
+Company style: ${ctx.profile.behavioralStyle}
+The values this company actually scores against: ${ctx.profile.valuesList.join("; ")}.
+Level calibration: ${TIER_GUIDANCE[ctx.tier]}
+Frame your probes the way this company's interviewers do, but never lecture
+the candidate about the values — embody them in what you choose to dig into.
+`;
+}
 
 export function interviewerSystemPrompt(
   currentQuestion: Question,
-  followupCount: number
+  followupCount: number,
+  ctx: InterviewContext | null = null
 ): string {
   const probes = COMPETENCY_PROBES[currentQuestion.competency]
     .map((p) => `  - ${p}`)
@@ -10,7 +24,7 @@ export function interviewerSystemPrompt(
   return `You are a senior engineer conducting a behavioral interview for a software
 engineering role at a top tech company (FAANG level). You are experienced,
 professional, and probing but not hostile.
-
+${companyBlock(ctx)}
 Rules:
 - Ask ONE question at a time. Never list multiple questions.
 - The current main question is: "${currentQuestion.text}"
@@ -39,8 +53,12 @@ ${probes}
 // Standalone system prompt for transition turns. Deliberately does NOT include
 // the follow-up probing rules — mixing them in makes the model sometimes repeat
 // its last probe instead of asking the next main question.
-export function transitionPrompt(nextQuestion: Question): string {
-  return `You are a senior engineer conducting a behavioral interview at a top tech
+export function transitionPrompt(
+  nextQuestion: Question,
+  ctx: InterviewContext | null = null
+): string {
+  const company = ctx ? ` for ${ctx.profile.displayName}` : "";
+  return `You are a senior engineer conducting a behavioral interview${company} at a top tech
 company. The candidate has just finished the previous question and you are
 moving on.
 

@@ -5,6 +5,7 @@ import Link from "next/link";
 import StartButton from "./start-button";
 import SignOutButton from "./signout-button";
 import { ROUND_LABEL, type RoundType } from "@/lib/interview/rounds";
+import { COMPANY_PROFILES } from "@/lib/interview/companies";
 
 const SIGNAL_STYLES: Record<string, string> = {
   hire: "bg-emerald-500/15 text-emerald-400",
@@ -22,7 +23,9 @@ export default async function Home() {
   const admin = createAdminClient();
   const { data: sessions } = await admin
     .from("sessions")
-    .select("id, started_at, status, round_type, feedback(overall_signal)")
+    .select(
+      "id, started_at, status, round_type, loops(company, level), feedback(overall_signal)"
+    )
     .eq("user_id", user.id)
     .order("started_at", { ascending: false })
     .limit(20);
@@ -51,6 +54,11 @@ export default async function Home() {
           {(sessions ?? []).map((s) => {
             const fb = Array.isArray(s.feedback) ? s.feedback[0] : s.feedback;
             const signal = fb?.overall_signal as string | undefined;
+            const loop = Array.isArray(s.loops) ? s.loops[0] : s.loops;
+            const profile = loop ? COMPANY_PROFILES[loop.company] : null;
+            const tag = profile
+              ? `${profile.displayName} · ${profile.levels[loop!.level]?.label ?? loop!.level}`
+              : null;
             return (
               <li key={s.id}>
                 <Link
@@ -65,6 +73,9 @@ export default async function Home() {
                     <span className="rounded bg-zinc-800 px-1.5 py-0.5 text-xs text-zinc-400">
                       {ROUND_LABEL[s.round_type as RoundType] ?? s.round_type}
                     </span>
+                    {tag && (
+                      <span className="text-xs text-zinc-500">{tag}</span>
+                    )}
                   </span>
                   <span className="flex items-center gap-2">
                     {signal ? (

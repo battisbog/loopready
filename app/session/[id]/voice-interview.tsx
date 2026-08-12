@@ -53,11 +53,13 @@ export default function VoiceInterview({
   initialTurns,
   questionIndex,
   questionCount,
+  header,
 }: {
   sessionId: string;
   initialTurns: Turn[];
   questionIndex: number;
   questionCount: number;
+  header?: string;
 }) {
   const router = useRouter();
   const [turns, setTurns] = useState<Turn[]>(initialTurns);
@@ -289,7 +291,12 @@ export default function VoiceInterview({
 
       if (iData.done) {
         setStatus("done");
-        router.push(`/session/${sessionId}/feedback`);
+        // Full loop: hand off to the next round; otherwise show the debrief.
+        router.push(
+          iData.nextRound
+            ? `/session/${iData.nextRound.sessionId}?from=${sessionId}`
+            : `/session/${sessionId}/feedback`
+        );
       } else {
         setStatus("idle");
       }
@@ -318,6 +325,7 @@ export default function VoiceInterview({
     <main className="mx-auto flex h-screen w-full max-w-2xl flex-col px-4 py-6">
       <div className="flex items-center justify-between">
         <span className="flex items-center gap-3 text-sm font-medium text-zinc-400">
+          {header && <span className="text-emerald-400">{header}</span>}
           Question {Math.min(qIndex + 1, questionCount)} of {questionCount}
           <span className="font-mono text-xs text-zinc-600">
             {Math.floor(elapsed / 60000)}:

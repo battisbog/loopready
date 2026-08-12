@@ -5,6 +5,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { feedbackModel } from "@/lib/ai";
 import { feedbackSchema } from "@/lib/feedback/schema";
 import { FEEDBACK_SYSTEM_PROMPT, feedbackUserPrompt } from "@/lib/feedback/prompt";
+import { getContext } from "@/lib/interview/companies";
 
 export const maxDuration = 120;
 
@@ -62,11 +63,21 @@ export async function POST(request: Request) {
     .map((t) => `${t.role === "interviewer" ? "INTERVIEWER" : "CANDIDATE"}: ${t.text}`)
     .join("\n\n");
 
+  let ctx = null;
+  if (session.loop_id) {
+    const { data: loop } = await admin
+      .from("loops")
+      .select("company, level")
+      .eq("id", session.loop_id)
+      .single();
+    if (loop) ctx = getContext(loop.company, loop.level);
+  }
+
   const { object } = await generateObject({
     model: feedbackModel(),
     schema: feedbackSchema,
     system: FEEDBACK_SYSTEM_PROMPT,
-    prompt: feedbackUserPrompt(transcript),
+    prompt: feedbackUserPrompt(transcript, ctx),
     providerOptions: { gateway: { tags: ["feature:feedback"] } },
   });
 
