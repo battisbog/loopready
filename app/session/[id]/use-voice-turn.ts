@@ -2,10 +2,13 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { ServerAudio } from "./audio-source-badge";
+import { SpeechQueue } from "./speech-queue";
 
 export interface Turn {
   role: string;
   text: string;
+  /** True while this turn is still being streamed in. */
+  streaming?: boolean;
 }
 
 export type Status =
@@ -39,6 +42,59 @@ interface SpeechRecognitionLike {
     | null;
   onerror: ((event: { error: string }) => void) | null;
   onend: (() => void) | null;
+}
+
+/** Minimal SSE reader — parses `event:` / `data:` frames from a fetch body. */
+async function readSSE(
+  body: ReadableStream<Uint8Array>,
+  onEvent: (event: string, data: any) => void
+): Promise<void> {
+  const reader = body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+
+    let sep: number;
+    while ((sep = buffer.indexOf("\n\n")) !== -1) {
+      const frame = buffer.slice(0, sep);
+      buffer = buffer.slice(sep + 2);
+      let event = "message";
+      const dataLines: string[] = [];
+      for (const line of frame.split("\n")) {
+        if (line.startsWith("event:")) event = line.slice(6).trim();
+        else if (line.startsWith("data:")) dataLines.push(line.slice(5).trim());
+      }
+      if (dataLines.length) {
+        try {
+          onEvent(event, JSON.parse(dataLines.join("\n")));
+        } catch {
+          // ignore malformed frame
+        }
+      }
+    }
+  }
+}
+
+/** Client-side sentence split, mirroring the server's chunking rules. */
+function splitForSpeech(text: string): string[] {
+  const parts = text.match(/[^.!?]+[.!?]*\s*/g) ?? [text];
+  const out: string[] = [];
+  for (const raw of parts) {
+    const piece = raw.trim();
+    if (!piece) continue;
+    const last = out[out.length - 1];
+    // Keep the first chunk short (fast start), then merge to ~60 chars.
+    if (last && (out.length === 1 ? last.length < 60 : last.length < 60)) {
+      out[out.length - 1] = `${last} ${piece}`;
+    } else {
+      out.push(piece);
+    }
+  }
+  return out.length ? out : [text];
 }
 
 function getSpeechRecognition(): SpeechRecognitionLike | null {
@@ -82,6 +138,7 @@ export function useVoiceTurn({
   const chunksRef = useRef<Blob[]>([]);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const spokeOpening = useRef(false);
+  const queueRef = useRef<SpeechQueue | null>(null);
   // Guards every async continuation: audio must never start (or keep going)
   // after the user leaves the interview.
   const aliveRef = useRef(true);
@@ -107,6 +164,8 @@ export function useVoiceTurn({
   }, []);
 
   function stopAllAudio() {
+    queueRef.current?.stop();
+    queueRef.current = null;
     const audio = audioRef.current;
     if (audio) {
       audio.pause();
@@ -164,35 +223,44 @@ export function useVoiceTurn({
     });
   }
 
-  async function playTts(text: string): Promise<void> {
-    if (!aliveRef.current) return;
-    setStatus("speaking");
+  /** Fetches one chunk of speech. Returns null to signal "use the fallback". */
+  async function fetchSpeech(text: string): Promise<Blob | null> {
+    if (!serverAudio.tts || !aliveRef.current) return null;
     try {
-      if (!serverAudio.tts) {
-        await speakWithBrowser(text);
-        return;
-      }
       const res = await fetch("/api/tts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text }),
       });
-      if (!res.ok) throw new Error("TTS failed");
+      if (!res.ok) return null;
       const blob = await res.blob();
-      // The request may have resolved after the user navigated away.
-      if (!aliveRef.current) return;
-      const url = URL.createObjectURL(blob);
-      await new Promise<void>((resolve) => {
-        const audio = new Audio(url);
-        audioRef.current = audio;
-        audio.onended = () => resolve();
-        audio.onerror = () => resolve();
-        audio.play().catch(() => resolve());
-      });
-      URL.revokeObjectURL(url);
+      return aliveRef.current && blob.size > 0 ? blob : null;
     } catch {
-      await speakWithBrowser(text);
+      return null;
     }
+  }
+
+  function newQueue(): SpeechQueue {
+    queueRef.current?.stop();
+    const q = new SpeechQueue(fetchSpeech, (t) => speakWithBrowser(t));
+    queueRef.current = q;
+    return q;
+  }
+
+  /**
+   * Speaks a complete piece of text (the opening turn). Split into sentences so
+   * the first one starts playing while the rest are still being synthesised.
+   */
+  async function playTts(text: string): Promise<void> {
+    if (!aliveRef.current) return;
+    setStatus("speaking");
+    if (!serverAudio.tts) {
+      await speakWithBrowser(text);
+      return;
+    }
+    const queue = newQueue();
+    for (const part of splitForSpeech(text)) queue.push(part);
+    await queue.idle();
   }
 
   async function toggleRecording() {
@@ -308,7 +376,7 @@ export function useVoiceTurn({
       );
       setStatus("thinking");
 
-      const res = await fetch("/api/interview", {
+      const res = await fetch("/api/interview/stream", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -317,22 +385,70 @@ export function useVoiceTurn({
           artifact: getArtifactPatch?.(),
         }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Interview error");
+      if (!res.ok || !res.body) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error ?? "Interview error");
+      }
 
-      setTurns((t) => [...t, { role: "interviewer", text: data.reply }]);
-      onProgress?.({
-        questionIndex: data.questionIndex,
-        questionCount: data.questionCount,
+      const queue = newQueue();
+      let spoken = "";
+      // Boxed so TypeScript doesn't narrow it to `never` via the callback.
+      const outcome: {
+        value: {
+          reply: string;
+          done: boolean;
+          nextRound?: { sessionId: string } | null;
+          questionIndex: number;
+          questionCount: number;
+        } | null;
+      } = { value: null };
+
+      // Each sentence starts speaking as soon as it exists — we never wait for
+      // the full reply.
+      await readSSE(res.body, (event, data) => {
+        if (!aliveRef.current) return;
+        if (event === "sentence") {
+          if (!spoken) setStatus("speaking");
+          spoken = spoken ? `${spoken} ${data.text}` : data.text;
+          setTurns((t) => {
+            const last = t[t.length - 1];
+            if (last?.role === "interviewer" && last.streaming) {
+              return [...t.slice(0, -1), { ...last, text: spoken }];
+            }
+            return [...t, { role: "interviewer", text: spoken, streaming: true }];
+          });
+          queue.push(data.text);
+        } else if (event === "done") {
+          outcome.value = data;
+        } else if (event === "error") {
+          throw new Error(data.error ?? "Interview error");
+        }
       });
 
-      await playTts(data.reply);
+      if (!aliveRef.current) return;
+      const result = outcome.value;
+      if (!result) throw new Error("Interview stream ended unexpectedly");
+
+      setTurns((t) => {
+        const last = t[t.length - 1];
+        if (last?.role === "interviewer" && last.streaming) {
+          return [...t.slice(0, -1), { role: "interviewer", text: result.reply }];
+        }
+        return [...t, { role: "interviewer", text: result.reply }];
+      });
+      onProgress?.({
+        questionIndex: result.questionIndex,
+        questionCount: result.questionCount,
+      });
+
+      // Let the queued audio finish before handing the mic back.
+      await queue.idle();
       if (!aliveRef.current) return;
 
-      if (data.done) {
+      if (result.done) {
         setStatus("done");
         stopAllAudio();
-        onDone(data.nextRound?.sessionId ?? null);
+        onDone(result.nextRound?.sessionId ?? null);
       } else {
         setStatus("idle");
       }

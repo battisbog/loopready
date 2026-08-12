@@ -3,7 +3,7 @@ import Link from "next/link";
 const PLAN_COPY: Record<string, { name: string; price: string; blurb: string }> = {
   voice: {
     name: "Voice",
-    price: "$20/mo",
+    price: "$19/mo",
     blurb:
       "Unlimited voice mocks across behavioral, coding, and system design, with the studio interviewer voice.",
   },

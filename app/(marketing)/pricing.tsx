@@ -17,7 +17,7 @@ const TIERS: Tier[] = [
   {
     id: "free",
     name: "Free",
-    price: "$0",
+    price: "Free",
     tagline: "Try one short mock and see the feedback for yourself.",
     cta: "Start free",
     href: "/login",
@@ -31,7 +31,7 @@ const TIERS: Tier[] = [
   {
     id: "voice",
     name: "Voice",
-    price: "$20",
+    price: "$19",
     cadence: "/mo",
     tagline: "Unlimited practice across the whole loop, in a natural voice.",
     cta: "Get Voice",
@@ -185,7 +185,7 @@ export default function Pricing() {
                   <th className="py-4 pr-4 font-medium text-zinc-500"> </th>
                   <th className="px-4 py-4 font-medium text-zinc-300">Free</th>
                   <th className="px-4 py-4 font-semibold text-emerald-400">
-                    Voice · $20/mo
+                    Voice · $19/mo
                   </th>
                   <th className="px-4 py-4 font-medium text-zinc-300">
                     Premium · $69/mo

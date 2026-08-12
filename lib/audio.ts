@@ -92,6 +92,75 @@ async function openAISpeak(text: string): Promise<ArrayBuffer> {
   return res.arrayBuffer();
 }
 
+export interface SpeakStreamResult {
+  stream: ReadableStream<Uint8Array>;
+  provider: string;
+}
+
+async function elevenLabsStream(text: string): Promise<ReadableStream<Uint8Array>> {
+  const key = process.env.ELEVENLABS_API_KEY!;
+  const res = await fetch(
+    `https://api.elevenlabs.io/v1/text-to-speech/${ELEVENLABS_VOICE_ID}/stream?output_format=mp3_44100_128&optimize_streaming_latency=3`,
+    {
+      method: "POST",
+      headers: { "xi-api-key": key, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        text,
+        model_id: ELEVENLABS_MODEL,
+        voice_settings: {
+          stability: 0.45,
+          similarity_boost: 0.75,
+          style: 0.1,
+          use_speaker_boost: true,
+        },
+      }),
+    }
+  );
+  if (!res.ok || !res.body) {
+    throw new Error(`ElevenLabs stream failed (${res.status}): ${await res.text()}`);
+  }
+  return res.body;
+}
+
+async function openAIStream(text: string): Promise<ReadableStream<Uint8Array>> {
+  const key = process.env.OPENAI_API_KEY!;
+  const res = await fetch("https://api.openai.com/v1/audio/speech", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: "gpt-4o-mini-tts",
+      voice: "onyx",
+      input: text,
+      response_format: "mp3",
+      stream_format: "audio",
+    }),
+  });
+  if (!res.ok || !res.body) {
+    throw new Error(`OpenAI TTS stream failed (${res.status}): ${await res.text()}`);
+  }
+  return res.body;
+}
+
+/**
+ * Returns audio as a stream so the client can start playing before the whole
+ * clip exists. Falls back down the provider chain on failure.
+ */
+export async function speakStream(rawText: string): Promise<SpeakStreamResult> {
+  const text = rawText.slice(0, TTS_MAX_CHARS);
+
+  if (process.env.ELEVENLABS_API_KEY) {
+    try {
+      return { stream: await elevenLabsStream(text), provider: "elevenlabs" };
+    } catch (e) {
+      console.error("ElevenLabs stream failed, falling back to OpenAI:", e);
+    }
+  }
+  if (process.env.OPENAI_API_KEY) {
+    return { stream: await openAIStream(text), provider: "openai" };
+  }
+  throw new Error("No TTS provider configured");
+}
+
 export interface SpeakResult {
   audio: ArrayBuffer;
   provider: string;

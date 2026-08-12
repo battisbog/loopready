@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { speak } from "@/lib/audio";
+import { speakStream } from "@/lib/audio";
 
 export const maxDuration = 60;
 
@@ -17,11 +17,15 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { audio, provider } = await speak(text);
-    return new Response(audio, {
+    // Piped straight through — the first audio bytes reach the browser while
+    // the provider is still synthesising the rest.
+    const { stream, provider } = await speakStream(text);
+    return new Response(stream, {
       headers: {
         "Content-Type": "audio/mpeg",
+        "Cache-Control": "no-store",
         "X-TTS-Provider": provider,
+        "X-Accel-Buffering": "no",
       },
     });
   } catch (e) {
