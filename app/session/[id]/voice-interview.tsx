@@ -25,6 +25,29 @@ const STATUS_LABEL: Record<Status, string> = {
   done: "Interview complete",
 };
 
+// Minimal typing for the Web Speech API (not in lib.dom for all targets)
+interface SpeechRecognitionLike {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  start(): void;
+  stop(): void;
+  onresult: ((event: {
+    resultIndex: number;
+    results: { isFinal: boolean; 0: { transcript: string } }[];
+  }) => void) | null;
+  onerror: ((event: { error: string }) => void) | null;
+  onend: (() => void) | null;
+}
+
+function getSpeechRecognition(): SpeechRecognitionLike | null {
+  const w = window as unknown as Record<string, unknown>;
+  const Ctor = (w.SpeechRecognition ?? w.webkitSpeechRecognition) as
+    | (new () => SpeechRecognitionLike)
+    | undefined;
+  return Ctor ? new Ctor() : null;
+}
+
 export default function VoiceInterview({
   sessionId,
   initialTurns,
@@ -41,7 +64,13 @@ export default function VoiceInterview({
   const [status, setStatus] = useState<Status>("idle");
   const [qIndex, setQIndex] = useState(questionIndex);
   const [error, setError] = useState<string | null>(null);
+  const [serverAudio, setServerAudio] = useState<{ stt: boolean; tts: boolean }>({
+    stt: false,
+    tts: false,
+  });
   const recorderRef = useRef<MediaRecorder | null>(null);
+  const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
+  const transcriptRef = useRef("");
   const chunksRef = useRef<Blob[]>([]);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -56,23 +85,52 @@ export default function VoiceInterview({
   }, []);
 
   useEffect(() => {
+    fetch("/api/audio/capabilities")
+      .then((r) => r.json())
+      .then(setServerAudio)
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [turns, status]);
 
-  // Speak the latest interviewer turn on first load (e.g. the opening question)
+  // Speak the latest interviewer turn on first load (the opening question).
+  // Must reset status afterward or the mic stays disabled forever.
   useEffect(() => {
     if (spokeOpening.current) return;
     spokeOpening.current = true;
     const last = initialTurns[initialTurns.length - 1];
     if (last?.role === "interviewer") {
-      playTts(last.text);
+      playTts(last.text).then(() => setStatus((s) => (s === "speaking" ? "idle" : s)));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  function speakWithBrowser(text: string): Promise<void> {
+    return new Promise((resolve) => {
+      if (!("speechSynthesis" in window)) return resolve();
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      const voices = window.speechSynthesis.getVoices();
+      const preferred =
+        voices.find((v) => v.lang.startsWith("en") && /Daniel|Samantha|Google US English/i.test(v.name)) ??
+        voices.find((v) => v.lang.startsWith("en"));
+      if (preferred) u.voice = preferred;
+      u.rate = 1.02;
+      u.onend = () => resolve();
+      u.onerror = () => resolve();
+      window.speechSynthesis.speak(u);
+    });
+  }
+
   async function playTts(text: string): Promise<void> {
+    setStatus("speaking");
     try {
-      setStatus("speaking");
+      if (!serverAudio.tts) {
+        await speakWithBrowser(text);
+        return;
+      }
       const res = await fetch("/api/tts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -90,7 +148,9 @@ export default function VoiceInterview({
       });
       URL.revokeObjectURL(url);
     } catch {
-      // Captions still show the text; don't block the interview on audio
+      // Server TTS failed — fall back to the browser voice so the interview
+      // keeps moving. Captions always show the text regardless.
+      await speakWithBrowser(text);
     }
   }
 
@@ -98,10 +158,19 @@ export default function VoiceInterview({
     setError(null);
     if (status === "recording") {
       recorderRef.current?.stop();
+      recognitionRef.current?.stop();
       return;
     }
     if (status !== "idle") return;
 
+    if (serverAudio.stt) {
+      startMediaRecorder();
+    } else {
+      startBrowserRecognition();
+    }
+  }
+
+  async function startMediaRecorder() {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const mime = MediaRecorder.isTypeSupported("audio/webm")
@@ -113,7 +182,7 @@ export default function VoiceInterview({
       recorder.onstop = () => {
         stream.getTracks().forEach((t) => t.stop());
         const blob = new Blob(chunksRef.current, { type: mime });
-        handleAnswer(blob, mime);
+        transcribeAndAnswer(blob, mime);
       };
       recorderRef.current = recorder;
       recorder.start();
@@ -123,7 +192,47 @@ export default function VoiceInterview({
     }
   }
 
-  async function handleAnswer(blob: Blob, mime: string) {
+  function startBrowserRecognition() {
+    const recognition = getSpeechRecognition();
+    if (!recognition) {
+      setError(
+        "This browser doesn't support speech recognition — use Chrome, or add an OpenAI key for server-side transcription."
+      );
+      return;
+    }
+    transcriptRef.current = "";
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = "en-US";
+    recognition.onresult = (event) => {
+      let finals = "";
+      for (let i = 0; i < event.results.length; i++) {
+        if (event.results[i].isFinal) finals += event.results[i][0].transcript + " ";
+      }
+      transcriptRef.current = finals.trim();
+    };
+    recognition.onerror = (e) => {
+      if (e.error === "not-allowed") {
+        setError("Microphone access is required for the interview.");
+        setStatus("idle");
+      }
+    };
+    recognition.onend = () => {
+      // Fires on manual stop AND when Chrome ends recognition on silence.
+      const text = transcriptRef.current.trim();
+      if (!text) {
+        setStatus("idle");
+        setError("Didn't catch that — try again.");
+        return;
+      }
+      submitAnswer(text);
+    };
+    recognitionRef.current = recognition;
+    recognition.start();
+    setStatus("recording");
+  }
+
+  async function transcribeAndAnswer(blob: Blob, mime: string) {
     try {
       setStatus("transcribing");
       const form = new FormData();
@@ -136,12 +245,21 @@ export default function VoiceInterview({
       const tRes = await fetch("/api/transcribe", { method: "POST", body: form });
       const tData = await tRes.json();
       if (!tRes.ok) throw new Error(tData.error ?? "Transcription failed");
-      const text: string = tData.text;
+      const text: string = (tData.text ?? "").trim();
       if (!text) {
         setStatus("idle");
         setError("Didn't catch that — try again.");
         return;
       }
+      await submitAnswer(text);
+    } catch (e) {
+      setStatus("idle");
+      setError(e instanceof Error ? e.message : "Something went wrong");
+    }
+  }
+
+  async function submitAnswer(text: string) {
+    try {
       setTurns((t) => [...t, { role: "candidate", text }]);
       setHint(
         text.split(/\s+/).length > 220
@@ -176,6 +294,7 @@ export default function VoiceInterview({
 
   async function endEarly() {
     audioRef.current?.pause();
+    if ("speechSynthesis" in window) window.speechSynthesis.cancel();
     await fetch("/api/interview/end", {
       method: "POST",
       headers: { "Content-Type": "application/json" },

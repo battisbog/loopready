@@ -1,23 +1,15 @@
-// STT (Whisper) and TTS. Prefers a direct OpenAI key when present; otherwise
-// routes through the Vercel AI Gateway's OpenAI-compatible endpoint using the
-// OIDC token / gateway key.
+// STT (Whisper) and TTS via OpenAI. Requires OPENAI_API_KEY — the AI Gateway
+// has no audio endpoints (verified: /v1/audio/* returns 404). Without the key,
+// the client uses the browser's Web Speech API instead (see voice-interview.tsx).
 
 function audioConfig() {
-  if (process.env.OPENAI_API_KEY) {
-    return {
-      base: "https://api.openai.com/v1",
-      key: process.env.OPENAI_API_KEY,
-      sttModel: "whisper-1",
-      ttsModel: "gpt-4o-mini-tts",
-    };
-  }
-  const key =
-    process.env.AI_GATEWAY_API_KEY || process.env.VERCEL_OIDC_TOKEN;
+  const key = process.env.OPENAI_API_KEY;
+  if (!key) throw new Error("OPENAI_API_KEY not configured");
   return {
-    base: "https://ai-gateway.vercel.sh/v1",
-    key: key!,
-    sttModel: "openai/whisper-1",
-    ttsModel: "openai/gpt-4o-mini-tts",
+    base: "https://api.openai.com/v1",
+    key,
+    sttModel: "whisper-1",
+    ttsModel: "gpt-4o-mini-tts",
   };
 }
 
