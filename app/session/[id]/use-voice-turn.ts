@@ -78,6 +78,41 @@ export function useVoiceTurn({
   const chunksRef = useRef<Blob[]>([]);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const spokeOpening = useRef(false);
+  // Guards every async continuation: audio must never start (or keep going)
+  // after the user leaves the interview.
+  const aliveRef = useRef(true);
+
+  useEffect(() => {
+    aliveRef.current = true;
+    const teardown = () => {
+      aliveRef.current = false;
+      stopAllAudio();
+      try {
+        recorderRef.current?.stop();
+      } catch {}
+      try {
+        recognitionRef.current?.stop();
+      } catch {}
+    };
+    // Chrome can keep speaking across a hard navigation, so cover that too.
+    window.addEventListener("pagehide", teardown);
+    return () => {
+      window.removeEventListener("pagehide", teardown);
+      teardown();
+    };
+  }, []);
+
+  function stopAllAudio() {
+    const audio = audioRef.current;
+    if (audio) {
+      audio.pause();
+      audio.src = "";
+      audioRef.current = null;
+    }
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+    }
+  }
 
   useEffect(() => {
     const startedAt = Date.now();
@@ -106,6 +141,7 @@ export function useVoiceTurn({
 
   function speakWithBrowser(text: string): Promise<void> {
     return new Promise((resolve) => {
+      if (!aliveRef.current) return resolve();
       if (!("speechSynthesis" in window)) return resolve();
       window.speechSynthesis.cancel();
       const u = new SpeechSynthesisUtterance(text);
@@ -125,6 +161,7 @@ export function useVoiceTurn({
   }
 
   async function playTts(text: string): Promise<void> {
+    if (!aliveRef.current) return;
     setStatus("speaking");
     try {
       if (!serverAudio.tts) {
@@ -138,6 +175,8 @@ export function useVoiceTurn({
       });
       if (!res.ok) throw new Error("TTS failed");
       const blob = await res.blob();
+      // The request may have resolved after the user navigated away.
+      if (!aliveRef.current) return;
       const url = URL.createObjectURL(blob);
       await new Promise<void>((resolve) => {
         const audio = new Audio(url);
@@ -284,9 +323,11 @@ export function useVoiceTurn({
       });
 
       await playTts(data.reply);
+      if (!aliveRef.current) return;
 
       if (data.done) {
         setStatus("done");
+        stopAllAudio();
         onDone(data.nextRound?.sessionId ?? null);
       } else {
         setStatus("idle");
@@ -298,8 +339,10 @@ export function useVoiceTurn({
   }
 
   async function endEarly() {
-    audioRef.current?.pause();
-    if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+    // Silence immediately — the user is leaving, don't wait on the request.
+    aliveRef.current = false;
+    stopAllAudio();
+    setStatus("done");
     await fetch("/api/interview/end", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
