@@ -252,9 +252,16 @@ export default function VoiceInterview({
         return;
       }
       await submitAnswer(text);
-    } catch (e) {
+    } catch {
+      // Server STT is configured but unusable (e.g. OpenAI account out of
+      // credits). Switch to browser speech recognition for the rest of the
+      // session; the recorded blob can't be replayed into it, so ask the
+      // candidate to repeat.
+      setServerAudio((s) => ({ ...s, stt: false }));
       setStatus("idle");
-      setError(e instanceof Error ? e.message : "Something went wrong");
+      setError(
+        "Server transcription unavailable — switched to browser speech. Tap the mic and repeat your answer."
+      );
     }
   }
 
