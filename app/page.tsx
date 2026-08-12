@@ -5,6 +5,7 @@ import { COMPANY_PROFILES } from "@/lib/interview/companies";
 import TranscriptDemo from "./(marketing)/transcript-demo";
 import CompanyTabs from "./(marketing)/company-tabs";
 import Nav from "./(marketing)/nav";
+import Pricing from "./(marketing)/pricing";
 
 const COMPANIES = ["amazon", "google", "meta", "microsoft", "apple", "netflix"];
 
@@ -100,8 +101,8 @@ export default async function Landing() {
               />
             </div>
             <figcaption className="mt-3 text-center text-xs text-zinc-600">
-              The coding round workspace. Behavioral and coding rounds are live
-              today; system design is in active development.
+              The coding round workspace. All three rounds — behavioral, coding,
+              and system design — are live today.
             </figcaption>
           </figure>
         </div>
@@ -193,7 +194,7 @@ export default async function Landing() {
               ]}
             />
             <RoundCard
-              status="soon"
+              status="live"
               title="System design"
               body="An architecture canvas the interviewer can see and push back on, referencing your components by name and challenging hand-waving about scale."
               points={[
@@ -387,42 +388,7 @@ export default async function Landing() {
         </div>
       </section>
 
-      {/* ---------- Pricing ---------- */}
-      <section className="mx-auto w-full max-w-3xl px-6 py-24 text-center">
-        <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-          Free while in early access
-        </h2>
-        <p className="mx-auto mt-5 max-w-xl text-lg text-zinc-400">
-          LoopReady is being tuned with real candidates right now. Use it, tell
-          us where the interviewer was too soft, and it gets sharper for the next
-          person.
-        </p>
-        <div className="mx-auto mt-10 max-w-sm rounded-2xl border border-emerald-500/30 bg-emerald-500/[0.04] p-8">
-          <p className="text-4xl font-semibold">$0</p>
-          <p className="mt-2 text-sm text-zinc-400">
-            Unlimited behavioral mocks
-          </p>
-          <ul className="mt-6 space-y-2 text-left text-sm text-zinc-300">
-            {[
-              "Full voice interview",
-              "Company and level calibration",
-              "Complete written debrief",
-              "Session history",
-            ].map((f) => (
-              <li key={f} className="flex items-start gap-2">
-                <span className="mt-0.5 text-emerald-400">✓</span>
-                {f}
-              </li>
-            ))}
-          </ul>
-          <Link
-            href={ctaHref}
-            className="mt-8 block rounded-lg bg-emerald-500 px-6 py-3 text-sm font-semibold text-zinc-950 transition-colors hover:bg-emerald-400"
-          >
-            {ctaLabel}
-          </Link>
-        </div>
-      </section>
+      <Pricing />
 
       {/* ---------- FAQ ---------- */}
       <section id="faq" className="border-t border-zinc-900 bg-zinc-950/60">
@@ -441,7 +407,7 @@ export default async function Landing() {
             />
             <Faq
               q="Which rounds are available today?"
-              a="Behavioral and coding are both live — the coding round gives you a real editor and runs your code against test cases in an isolated sandbox. System design (architecture canvas) is in active development."
+              a="All three are live: behavioral by voice, coding with a real editor that runs your code against test cases in an isolated sandbox, and system design with an architecture canvas the interviewer reads and challenges."
             />
             <Faq
               q="How long does a session take?"
@@ -504,6 +470,7 @@ export default async function Landing() {
               <FooterCol
                 title="Get started"
                 links={[
+                  { href: "#pricing", label: "Pricing" },
                   { href: "/login", label: "Sign in" },
                   { href: "#faq", label: "FAQ" },
                 ]}

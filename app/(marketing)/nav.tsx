@@ -8,6 +8,7 @@ const LINKS = [
   { href: "#rounds", label: "Rounds" },
   { href: "#calibration", label: "Calibration" },
   { href: "#feedback", label: "Feedback" },
+  { href: "#pricing", label: "Pricing" },
   { href: "#faq", label: "FAQ" },
 ];
 
