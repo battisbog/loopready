@@ -44,3 +44,22 @@ create policy "own feedback" on feedback for all
 
 -- Milestone 5: per-session randomized question set
 alter table sessions add column if not exists questions jsonb;
+
+-- Round-aware loop architecture (updated plan)
+create table if not exists loops (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users(id),
+  company text not null,
+  level text not null,
+  rounds text[] not null,
+  status text default 'active',
+  created_at timestamptz default now()
+);
+alter table loops enable row level security;
+drop policy if exists "own loops" on loops;
+create policy "own loops" on loops for all using (auth.uid() = user_id);
+
+alter table sessions add column if not exists loop_id uuid references loops(id);
+alter table sessions add column if not exists round_type text not null default 'behavioral';
+alter table sessions add column if not exists round_order int default 0;
+alter table sessions add column if not exists artifact jsonb;

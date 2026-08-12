@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import Link from "next/link";
 import StartButton from "./start-button";
 import SignOutButton from "./signout-button";
+import { ROUND_LABEL, type RoundType } from "@/lib/interview/rounds";
 
 const SIGNAL_STYLES: Record<string, string> = {
   hire: "bg-emerald-500/15 text-emerald-400",
@@ -21,7 +22,7 @@ export default async function Home() {
   const admin = createAdminClient();
   const { data: sessions } = await admin
     .from("sessions")
-    .select("id, started_at, status, feedback(overall_signal)")
+    .select("id, started_at, status, round_type, feedback(overall_signal)")
     .eq("user_id", user.id)
     .order("started_at", { ascending: false })
     .limit(20);
@@ -56,11 +57,14 @@ export default async function Home() {
                   href={`/session/${s.id}`}
                   className="flex items-center justify-between py-3 hover:bg-zinc-900/50"
                 >
-                  <span className="text-sm text-zinc-300">
+                  <span className="flex items-center gap-2 text-sm text-zinc-300">
                     {new Date(s.started_at).toLocaleString(undefined, {
                       dateStyle: "medium",
                       timeStyle: "short",
                     })}
+                    <span className="rounded bg-zinc-800 px-1.5 py-0.5 text-xs text-zinc-400">
+                      {ROUND_LABEL[s.round_type as RoundType] ?? s.round_type}
+                    </span>
                   </span>
                   <span className="flex items-center gap-2">
                     {signal ? (

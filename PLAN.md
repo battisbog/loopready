@@ -2,91 +2,110 @@
 
 LoopReady: a voice-based mock interviewer that gets you ready for your FAANG loop, with feedback calibrated to what actually passes.
 
-A complete, working app. Voice-based, with calibrated feedback. Not production ready, but fully functional end to end. Built to be executed with Claude Code, one milestone at a time.
+A complete, working app covering the full FAANG loop: behavioral, coding, and system design rounds. Voice-based, with calibrated feedback. Not production ready, but fully functional end to end. Built to be executed with Claude Code, one milestone at a time.
 
 ## What v1 is
 
-One complete flow:
+The full loop, as three round types on one shared engine, configured per candidate:
 
-1. User opens the app and clicks "Start behavioral mock"
-2. An AI interviewer conducts a 2-3 question behavioral interview by voice (push-to-talk in v1, realtime upgrade in v1.1)
-3. The session ends and the user gets a structured, honest feedback report calibrated to what passes a FAANG loop
-4. Sessions and feedback are saved and viewable in a history list
+1. User configures the interview first: **target company** (Amazon, Google, Meta, etc.), **level** (e.g. L4/E4/SDE II, L5/E5/senior), and **which rounds** to run (a single round, or the full loop back to back)
+2. The interview is then shaped to that config: company-specific style and values, level-appropriate difficulty and bar, and the chosen rounds in sequence
+3. An AI interviewer conducts each round by voice (push-to-talk in v1, realtime upgrade later), with the right surface for the round:
+   - Behavioral: voice only (company values baked in, e.g. Amazon LPs, Google googliness/GCA)
+   - Coding: voice + a live code editor the AI can see, with the code runnable against test cases (difficulty scaled to level)
+   - System Design: voice + a diagram/architecture canvas the AI can see and probe (depth/scope scaled to level; often skipped or lighter at junior levels)
+4. The session ends and the user gets a structured, honest feedback report calibrated to that company and level, tuned per round type
+5. Sessions and feedback are saved and viewable in a history list
 
-## What v1 is NOT (do not build these yet)
+## Build strategy: full loop, built in difficulty order
 
-- No payments or tiers
-- No video avatar (later premium tier)
-- No coding or system design rounds
-- No account management beyond basic sign-in (Supabase handles auth; no profiles, settings, or roles)
-- No email, marketing site, or analytics
+1. **Behavioral first** - pure conversation, cheapest to build, proves the core engine and feedback quality
+2. **Coding second** - adds a code editor + execution surface
+3. **System design third** - adds a diagram canvas the AI can interpret
 
-The moat is the interviewer's probing quality and the feedback calibration. Everything else is packaging.
+Architecture is full-loop from day one (round_type is a first-class field everywhere), but always have something working; never block the whole app on the hardest round.
+
+## What v1 is NOT
+
+No payments/tiers, no video avatar, no account management beyond sign-in, no email/marketing/analytics. The moat is the interviewer's probing quality and the feedback calibration, across all three rounds.
 
 ---
 
 ## Tech stack
 
-- **Next.js 14+ (App Router) + TypeScript + Tailwind** - one repo, API routes included
-- **Supabase** - database AND auth in one, via the JS SDK. Create tables once (supabase/schema.sql), use the SDK everywhere. Auth: magic link or password.
-- **LLM**: Anthropic Claude via Vercel AI Gateway (no separate key needed; OIDC token from `vercel env pull`)
-- **STT**: Whisper (audio in, text out)
-- **TTS**: OpenAI TTS (text out, audio back)
-- Runs locally with `npm run dev`. Deploy to Vercel only after v1 works.
-
-## Environment variables
-
-Provisioned automatically by the Vercel Supabase integration (`vercel env pull`):
-
-```
-NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY
-SUPABASE_SERVICE_ROLE_KEY
-POSTGRES_URL / POSTGRES_URL_NON_POOLING (migrations)
-VERCEL_OIDC_TOKEN (AI Gateway auth, ~24h; re-pull when expired)
-OPENAI_API_KEY (only if gateway can't serve STT/TTS)
-```
+- Next.js App Router + TypeScript + Tailwind
+- Supabase: database AND auth (schema in `supabase/schema.sql`, applied via `node scripts/migrate.mjs`)
+- LLM: Claude via Vercel AI Gateway (anthropic/claude-sonnet-4.6, OIDC auth)
+- STT: Whisper; TTS: OpenAI TTS — with browser Web Speech fallback when no OPENAI_API_KEY
+- Local dev with `npm run dev`; deploy to Vercel only after v1 works
 
 ## Data model
 
-See `supabase/schema.sql` (applied via `node scripts/migrate.mjs`): `sessions` (with question_index, followup_count state), `turns`, `feedback` + RLS policies.
+See `supabase/schema.sql`: `loops` (company, level, rounds[], status) groups sessions; `sessions` (loop_id, round_type behavioral|coding|system_design, round_order, question_index, followup_count, artifact jsonb for code/diagram state); `turns`; `feedback`. All with RLS.
+
+`round_type` drives which interviewer prompt, surface, and feedback rubric are used. `artifact` holds the round's work product (candidate code + language, or diagram JSON) so the interviewer and feedback engine can both see it.
 
 ---
 
-## Milestone 0: Scaffold — DONE
+## Milestones
 
-Next.js 16 App Router + TS + Tailwind, Supabase provisioned through Vercel Marketplace, schema applied, magic-link + password sign-in, protected routes via proxy.ts, dark minimal layout (emerald accent).
+### Core (behavioral) — M0-M5: DONE (gates pending LLM credits)
 
-## Milestone 1: Interview engine in TEXT mode
+- **M0** Scaffold: Next.js 16, Supabase via Vercel Marketplace, magic-link + password auth, proxy.ts protection, dark layout.
+- **M1** Interview engine (text): `POST /api/interview` `{ sessionId?, roundType?, userMessage?, artifact? }`, deterministic state (3 questions, max 2 follow-ups, state on session row), round-aware prompt map, `/dev-chat` test UI.
+  **GATE: 3 real runs; tune probing until not generic.**
+- **M2** Feedback engine: `POST /api/feedback`, structured JSON (signal/summary/perAnswer/topIssues/rewrites), round-aware rubric, `/session/[id]/feedback` page.
+  **GATE: must beat "paste transcript into ChatGPT".**
+- **M3** Voice push-to-talk: `/api/transcribe`, `/api/tts`, captions, thinking states, progress. Browser Web Speech fallback when no OpenAI key.
+- **M4** Session flow + history: home start button + past sessions (round-type labeled), end-early, transcript/artifact/feedback history.
+- **M5** Quality pass: 18-question bank (6 competencies, randomized per session), per-competency probing guidance, calibrated hire/no-hire examples in feedback prompt, timer + conciseness signal.
 
-`POST /api/interview` — `{ sessionId?, userMessage? }`. No sessionId: create session + opening question. With sessionId: store candidate turn, LLM next turn, deterministic state machine (3 main questions, max 2 follow-ups each, tracked on the session row). `/dev-chat` test UI.
+### M6: Config layer (company + level + rounds) — THE COMPREHENSIVE UPGRADE
 
-**GATE: 3 real runs; tune probing until it's not generic. This tuning is the product.**
+Build once behavioral M1-5 gates pass. `/start` config screen: company (Amazon, Google, Meta, Microsoft, Apple, Netflix, Generic), level (in that company's ladder terms, mapped to junior/mid/senior tiers), rounds (single or full loop). Creates a `loops` row, kicks off first session.
 
-## Milestone 2: Feedback engine
+`companyProfiles.ts` — per company: behavioralStyle (e.g. Amazon LPs + Bar Raiser mindset; Google googliness/GCA), codingStyle, systemDesignStyle, levels ladder→tier map, valuesList (e.g. the 16 LPs). This file is the moat: Amazon L5 must probe like a Bar Raiser scoring LPs at senior bar.
 
-`POST /api/feedback` — loads transcript, returns structured JSON (overallSignal, overallSummary, perAnswer[], topIssues[], rewrites[]). Feedback page at `/session/[id]/feedback`.
+Wiring: interviewer + feedback prompts gain company/level/tier context; question selection prefers company-value-tagged questions; difficulty tier scales problem hardness, design scope, and feedback bar. Full-loop sequencing: after a round completes, route to the next round in the loop; combined summary at the end.
 
-**GATE: must beat "paste transcript into ChatGPT" — tune until it does.**
+**GATE: Amazon L6 vs Google L4 must feel genuinely different, not cosmetic.**
 
-## Milestone 3: Voice (push-to-talk)
+### M6b: Realtime voice (optional, defer freely)
 
-`POST /api/transcribe` (Whisper), `POST /api/tts` (OpenAI TTS), interview page with MediaRecorder push-to-talk, live captions, thinking state, progress indicator. 2-4s latency acceptable.
+OpenAI Realtime over WebRTC; keep push-to-talk fallback. Don't let it block the loop.
 
-## Milestone 4: Session flow + history
+### M7: Coding round
 
-Home with start button + past sessions list. End-interview-early. `/session/[id]` transcript + feedback history view.
+Monaco editor (`@monaco-editor/react`), Python + JavaScript, code in `session.artifact` (debounced save). Execution via hosted API (Judge0/Piston) — never run untrusted code locally. Run button + console panel. Coding interviewer prompt (sees artifact + run results; probes approach before code, complexity, edge cases; nudges, never solves). Coding feedback rubric: communication-before-code, correctness, complexity analysis, edge cases, code quality, response to hints. Bank: 8-12 problems by pattern with test cases.
 
-## Milestone 5: Quality pass
+**GATE: 3 real coding rounds; must probe like a real interviewer, not wait silently.**
 
-Question bank (15-20 questions, 6 competencies, randomized 3 per session), per-competency probing guidance, calibrated pass/fail examples in the feedback prompt, session timer + conciseness signal.
+### M8: System design round
 
-## Milestone 6 (v1.1, optional): Realtime voice
+React Flow (`@xyflow/react`) canvas — nodes/edges/labels serialized to `session.artifact` as JSON the LLM reads directly (no pixel interpretation). Design interviewer prompt (references components by name; pushes scale estimates, data model, read/write paths, bottlenecks, caching, failure modes; challenges hand-waving). Design feedback rubric: requirements clarification, design soundness, estimation, data model, trade-offs, depth on one component. Bank: 6-10 classic prompts each with "what a strong answer covers" notes.
 
-OpenAI Realtime API over WebRTC. Only after 3-5 real candidates used push-to-talk v1.
+**GATE: 3 real design rounds; must probe trade-offs like a staff interviewer.**
+
+### M9: Full-loop mode (optional)
+
+Chain all three rounds with combined summary. Only after all three are individually solid.
+
+## Sequencing rules
+
+- One milestone at a time; commit each.
+- Do NOT start M7/M8 surfaces before the behavioral round is working end to end.
+- After M1 and M2: STOP and run gates. Each new round has its own gate.
+- Validate the behavioral core with real people BEFORE the config layer and other rounds. Recommended after core is proven: M6 first (multiplies behavioral value), then M7, M8.
 
 ## Definition of done for v1
 
-- [ ] Full voice mock interview, start to feedback, with zero keyboard input
-- [ ] Feedback that references the candidate's actual answers and beats the "better than ChatGPT" test
-- [ ] Sessions persist and are viewable in history
-- [ ] Three different people have completed a mock and at least one said they would pay for this
+- [ ] Config: pick company + level + rounds; interview visibly shaped to it
+- [ ] Behavioral round: full voice mock, zero keyboard, company/level-calibrated
+- [ ] Coding round: voice + editor + execution + coding-specific feedback, level-scaled
+- [ ] System design round: voice + canvas the AI references + design feedback, level-scoped
+- [ ] Full loop: rounds in sequence under one config, combined summary
+- [ ] Feedback references the candidate's actual work; beats "better than ChatGPT"
+- [ ] History persists, labeled by company/level/round
+- [ ] Three different people completed a mock; at least one would pay
+
+Validation starts the moment the behavioral core is sharp — not after the entire loop is done.

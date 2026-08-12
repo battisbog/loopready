@@ -14,12 +14,15 @@ import {
   interviewerSystemPrompt,
   transitionPrompt,
 } from "@/lib/interview/prompt";
+import { ROUND_IMPLEMENTED, isRoundType } from "@/lib/interview/rounds";
 
 export const maxDuration = 60;
 
 interface Body {
   sessionId?: string;
+  roundType?: string;
   userMessage?: string;
+  artifact?: object;
 }
 
 function opening(firstQuestion: Question): string {
@@ -48,10 +51,20 @@ export async function POST(request: Request) {
 
   // --- New session: create it and return the opening ---
   if (!body.sessionId) {
+    const roundType = body.roundType ?? "behavioral";
+    if (!isRoundType(roundType)) {
+      return NextResponse.json({ error: "Unknown round type" }, { status: 400 });
+    }
+    if (!ROUND_IMPLEMENTED[roundType]) {
+      return NextResponse.json(
+        { error: `${roundType} rounds aren't available yet` },
+        { status: 501 }
+      );
+    }
     const questions = pickSessionQuestions();
     const { data: session, error } = await admin
       .from("sessions")
-      .insert({ user_id: user.id, questions })
+      .insert({ user_id: user.id, questions, round_type: roundType })
       .select()
       .single();
     if (error || !session) {
@@ -92,6 +105,15 @@ export async function POST(request: Request) {
     role: "candidate",
     text: body.userMessage.trim(),
   });
+
+  // Coding/design rounds send their work product (code or diagram JSON) with
+  // each turn; persist it so the interviewer and feedback engine can see it.
+  if (body.artifact !== undefined) {
+    await admin
+      .from("sessions")
+      .update({ artifact: body.artifact })
+      .eq("id", session.id);
+  }
 
   const { data: turns } = await admin
     .from("turns")
