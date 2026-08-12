@@ -1,0 +1,11 @@
+[
+  "Yeah so we built a new dashboard for our analytics platform. It was a big project and we all worked really hard on it. It turned out great and everyone was happy with it.",
+  "I mean, I did a lot of the work on the frontend and helped out with some backend stuff too. We used React and it went pretty smoothly overall.",
+  "We measured it by how happy the users were, they gave us good feedback. The launch went well.",
+  "So one time my manager wanted to use MongoDB but I thought Postgres was better. We talked about it and eventually went with Postgres and it worked out fine.",
+  "I just explained the benefits of Postgres, like it's relational and more mature. He agreed after a while.",
+  "It worked out well, the project shipped on time and there were no issues with the database.",
+  "One time we had an outage because of a bad deploy. It was stressful but we fixed it pretty quickly and everything was fine after that.",
+  "We rolled back the deploy and then fixed the bug. I helped with the investigation.",
+  "We added more tests afterwards so it wouldn't happen again."
+]
