@@ -4,6 +4,8 @@ import { pickSessionQuestions, type Question } from "./questions";
 import type { RoundType } from "./rounds";
 import { pickProblem } from "@/lib/coding/problems";
 import { codingOpening } from "@/lib/coding/prompt";
+import { pickDesignPrompt } from "@/lib/design/prompts";
+import { designOpening } from "@/lib/design/prompt";
 
 interface StartArgs {
   admin: SupabaseClient;
@@ -44,7 +46,11 @@ export async function startSession({
   let reply: string;
   let questionCount = 1;
 
-  if (roundType === "coding") {
+  if (roundType === "system_design") {
+    const design = pickDesignPrompt(ctx?.tier ?? "mid");
+    row.artifact = { promptId: design.id, nodes: [], edges: [] };
+    reply = designOpening(design, ctx?.profile.displayName);
+  } else if (roundType === "coding") {
     const problem = pickProblem(ctx?.tier ?? "mid");
     const language = "python";
     row.artifact = {
@@ -79,3 +85,4 @@ export async function startSession({
     questionCount,
   };
 }
+export const MAX_DESIGN_TURNS = 16;

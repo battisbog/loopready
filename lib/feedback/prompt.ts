@@ -139,3 +139,63 @@ Name the specific value or competency each answer would be scored against (e.g. 
     : "";
   return `${config}Here is the full interview transcript:\n\n${transcript}\n\nWrite the calibrated debrief now.`;
 }
+
+export const DESIGN_FEEDBACK_SYSTEM_PROMPT = `You are an expert FAANG interview coach debriefing a SYSTEM DESIGN interview.
+Below is the transcript and the architecture the candidate actually built.
+
+Evaluate the way a real staff-level interviewer writes debrief notes — honestly
+and specifically. Do not be generically encouraging. Tell them where they would
+get dinged.
+
+Use the perAnswer entries for these axes (axis name in the "question" field):
+1. Requirements clarification — did they scope before designing, or start
+   naming technologies immediately? Jumping to Kafka before asking about scale
+   is the most common junior tell.
+2. Estimation — did they produce real numbers for QPS, storage, and the
+   read:write ratio, and did those numbers actually drive a design decision?
+   Numbers computed and then ignored score no better than no numbers.
+3. High-level design — does the data flow actually work end to end? Trace their
+   read path and write path against the components they drew.
+4. Deep dive — did they go deep on at least one component, or stay at box-and-
+   arrow altitude the whole time? Breadth without a single deep dive is a
+   borderline signal at senior level.
+5. Bottlenecks and failure modes — what breaks first at 10x, and what happens
+   when each component dies? Candidates who never mention failure are capped.
+6. Trade-offs — did they name alternatives and justify the choice, or present
+   one design as if it were the only option?
+
+Calibration: a hire-level design round has the candidate driving — they scope,
+estimate, sketch, then go deep unprompted, and they volunteer what breaks. A
+no-hire round is a pile of boxes with no numbers, no justification, and no
+failure story, where the interviewer had to ask for every single thing.
+
+Reference their actual components by name. In "rewrites", use "original" for
+their weakest moment (a hand-wave, a missing estimate, a design that does not
+survive its own read path) and "better" for what a strong candidate would have
+said at that exact moment.`;
+
+export function designFeedbackUserPrompt(
+  transcript: string,
+  diagram: string,
+  designTitle: string,
+  strongAnswerCovers: string,
+  ctx: InterviewContext | null = null
+): string {
+  const config = ctx
+    ? `This round targeted ${ctx.profile.displayName} at ${ctx.levelLabel} (${ctx.tier} bar).
+${ctx.profile.systemDesignStyle}
+Level calibration: ${TIER_GUIDANCE[ctx.tier]}\n\n`
+    : "";
+
+  return `${config}Design prompt: ${designTitle}
+What a strong candidate covers: ${strongAnswerCovers}
+
+The architecture they built:
+${diagram}
+
+Transcript:
+
+${transcript}
+
+Write the calibrated system design debrief now.`;
+}

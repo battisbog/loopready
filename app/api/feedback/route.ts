@@ -6,12 +6,16 @@ import { feedbackModel } from "@/lib/ai";
 import { feedbackSchema } from "@/lib/feedback/schema";
 import {
   CODING_FEEDBACK_SYSTEM_PROMPT,
+  DESIGN_FEEDBACK_SYSTEM_PROMPT,
   FEEDBACK_SYSTEM_PROMPT,
   codingFeedbackUserPrompt,
+  designFeedbackUserPrompt,
   feedbackUserPrompt,
 } from "@/lib/feedback/prompt";
 import { getContext } from "@/lib/interview/companies";
 import { getProblem } from "@/lib/coding/problems";
+import { getDesignPrompt } from "@/lib/design/prompts";
+import { describeDiagram } from "@/lib/design/prompt";
 
 export const maxDuration = 120;
 
@@ -80,14 +84,27 @@ export async function POST(request: Request) {
   }
 
   const isCoding = session.round_type === "coding";
+  const isDesign = session.round_type === "system_design";
   const problem = isCoding ? getProblem(session.artifact?.problemId) : undefined;
+  const design = isDesign ? getDesignPrompt(session.artifact?.promptId) : undefined;
 
   const { object } = await generateObject({
     model: feedbackModel(),
     schema: feedbackSchema,
-    system: isCoding ? CODING_FEEDBACK_SYSTEM_PROMPT : FEEDBACK_SYSTEM_PROMPT,
-    prompt:
-      isCoding && problem
+    system: isDesign
+      ? DESIGN_FEEDBACK_SYSTEM_PROMPT
+      : isCoding
+        ? CODING_FEEDBACK_SYSTEM_PROMPT
+        : FEEDBACK_SYSTEM_PROMPT,
+    prompt: isDesign && design
+      ? designFeedbackUserPrompt(
+          transcript,
+          describeDiagram(session.artifact),
+          design.title,
+          design.strongAnswerCovers,
+          ctx
+        )
+      : isCoding && problem
         ? codingFeedbackUserPrompt(
             transcript,
             session.artifact?.code ?? "",

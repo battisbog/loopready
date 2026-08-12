@@ -4,7 +4,9 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import VoiceInterview from "./voice-interview";
 import CodingInterview from "./coding-interview";
+import DesignInterview from "./design-interview";
 import { getProblem } from "@/lib/coding/problems";
+import { getDesignPrompt } from "@/lib/design/prompts";
 import { getContext } from "@/lib/interview/companies";
 import { ROUND_LABEL, type RoundType } from "@/lib/interview/rounds";
 
@@ -55,6 +57,22 @@ export default async function SessionPage({
   }
 
   if (session.status === "active") {
+    if (session.round_type === "system_design") {
+      const design = getDesignPrompt(session.artifact?.promptId);
+      if (!design) notFound();
+      return (
+        <DesignInterview
+          sessionId={id}
+          initialTurns={turns ?? []}
+          header={header}
+          design={{ title: design.title, statement: design.statement }}
+          initialState={{
+            nodes: session.artifact?.nodes ?? [],
+            edges: session.artifact?.edges ?? [],
+          }}
+        />
+      );
+    }
     if (session.round_type === "coding") {
       const problem = getProblem(session.artifact?.problemId);
       if (!problem) notFound();

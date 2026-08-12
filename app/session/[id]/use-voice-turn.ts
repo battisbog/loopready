@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import type { ServerAudio } from "./audio-source-badge";
 
 export interface Turn {
   role: string;
@@ -70,7 +71,10 @@ export function useVoiceTurn({
   const [error, setError] = useState<string | null>(null);
   const [elapsed, setElapsed] = useState(0);
   const [hint, setHint] = useState<string | null>(null);
-  const [serverAudio, setServerAudio] = useState({ stt: false, tts: false });
+  const [serverAudio, setServerAudio] = useState<ServerAudio>({
+    stt: false,
+    tts: false,
+  });
 
   const recorderRef = useRef<MediaRecorder | null>(null);
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
@@ -360,6 +364,7 @@ export function useVoiceTurn({
     elapsed,
     toggleRecording,
     endEarly,
+    serverAudio,
     recording: status === "recording",
     busy:
       status === "transcribing" ||

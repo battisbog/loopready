@@ -9,7 +9,7 @@ export type RoundType = (typeof ROUND_TYPES)[number];
 export const ROUND_IMPLEMENTED: Record<RoundType, boolean> = {
   behavioral: true,
   coding: true,
-  system_design: false,
+  system_design: true,
 };
 
 export const ROUND_LABEL: Record<RoundType, string> = {

@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server";
+import { audioCapabilities } from "@/lib/audio";
 
-// The AI Gateway doesn't serve audio endpoints, so server-side STT/TTS is
-// only available with a direct OpenAI key. Without it the client falls back
-// to the browser's Web Speech API.
+// Tells the client whether to use the server audio pipeline or fall back to
+// the browser's Web Speech API, and which provider is serving each side.
 export async function GET() {
-  const hasOpenAI = Boolean(process.env.OPENAI_API_KEY);
-  return NextResponse.json({ stt: hasOpenAI, tts: hasOpenAI });
+  return NextResponse.json(audioCapabilities());
 }

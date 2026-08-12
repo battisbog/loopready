@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { interviewModel } from "@/lib/ai";
 import { MAX_FOLLOWUPS, QUESTIONS, type Question } from "@/lib/interview/questions";
-import { MAX_CODING_TURNS, startSession } from "@/lib/interview/start";
+import { MAX_CODING_TURNS, MAX_DESIGN_TURNS, startSession } from "@/lib/interview/start";
 import { getContext } from "@/lib/interview/companies";
 import { getProblem } from "@/lib/coding/problems";
 import {
@@ -12,6 +12,12 @@ import {
   codingSystemPrompt,
   type CodingArtifact,
 } from "@/lib/coding/prompt";
+import { getDesignPrompt } from "@/lib/design/prompts";
+import {
+  designClosingPrompt,
+  designSystemPrompt,
+  type DesignArtifact,
+} from "@/lib/design/prompt";
 import {
   closingPrompt,
   interviewerSystemPrompt,
@@ -149,7 +155,20 @@ export async function POST(request: Request) {
   let reply: string;
   let done = false;
 
-  if (session.round_type === "coding") {
+  if (session.round_type === "system_design") {
+    const artifact = (session.artifact ?? {}) as DesignArtifact;
+    const design = getDesignPrompt(artifact.promptId);
+    if (!design) {
+      return NextResponse.json({ error: "Session has no design prompt" }, { status: 409 });
+    }
+    questionIndex += 1;
+    done = questionIndex >= MAX_DESIGN_TURNS;
+    if (!done) {
+      reply = await llm(designSystemPrompt(design, artifact, ctx), messages);
+      if (reply.startsWith("[DONE]")) done = true;
+    }
+    if (done) reply = await llm(designClosingPrompt(), messages);
+  } else if (session.round_type === "coding") {
     // Coding is one problem over many turns; question_index counts turns.
     const artifact = (session.artifact ?? {}) as CodingArtifact;
     const problem = getProblem(artifact.problemId);
@@ -242,8 +261,8 @@ export async function POST(request: Request) {
     reply: reply!,
     nextRound,
     done,
-    ...(session.round_type === "coding"
-      ? { questionIndex: 0, questionCount: 1, turn: questionIndex, maxTurns: MAX_CODING_TURNS }
+    ...(session.round_type !== "behavioral"
+      ? { questionIndex: 0, questionCount: 1, turn: questionIndex }
       : {
           questionIndex: Math.min(questionIndex, questions.length - 1),
           questionCount: questions.length,

@@ -17,9 +17,12 @@ export async function POST(request: Request) {
   }
 
   try {
-    const audio = await speak(text);
+    const { audio, provider } = await speak(text);
     return new Response(audio, {
-      headers: { "Content-Type": "audio/mpeg" },
+      headers: {
+        "Content-Type": "audio/mpeg",
+        "X-TTS-Provider": provider,
+      },
     });
   } catch (e) {
     console.error(e);

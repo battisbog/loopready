@@ -1,24 +1,43 @@
-// STT (Whisper) and TTS via OpenAI. Requires OPENAI_API_KEY — the AI Gateway
-// has no audio endpoints (verified: /v1/audio/* returns 404). Without the key,
-// the client uses the browser's Web Speech API instead (see voice-interview.tsx).
+// Voice pipeline.
+//
+// TTS provider order: ElevenLabs (best) → OpenAI → browser Web Speech (client
+// side, last resort). STT: OpenAI Whisper, else browser speech recognition.
+// The AI Gateway has no audio endpoints (verified: /v1/audio/* 404s), so these
+// call the providers directly.
 
-function audioConfig() {
-  const key = process.env.OPENAI_API_KEY;
-  if (!key) throw new Error("OPENAI_API_KEY not configured");
+export const TTS_MAX_CHARS = 1000;
+
+// Calm, professional male narrator — suits an interviewer.
+const ELEVENLABS_VOICE_ID =
+  process.env.ELEVENLABS_VOICE_ID || "onwK4e9ZLuTAKqWW03F9"; // "Daniel"
+const ELEVENLABS_MODEL = process.env.ELEVENLABS_MODEL || "eleven_turbo_v2_5";
+
+export interface AudioCapabilities {
+  stt: boolean;
+  tts: boolean;
+  sttProvider?: string;
+  ttsProvider?: string;
+}
+
+export function audioCapabilities(): AudioCapabilities {
+  const hasOpenAI = Boolean(process.env.OPENAI_API_KEY);
+  const hasEleven = Boolean(process.env.ELEVENLABS_API_KEY);
   return {
-    base: "https://api.openai.com/v1",
-    key,
-    sttModel: "whisper-1",
-    ttsModel: "gpt-4o-mini-tts",
+    stt: hasOpenAI,
+    tts: hasEleven || hasOpenAI,
+    sttProvider: hasOpenAI ? "Whisper" : undefined,
+    ttsProvider: hasEleven ? "ElevenLabs" : hasOpenAI ? "OpenAI" : undefined,
   };
 }
 
 export async function transcribe(file: File): Promise<string> {
-  const { base, key, sttModel } = audioConfig();
+  const key = process.env.OPENAI_API_KEY;
+  if (!key) throw new Error("OPENAI_API_KEY not configured");
+
   const form = new FormData();
   form.append("file", file);
-  form.append("model", sttModel);
-  const res = await fetch(`${base}/audio/transcriptions`, {
+  form.append("model", "whisper-1");
+  const res = await fetch("https://api.openai.com/v1/audio/transcriptions", {
     method: "POST",
     headers: { Authorization: `Bearer ${key}` },
     body: form,
@@ -30,23 +49,68 @@ export async function transcribe(file: File): Promise<string> {
   return (data.text ?? "").trim();
 }
 
-export async function speak(text: string): Promise<ArrayBuffer> {
-  const { base, key, ttsModel } = audioConfig();
-  const res = await fetch(`${base}/audio/speech`, {
+async function elevenLabsSpeak(text: string): Promise<ArrayBuffer> {
+  const key = process.env.ELEVENLABS_API_KEY!;
+  const res = await fetch(
+    `https://api.elevenlabs.io/v1/text-to-speech/${ELEVENLABS_VOICE_ID}?output_format=mp3_44100_128`,
+    {
+      method: "POST",
+      headers: { "xi-api-key": key, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        text,
+        model_id: ELEVENLABS_MODEL,
+        voice_settings: {
+          stability: 0.45,
+          similarity_boost: 0.75,
+          style: 0.1,
+          use_speaker_boost: true,
+        },
+      }),
+    }
+  );
+  if (!res.ok) {
+    throw new Error(`ElevenLabs failed (${res.status}): ${await res.text()}`);
+  }
+  return res.arrayBuffer();
+}
+
+async function openAISpeak(text: string): Promise<ArrayBuffer> {
+  const key = process.env.OPENAI_API_KEY!;
+  const res = await fetch("https://api.openai.com/v1/audio/speech", {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${key}`,
-      "Content-Type": "application/json",
-    },
+    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
     body: JSON.stringify({
-      model: ttsModel,
+      model: "gpt-4o-mini-tts",
       voice: "onyx",
       input: text,
       response_format: "mp3",
     }),
   });
   if (!res.ok) {
-    throw new Error(`TTS failed (${res.status}): ${await res.text()}`);
+    throw new Error(`OpenAI TTS failed (${res.status}): ${await res.text()}`);
   }
   return res.arrayBuffer();
+}
+
+export interface SpeakResult {
+  audio: ArrayBuffer;
+  provider: string;
+}
+
+export async function speak(rawText: string): Promise<SpeakResult> {
+  // Interviewer turns are short by design; this guards against a runaway reply
+  // costing a fortune or timing out.
+  const text = rawText.slice(0, TTS_MAX_CHARS);
+
+  if (process.env.ELEVENLABS_API_KEY) {
+    try {
+      return { audio: await elevenLabsSpeak(text), provider: "elevenlabs" };
+    } catch (e) {
+      console.error("ElevenLabs TTS failed, falling back to OpenAI:", e);
+    }
+  }
+  if (process.env.OPENAI_API_KEY) {
+    return { audio: await openAISpeak(text), provider: "openai" };
+  }
+  throw new Error("No TTS provider configured");
 }

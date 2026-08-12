@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Editor from "@monaco-editor/react";
 import { useVoiceTurn, type Turn } from "./use-voice-turn";
+import AudioSourceBadge from "./audio-source-badge";
 
 interface TestResult {
   index: number;
@@ -63,6 +64,7 @@ export default function CodingInterview({
     endEarly,
     busy,
     recording,
+    serverAudio,
   } = useVoiceTurn({
     sessionId,
     initialTurns,
@@ -127,6 +129,7 @@ export default function CodingInterview({
             {Math.floor(elapsed / 60000)}:
             {String(Math.floor((elapsed % 60000) / 1000)).padStart(2, "0")}
           </span>
+          <AudioSourceBadge serverAudio={serverAudio} />
         </span>
         <button
           onClick={endEarly}

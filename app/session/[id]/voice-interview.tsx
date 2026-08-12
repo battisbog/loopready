@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useVoiceTurn, type Turn } from "./use-voice-turn";
+import AudioSourceBadge from "./audio-source-badge";
 
 export default function VoiceInterview({
   sessionId,
@@ -32,6 +33,7 @@ export default function VoiceInterview({
     endEarly,
     recording,
     busy,
+    serverAudio,
   } = useVoiceTurn({
     sessionId,
     initialTurns,
@@ -54,6 +56,7 @@ export default function VoiceInterview({
             {Math.floor(elapsed / 60000)}:
             {String(Math.floor((elapsed % 60000) / 1000)).padStart(2, "0")}
           </span>
+          <AudioSourceBadge serverAudio={serverAudio} />
         </span>
         <button
           onClick={endEarly}
