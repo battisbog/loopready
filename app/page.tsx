@@ -1,69 +1,89 @@
-import Image from "next/image";
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import Link from "next/link";
+import StartButton from "./start-button";
+import SignOutButton from "./signout-button";
 
-export default function Home() {
+const SIGNAL_STYLES: Record<string, string> = {
+  hire: "bg-emerald-500/15 text-emerald-400",
+  borderline: "bg-amber-500/15 text-amber-400",
+  "no-hire": "bg-red-500/15 text-red-400",
+};
+
+export default async function Home() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  const admin = createAdminClient();
+  const { data: sessions } = await admin
+    .from("sessions")
+    .select("id, started_at, status, feedback(overall_signal)")
+    .eq("user_id", user.id)
+    .order("started_at", { ascending: false })
+    .limit(20);
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <main className="mx-auto w-full max-w-2xl px-4 py-16">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">LoopReady</h1>
+          <p className="mt-1 text-sm text-zinc-400">
+            Behavioral mock interviews, calibrated to a FAANG loop.
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+        <SignOutButton />
+      </div>
+
+      <div className="mt-10">
+        <StartButton />
+      </div>
+
+      <div className="mt-12">
+        <h2 className="text-sm font-medium uppercase tracking-wide text-zinc-500">
+          Past sessions
+        </h2>
+        <ul className="mt-3 divide-y divide-zinc-900">
+          {(sessions ?? []).map((s) => {
+            const fb = Array.isArray(s.feedback) ? s.feedback[0] : s.feedback;
+            const signal = fb?.overall_signal as string | undefined;
+            return (
+              <li key={s.id}>
+                <Link
+                  href={`/session/${s.id}`}
+                  className="flex items-center justify-between py-3 hover:bg-zinc-900/50"
+                >
+                  <span className="text-sm text-zinc-300">
+                    {new Date(s.started_at).toLocaleString(undefined, {
+                      dateStyle: "medium",
+                      timeStyle: "short",
+                    })}
+                  </span>
+                  <span className="flex items-center gap-2">
+                    {signal ? (
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                          SIGNAL_STYLES[signal] ?? "bg-zinc-800 text-zinc-400"
+                        }`}
+                      >
+                        {signal}
+                      </span>
+                    ) : (
+                      <span className="text-xs text-zinc-600">{s.status}</span>
+                    )}
+                  </span>
+                </Link>
+              </li>
+            );
+          })}
+          {(sessions ?? []).length === 0 && (
+            <li className="py-3 text-sm text-zinc-600">No sessions yet.</li>
+          )}
+        </ul>
+      </div>
+    </main>
   );
 }
