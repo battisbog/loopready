@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 import { COMPANY_PROFILES } from "@/lib/interview/companies";
 import TranscriptDemo from "./(marketing)/transcript-demo";
@@ -216,6 +217,44 @@ export default async function Landing() {
               </div>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* ---------- Roadmap / coding round preview ---------- */}
+      <section className="border-t border-zinc-900 bg-zinc-950/60">
+        <div className="mx-auto w-full max-w-6xl px-6 py-24">
+          <div className="max-w-3xl">
+            <span className="inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs font-medium text-amber-400">
+              In development
+            </span>
+            <h2 className="mt-5 text-3xl font-semibold tracking-tight sm:text-4xl">
+              The rest of the loop is coming.
+            </h2>
+            <p className="mt-5 text-lg leading-relaxed text-zinc-400">
+              The behavioral round is live today. Next is the coding round — a
+              live editor the interviewer can read, your code running against
+              real test cases, and the same probing about approach and
+              complexity you get on the day. System design follows, with an
+              architecture canvas the interviewer can see and push back on.
+            </p>
+          </div>
+
+          <figure className="mt-10">
+            <div className="overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-950 shadow-2xl shadow-emerald-500/5">
+              <Image
+                src="/coding-round-preview.jpg"
+                alt="Design preview of the LoopReady coding round: an interviewer panel on the left, a Python editor on the right, and a console showing test cases passing and failing."
+                width={1600}
+                height={900}
+                className="h-auto w-full"
+                sizes="(max-width: 1024px) 100vw, 1024px"
+              />
+            </div>
+            <figcaption className="mt-3 text-center text-xs text-zinc-600">
+              Design preview of the coding round — not yet available. Today
+              LoopReady runs the behavioral round by voice.
+            </figcaption>
+          </figure>
         </div>
       </section>
 
