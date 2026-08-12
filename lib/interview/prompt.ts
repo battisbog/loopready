@@ -1,9 +1,12 @@
-import { MAX_FOLLOWUPS, type Question } from "./questions";
+import { COMPETENCY_PROBES, MAX_FOLLOWUPS, type Question } from "./questions";
 
 export function interviewerSystemPrompt(
   currentQuestion: Question,
   followupCount: number
 ): string {
+  const probes = COMPETENCY_PROBES[currentQuestion.competency]
+    .map((p) => `  - ${p}`)
+    .join("\n");
   return `You are a senior engineer conducting a behavioral interview for a software
 engineering role at a top tech company (FAANG level). You are experienced,
 professional, and probing but not hostile.
@@ -19,6 +22,11 @@ Rules:
 - If an answer is vague, generic, or all "we" and no "I", probe for
   specifics: "What exactly was your role?" "What would have happened if
   you had not done that?" "How did you measure the impact?"
+- This question tests ${currentQuestion.competency}. What a calibrated
+  interviewer digs into on this competency:
+${probes}
+  Prefer these angles over generic follow-ups, and never re-ask something
+  the candidate already answered clearly.
 - Only if the candidate's answers on this question have ALREADY covered their
   specific individual actions, the reasoning behind them, AND concrete measurable
   impact, you may move on early: reply with exactly the token [NEXT] and nothing

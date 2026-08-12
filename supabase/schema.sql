@@ -41,3 +41,6 @@ create policy "own turns" on turns for all
 drop policy if exists "own feedback" on feedback;
 create policy "own feedback" on feedback for all
   using (session_id in (select id from sessions where user_id = auth.uid()));
+
+-- Milestone 5: per-session randomized question set
+alter table sessions add column if not exists questions jsonb;

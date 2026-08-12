@@ -3,7 +3,12 @@ import { generateText, type ModelMessage } from "ai";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { INTERVIEW_MODEL } from "@/lib/ai";
-import { MAX_FOLLOWUPS, QUESTIONS } from "@/lib/interview/questions";
+import {
+  MAX_FOLLOWUPS,
+  QUESTIONS,
+  pickSessionQuestions,
+  type Question,
+} from "@/lib/interview/questions";
 import {
   closingPrompt,
   interviewerSystemPrompt,
@@ -17,8 +22,8 @@ interface Body {
   userMessage?: string;
 }
 
-function opening(): string {
-  return `Hi, thanks for joining. I'm a senior engineer here and I'll be running your behavioral round today — about three questions, and I may dig into your answers. Let's get started. ${QUESTIONS[0].text}`;
+function opening(firstQuestion: Question): string {
+  return `Hi, thanks for joining. I'm a senior engineer here and I'll be running your behavioral round today — about three questions, and I may dig into your answers. Let's get started. ${firstQuestion.text}`;
 }
 
 async function llm(system: string, messages: ModelMessage[]): Promise<string> {
@@ -43,15 +48,16 @@ export async function POST(request: Request) {
 
   // --- New session: create it and return the opening ---
   if (!body.sessionId) {
+    const questions = pickSessionQuestions();
     const { data: session, error } = await admin
       .from("sessions")
-      .insert({ user_id: user.id })
+      .insert({ user_id: user.id, questions })
       .select()
       .single();
     if (error || !session) {
       return NextResponse.json({ error: "Failed to create session" }, { status: 500 });
     }
-    const reply = opening();
+    const reply = opening(questions[0]);
     await admin
       .from("turns")
       .insert({ session_id: session.id, role: "interviewer", text: reply });
@@ -60,7 +66,7 @@ export async function POST(request: Request) {
       reply,
       done: false,
       questionIndex: 0,
-      questionCount: QUESTIONS.length,
+      questionCount: questions.length,
     });
   }
 
@@ -105,6 +111,7 @@ export async function POST(request: Request) {
     ),
   ];
 
+  const questions: Question[] = session.questions ?? QUESTIONS;
   let questionIndex: number = session.question_index;
   let followupCount: number = session.followup_count;
   let reply: string;
@@ -114,7 +121,7 @@ export async function POST(request: Request) {
   let advance = followupCount >= MAX_FOLLOWUPS;
   if (!advance) {
     const probe = await llm(
-      interviewerSystemPrompt(QUESTIONS[questionIndex], followupCount),
+      interviewerSystemPrompt(questions[questionIndex], followupCount),
       messages
     );
     if (probe.startsWith("[NEXT]")) {
@@ -128,14 +135,14 @@ export async function POST(request: Request) {
   if (advance) {
     questionIndex += 1;
     followupCount = 0;
-    if (questionIndex >= QUESTIONS.length) {
+    if (questionIndex >= questions.length) {
       done = true;
       reply = await llm(closingPrompt(), messages);
     } else {
       reply = await llm(
-        interviewerSystemPrompt(QUESTIONS[questionIndex], 0) +
+        interviewerSystemPrompt(questions[questionIndex], 0) +
           "\n\n" +
-          transitionPrompt(QUESTIONS[questionIndex]),
+          transitionPrompt(questions[questionIndex]),
         messages
       );
     }
@@ -157,7 +164,7 @@ export async function POST(request: Request) {
     sessionId: session.id,
     reply: reply!,
     done,
-    questionIndex: Math.min(questionIndex, QUESTIONS.length - 1),
-    questionCount: QUESTIONS.length,
+    questionIndex: Math.min(questionIndex, questions.length - 1),
+    questionCount: questions.length,
   });
 }
