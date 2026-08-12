@@ -161,12 +161,7 @@ export async function POST(request: Request) {
       done = true;
       reply = await llm(closingPrompt(), messages);
     } else {
-      reply = await llm(
-        interviewerSystemPrompt(questions[questionIndex], 0) +
-          "\n\n" +
-          transitionPrompt(questions[questionIndex]),
-        messages
-      );
+      reply = await llm(transitionPrompt(questions[questionIndex]), messages);
     }
   }
 

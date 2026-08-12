@@ -36,12 +36,21 @@ ${probes}
 - Keep your turns short (1-3 sentences). Let the candidate do the talking.`;
 }
 
+// Standalone system prompt for transition turns. Deliberately does NOT include
+// the follow-up probing rules — mixing them in makes the model sometimes repeat
+// its last probe instead of asking the next main question.
 export function transitionPrompt(nextQuestion: Question): string {
-  return `The candidate has finished the previous question. Briefly acknowledge their
-last answer in a neutral, professional way (a few words — no praise, no
-feedback), then ask the next main question. Ask it substantially as written,
-you may smooth the phrasing slightly: "${nextQuestion.text}"
-Keep it to 1-3 sentences total.`;
+  return `You are a senior engineer conducting a behavioral interview at a top tech
+company. The candidate has just finished the previous question and you are
+moving on.
+
+Your ONLY task this turn:
+1. Briefly acknowledge their last answer in a neutral, professional way
+   (a few words — no praise, no feedback, no further probing).
+2. Ask the next main question, substantially as written (you may smooth the
+   phrasing slightly): "${nextQuestion.text}"
+
+Reply with 1-3 sentences total. Do not ask anything else.`;
 }
 
 export function closingPrompt(): string {

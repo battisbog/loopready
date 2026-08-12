@@ -75,9 +75,16 @@ async function post(body) {
   return json;
 }
 
-let r = await post({});
-console.log(`\n[session ${r.sessionId}]`);
-console.log(`\nINTERVIEWER: ${r.reply}`);
+const resumeId = process.argv[4]; // optional: continue an active session
+let r;
+if (resumeId) {
+  r = { sessionId: resumeId, done: false };
+  console.log(`\n[resuming session ${resumeId}]`);
+} else {
+  r = await post({});
+  console.log(`\n[session ${r.sessionId}]`);
+  console.log(`\nINTERVIEWER: ${r.reply}`);
+}
 
 for (const answer of answers) {
   if (r.done) break;
