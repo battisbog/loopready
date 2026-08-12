@@ -100,8 +100,8 @@ export default async function Landing() {
               />
             </div>
             <figcaption className="mt-3 text-center text-xs text-zinc-600">
-              The coding round workspace. The behavioral round is live today;
-              coding and system design are in active development.
+              The coding round workspace. Behavioral and coding rounds are live
+              today; system design is in active development.
             </figcaption>
           </figure>
         </div>
@@ -183,9 +183,9 @@ export default async function Landing() {
               ]}
             />
             <RoundCard
-              status="soon"
+              status="live"
               title="Coding"
-              body="A live editor the interviewer can read, running your code against real test cases — with the same questions about approach and complexity you get on the day."
+              body="A live editor the interviewer reads as you type, running your code against real test cases — with the same questions about approach and complexity you get on the day."
               points={[
                 "Python and JavaScript",
                 "Real execution against tests",
@@ -441,7 +441,7 @@ export default async function Landing() {
             />
             <Faq
               q="Which rounds are available today?"
-              a="The behavioral round is live. Coding (live editor with real execution) and system design (architecture canvas) are in active development on the same engine — the interview page you see above is the target design."
+              a="Behavioral and coding are both live — the coding round gives you a real editor and runs your code against test cases in an isolated sandbox. System design (architecture canvas) is in active development."
             />
             <Faq
               q="How long does a session take?"

@@ -4,8 +4,14 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { feedbackModel } from "@/lib/ai";
 import { feedbackSchema } from "@/lib/feedback/schema";
-import { FEEDBACK_SYSTEM_PROMPT, feedbackUserPrompt } from "@/lib/feedback/prompt";
+import {
+  CODING_FEEDBACK_SYSTEM_PROMPT,
+  FEEDBACK_SYSTEM_PROMPT,
+  codingFeedbackUserPrompt,
+  feedbackUserPrompt,
+} from "@/lib/feedback/prompt";
 import { getContext } from "@/lib/interview/companies";
+import { getProblem } from "@/lib/coding/problems";
 
 export const maxDuration = 120;
 
@@ -73,11 +79,25 @@ export async function POST(request: Request) {
     if (loop) ctx = getContext(loop.company, loop.level);
   }
 
+  const isCoding = session.round_type === "coding";
+  const problem = isCoding ? getProblem(session.artifact?.problemId) : undefined;
+
   const { object } = await generateObject({
     model: feedbackModel(),
     schema: feedbackSchema,
-    system: FEEDBACK_SYSTEM_PROMPT,
-    prompt: feedbackUserPrompt(transcript, ctx),
+    system: isCoding ? CODING_FEEDBACK_SYSTEM_PROMPT : FEEDBACK_SYSTEM_PROMPT,
+    prompt:
+      isCoding && problem
+        ? codingFeedbackUserPrompt(
+            transcript,
+            session.artifact?.code ?? "",
+            session.artifact?.language ?? "python",
+            session.artifact?.lastRun ?? null,
+            problem.title,
+            problem.strongAnswerCovers,
+            ctx
+          )
+        : feedbackUserPrompt(transcript, ctx),
     providerOptions: { gateway: { tags: ["feature:feedback"] } },
   });
 

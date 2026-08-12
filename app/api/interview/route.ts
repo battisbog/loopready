@@ -4,8 +4,14 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { interviewModel } from "@/lib/ai";
 import { MAX_FOLLOWUPS, QUESTIONS, type Question } from "@/lib/interview/questions";
-import { startSession } from "@/lib/interview/start";
+import { MAX_CODING_TURNS, startSession } from "@/lib/interview/start";
 import { getContext } from "@/lib/interview/companies";
+import { getProblem } from "@/lib/coding/problems";
+import {
+  codingClosingPrompt,
+  codingSystemPrompt,
+  type CodingArtifact,
+} from "@/lib/coding/prompt";
 import {
   closingPrompt,
   interviewerSystemPrompt,
@@ -98,11 +104,13 @@ export async function POST(request: Request) {
   });
 
   // Coding/design rounds send their work product (code or diagram JSON) with
-  // each turn; persist it so the interviewer and feedback engine can see it.
+  // each turn. Merge it — a full replace would drop server-owned fields like
+  // problemId and the last run results.
   if (body.artifact !== undefined) {
+    session.artifact = { ...session.artifact, ...body.artifact };
     await admin
       .from("sessions")
-      .update({ artifact: body.artifact })
+      .update({ artifact: session.artifact })
       .eq("id", session.id);
   }
 
@@ -141,6 +149,25 @@ export async function POST(request: Request) {
   let reply: string;
   let done = false;
 
+  if (session.round_type === "coding") {
+    // Coding is one problem over many turns; question_index counts turns.
+    const artifact = (session.artifact ?? {}) as CodingArtifact;
+    const problem = getProblem(artifact.problemId);
+    if (!problem) {
+      return NextResponse.json({ error: "Session has no problem" }, { status: 409 });
+    }
+    questionIndex += 1;
+    done = questionIndex >= MAX_CODING_TURNS;
+    if (!done) {
+      reply = await llm(codingSystemPrompt(problem, artifact, ctx), messages);
+      // The interviewer signals it has enough signal rather than padding out
+      // the remaining turns with small talk.
+      if (reply.startsWith("[DONE]")) done = true;
+    }
+    if (done) {
+      reply = await llm(codingClosingPrompt(), messages);
+    }
+  } else {
   // Decide: follow-up probe on the current question, or move on?
   let advance = followupCount >= MAX_FOLLOWUPS;
   if (!advance) {
@@ -165,6 +192,7 @@ export async function POST(request: Request) {
     } else {
       reply = await llm(transitionPrompt(questions[questionIndex], ctx), messages);
     }
+  }
   }
 
   await admin
@@ -214,7 +242,11 @@ export async function POST(request: Request) {
     reply: reply!,
     nextRound,
     done,
-    questionIndex: Math.min(questionIndex, questions.length - 1),
-    questionCount: questions.length,
+    ...(session.round_type === "coding"
+      ? { questionIndex: 0, questionCount: 1, turn: questionIndex, maxTurns: MAX_CODING_TURNS }
+      : {
+          questionIndex: Math.min(questionIndex, questions.length - 1),
+          questionCount: questions.length,
+        }),
   });
 }

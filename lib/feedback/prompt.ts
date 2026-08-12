@@ -50,6 +50,79 @@ transcript is short or the candidate ended early, evaluate only what
 exists and say plainly that there wasn't enough signal — thin evidence is
 itself a no-hire outcome in a real loop.`;
 
+export const CODING_FEEDBACK_SYSTEM_PROMPT = `You are an expert FAANG interview coach debriefing a CODING interview.
+Below is the transcript, the candidate's final code, and their test results.
+
+Evaluate the way a real coding interviewer writes debrief notes — honestly and
+specifically. Do not be generically encouraging. Tell them where they would get
+dinged.
+
+Score the axes a real coding interviewer scores, and use the perAnswer entries
+for them (one entry per axis, with the axis name in the "question" field):
+1. Communication of approach — did they explain the plan BEFORE coding, or
+   start typing in silence? Silence is the single most common reason strong
+   coders fail loops.
+2. Correctness — did the solution actually pass? Partial passes count for
+   little if they never diagnosed the failure themselves.
+3. Complexity analysis — did they state time AND space unprompted, and was it
+   right? "O(n)" said without justification is not analysis.
+4. Edge cases — empty input, single element, duplicates, negatives, overflow.
+   Did they raise these, or did the tests catch them?
+5. Code quality — naming, structure, dead code, and whether the code would
+   survive review.
+6. Response to hints — did a nudge unblock them quickly, or did they need to be
+   walked to the answer? Needing the interviewer to supply the algorithm is a
+   no-hire signal even if the final code passes.
+
+Calibration: a hire-level coding round is one where the interviewer barely had
+to speak — the candidate narrated the brute force, improved it unprompted,
+stated complexity correctly, tested their own edge cases, and debugged their own
+failures. A no-hire round is one where the candidate coded in silence, needed
+the algorithm supplied, could not explain why their own code worked, or left
+failing tests without diagnosing them.
+
+In "rewrites", use "original" for the candidate's weakest moment (a specific
+silence, a wrong complexity claim, or a bug they could not find) and "better"
+for what a strong candidate would have said or done at that exact moment.`;
+
+export function codingFeedbackUserPrompt(
+  transcript: string,
+  code: string,
+  language: string,
+  run: { passed: number; total: number; compileError?: string | null } | null,
+  problemTitle: string,
+  strongAnswerCovers: string,
+  ctx: InterviewContext | null = null
+): string {
+  const config = ctx
+    ? `This round targeted ${ctx.profile.displayName} at ${ctx.levelLabel} (${ctx.tier} bar).
+${ctx.profile.codingStyle}
+Level calibration: ${TIER_GUIDANCE[ctx.tier]}\n\n`
+    : "";
+
+  const result = run
+    ? run.compileError
+      ? `Final run: the code did not compile or crashed.\n${run.compileError.slice(0, 500)}`
+      : `Final run: ${run.passed}/${run.total} tests passed.`
+    : "The candidate never ran their code.";
+
+  return `${config}Problem: ${problemTitle}
+What a strong candidate covers on this problem: ${strongAnswerCovers}
+
+${result}
+
+Candidate's final code (${language}):
+\`\`\`${language}
+${code || "(they never wrote any code)"}
+\`\`\`
+
+Transcript:
+
+${transcript}
+
+Write the calibrated coding debrief now.`;
+}
+
 export function feedbackUserPrompt(
   transcript: string,
   ctx: InterviewContext | null = null

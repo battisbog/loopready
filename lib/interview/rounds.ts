@@ -8,7 +8,7 @@ export type RoundType = (typeof ROUND_TYPES)[number];
 
 export const ROUND_IMPLEMENTED: Record<RoundType, boolean> = {
   behavioral: true,
-  coding: false,
+  coding: true,
   system_design: false,
 };
 

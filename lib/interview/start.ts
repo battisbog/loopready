@@ -2,6 +2,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { getContext } from "./companies";
 import { pickSessionQuestions, type Question } from "./questions";
 import type { RoundType } from "./rounds";
+import { pickProblem } from "@/lib/coding/problems";
+import { codingOpening } from "@/lib/coding/prompt";
 
 interface StartArgs {
   admin: SupabaseClient;
@@ -13,7 +15,9 @@ interface StartArgs {
   level?: string | null;
 }
 
-function opening(firstQuestion: Question, companyName?: string): string {
+export const MAX_CODING_TURNS = 14;
+
+function behavioralOpening(firstQuestion: Question, companyName?: string): string {
   const where = companyName && companyName !== "Generic FAANG" ? ` at ${companyName}` : "";
   return `Hi, thanks for joining. I'm a senior engineer${where} and I'll be running your behavioral round today — about three questions, and I may dig into your answers. Let's get started. ${firstQuestion.text}`;
 }
@@ -29,22 +33,40 @@ export async function startSession({
   level = null,
 }: StartArgs) {
   const ctx = company && level ? getContext(company, level) : null;
-  const questions = pickSessionQuestions(3, ctx?.profile.competencyEmphasis ?? []);
+
+  const row: Record<string, unknown> = {
+    user_id: userId,
+    round_type: roundType,
+    loop_id: loopId,
+    round_order: roundOrder,
+  };
+
+  let reply: string;
+  let questionCount = 1;
+
+  if (roundType === "coding") {
+    const problem = pickProblem(ctx?.tier ?? "mid");
+    const language = "python";
+    row.artifact = {
+      problemId: problem.id,
+      language,
+      code: problem.signatures[language],
+    };
+    reply = codingOpening(problem, ctx?.profile.displayName);
+  } else {
+    const questions = pickSessionQuestions(3, ctx?.profile.competencyEmphasis ?? []);
+    row.questions = questions;
+    questionCount = questions.length;
+    reply = behavioralOpening(questions[0], ctx?.profile.displayName);
+  }
 
   const { data: session, error } = await admin
     .from("sessions")
-    .insert({
-      user_id: userId,
-      questions,
-      round_type: roundType,
-      loop_id: loopId,
-      round_order: roundOrder,
-    })
+    .insert(row)
     .select()
     .single();
   if (error || !session) throw new Error("Failed to create session");
 
-  const reply = opening(questions[0], ctx?.profile.displayName);
   await admin
     .from("turns")
     .insert({ session_id: session.id, role: "interviewer", text: reply });
@@ -54,6 +76,6 @@ export async function startSession({
     reply,
     done: false,
     questionIndex: 0,
-    questionCount: questions.length,
+    questionCount,
   };
 }

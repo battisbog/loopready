@@ -3,6 +3,8 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import VoiceInterview from "./voice-interview";
+import CodingInterview from "./coding-interview";
+import { getProblem } from "@/lib/coding/problems";
 import { getContext } from "@/lib/interview/companies";
 import { ROUND_LABEL, type RoundType } from "@/lib/interview/rounds";
 
@@ -53,6 +55,26 @@ export default async function SessionPage({
   }
 
   if (session.status === "active") {
+    if (session.round_type === "coding") {
+      const problem = getProblem(session.artifact?.problemId);
+      if (!problem) notFound();
+      return (
+        <CodingInterview
+          sessionId={id}
+          initialTurns={turns ?? []}
+          header={header}
+          problem={{
+            title: problem.title,
+            statement: problem.statement,
+            example: problem.example,
+            fn: problem.fn,
+          }}
+          initialCode={session.artifact?.code ?? problem.signatures.python}
+          initialLanguage={session.artifact?.language ?? "python"}
+          signatures={problem.signatures}
+        />
+      );
+    }
     return (
       <VoiceInterview
         sessionId={id}
