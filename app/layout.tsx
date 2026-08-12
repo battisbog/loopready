@@ -13,9 +13,33 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "LoopReady",
+  metadataBase: new URL("https://loopready-five.vercel.app"),
+  title: {
+    default: "LoopReady — Voice mock interviews for your FAANG loop",
+    template: "%s · LoopReady",
+  },
   description:
-    "Voice-based mock interviews with feedback calibrated to what passes a FAANG loop.",
+    "Practice a real behavioral interview out loud. An AI interviewer that probes vague answers, calibrated to your target company and level, plus an honest debrief telling you where you'd get dinged.",
+  keywords: [
+    "mock interview",
+    "behavioral interview practice",
+    "FAANG interview prep",
+    "Amazon Leadership Principles",
+    "system design interview",
+  ],
+  openGraph: {
+    title: "LoopReady — Fail your mock, not your loop",
+    description:
+      "Voice mock interviews calibrated to your target company and level, with feedback that tells you where you'd get dinged.",
+    type: "website",
+    siteName: "LoopReady",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "LoopReady — Fail your mock, not your loop",
+    description:
+      "Voice mock interviews calibrated to your target company and level.",
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

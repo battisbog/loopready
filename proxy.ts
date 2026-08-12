@@ -3,6 +3,11 @@ import { NextResponse, type NextRequest } from "next/server";
 
 const PUBLIC_PATHS = ["/login", "/auth"];
 
+// The marketing landing page is public; everything else requires a session.
+function isPublicPath(pathname: string) {
+  return pathname === "/" || PUBLIC_PATHS.some((p) => pathname.startsWith(p));
+}
+
 export default async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
 
@@ -32,9 +37,8 @@ export default async function proxy(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const { pathname } = request.nextUrl;
-  const isPublic = PUBLIC_PATHS.some((p) => pathname.startsWith(p));
 
-  if (!user && !isPublic) {
+  if (!user && !isPublicPath(pathname)) {
     // API callers need JSON, not an HTML login page — a mid-interview fetch
     // that follows a redirect would fail to parse the response.
     if (pathname.startsWith("/api/")) {

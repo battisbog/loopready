@@ -86,7 +86,7 @@ export default async function SessionPage({
           >
             Feedback
           </Link>
-          <Link href="/" className="text-zinc-500 hover:text-zinc-300">
+          <Link href="/dashboard" className="text-zinc-500 hover:text-zinc-300">
             Home
           </Link>
         </div>

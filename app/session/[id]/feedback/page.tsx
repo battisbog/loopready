@@ -126,7 +126,7 @@ function Shell({ id, children }: { id: string; children: React.ReactNode }) {
           <Link href={`/session/${id}`} className="text-zinc-500 hover:text-zinc-300">
             Transcript
           </Link>
-          <Link href="/" className="text-zinc-500 hover:text-zinc-300">
+          <Link href="/dashboard" className="text-zinc-500 hover:text-zinc-300">
             Home
           </Link>
         </div>
