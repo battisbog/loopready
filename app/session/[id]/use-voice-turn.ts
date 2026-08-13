@@ -47,6 +47,7 @@ interface SpeechRecognitionLike {
 /** Minimal SSE reader — parses `event:` / `data:` frames from a fetch body. */
 async function readSSE(
   body: ReadableStream<Uint8Array>,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onEvent: (event: string, data: any) => void
 ): Promise<void> {
   const reader = body.getReader();
