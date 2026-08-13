@@ -1,12 +1,96 @@
 @import "tailwindcss";
 
+/* ============================================================
+   Design tokens
+   Single source of truth for colour, radius, and elevation.
+   Raw values live here; @theme maps them to Tailwind utilities.
+   ============================================================ */
+:root {
+  color-scheme: dark;
+
+  /* Layered dark background scale */
+  --bg-base: #09090b; /* page */
+  --bg-surface: #121215; /* cards, panels */
+  --bg-elevated: #1a1a1f; /* raised: popovers, hovered rows */
+  --bg-inset: #0d0d10; /* wells: code, consoles */
+
+  /* Borders */
+  --border-subtle: #232328;
+  --border-strong: #33333c;
+
+  /* Emerald accent */
+  --accent: #10b981;
+  --accent-hover: #34d399;
+  --accent-muted: rgb(16 185 129 / 0.12);
+  --accent-border: rgb(16 185 129 / 0.32);
+  --accent-fg: #052e21; /* text on a solid accent fill */
+
+  /* Text scale */
+  --text-primary: #fafafa;
+  --text-secondary: #a1a1aa;
+  --text-muted: #6b6b75;
+
+  /* Semantic */
+  --success: #34d399;
+  --success-muted: rgb(52 211 153 / 0.12);
+  --warn: #fbbf24;
+  --warn-muted: rgb(251 191 36 / 0.12);
+  --error: #f87171;
+  --error-muted: rgb(248 113 113 / 0.12);
+
+  /* Radius scale */
+  --radius-xs: 0.375rem;
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.25rem;
+
+  /* Elevation */
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
+  --shadow-md: 0 4px 16px -4px rgb(0 0 0 / 0.5);
+  --shadow-lg: 0 16px 48px -12px rgb(0 0 0 / 0.6);
+  --shadow-accent: 0 0 40px -10px rgb(16 185 129 / 0.55);
+}
+
+/* Expose tokens as Tailwind utilities: bg-surface, text-secondary, etc. */
 @theme inline {
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
 
-:root {
-  color-scheme: dark;
+  --color-base: var(--bg-base);
+  --color-surface: var(--bg-surface);
+  --color-elevated: var(--bg-elevated);
+  --color-inset: var(--bg-inset);
+
+  --color-line: var(--border-subtle);
+  --color-line-strong: var(--border-strong);
+
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-muted: var(--accent-muted);
+  --color-accent-border: var(--accent-border);
+  --color-accent-fg: var(--accent-fg);
+
+  --color-primary: var(--text-primary);
+  --color-secondary: var(--text-secondary);
+  --color-muted: var(--text-muted);
+
+  --color-success: var(--success);
+  --color-success-muted: var(--success-muted);
+  --color-warn: var(--warn);
+  --color-warn-muted: var(--warn-muted);
+  --color-error: var(--error);
+  --color-error-muted: var(--error-muted);
+
+  --radius-xs: var(--radius-xs);
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
 }
 
 html {
@@ -14,13 +98,21 @@ html {
 }
 
 body {
-  background: #09090b;
-  color: #fafafa;
+  background: var(--bg-base);
+  color: var(--text-primary);
   font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
-/* Marketing page motion — respects reduced-motion preference */
+/* Consistent focus ring across every interactive primitive */
+:where(a, button, input, select, textarea):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ============================================================
+   Motion
+   ============================================================ */
 @keyframes rise {
   from {
     opacity: 0;
@@ -36,25 +128,12 @@ body {
   animation: rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .rise {
-    animation: none;
-  }
-  html {
-    scroll-behavior: auto;
-  }
-}
-
-/* --- Interview stage --- */
 @keyframes ring-pulse {
   0% {
     transform: scale(1);
     opacity: 0.55;
   }
-  70% {
-    transform: scale(1.28);
-    opacity: 0;
-  }
+  70%,
   100% {
     transform: scale(1.28);
     opacity: 0;
@@ -81,8 +160,12 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .rise,
   .ring-pulse,
   .wave-bar {
     animation: none;
+  }
+  html {
+    scroll-behavior: auto;
   }
 }
