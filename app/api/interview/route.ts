@@ -24,6 +24,11 @@ import {
   transitionPrompt,
 } from "@/lib/interview/prompt";
 import { ROUND_IMPLEMENTED, isRoundType } from "@/lib/interview/rounds";
+import {
+  checkDailySessionQuota,
+  checkRateLimit,
+  dailyQuotaResponse,
+} from "@/lib/rate-limit";
 
 export const maxDuration = 60;
 
@@ -57,6 +62,9 @@ export async function POST(request: Request) {
   } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  const limited = await checkRateLimit("interview", user.id);
+  if (!limited.ok) return limited.response!;
+
   const admin = createAdminClient();
   const body: Body = await request.json().catch(() => ({}));
 
@@ -72,6 +80,9 @@ export async function POST(request: Request) {
         { status: 501 }
       );
     }
+    const quota = await checkDailySessionQuota(admin, user.id);
+    if (quota.exceeded) return dailyQuotaResponse(quota);
+
     try {
       const started = await startSession({
         admin,

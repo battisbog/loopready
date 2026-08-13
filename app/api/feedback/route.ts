@@ -16,6 +16,7 @@ import { getContext } from "@/lib/interview/companies";
 import { getProblem } from "@/lib/coding/problems";
 import { getDesignPrompt } from "@/lib/design/prompts";
 import { describeDiagram } from "@/lib/design/prompt";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 export const maxDuration = 120;
 
@@ -25,6 +26,9 @@ export async function POST(request: Request) {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const limited = await checkRateLimit("feedback", user.id);
+  if (!limited.ok) return limited.response!;
 
   const { sessionId } = await request.json().catch(() => ({}));
   if (!sessionId) {

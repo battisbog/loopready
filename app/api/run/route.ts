@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getProblem } from "@/lib/coding/problems";
 import { runTests, type Language } from "@/lib/coding/runner";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 export const maxDuration = 120;
 
@@ -12,6 +13,9 @@ export async function POST(request: Request) {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const limited = await checkRateLimit("run", user.id);
+  if (!limited.ok) return limited.response!;
 
   const { sessionId, code, language } = await request.json().catch(() => ({}));
   if (!sessionId || typeof code !== "string") {

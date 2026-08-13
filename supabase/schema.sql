@@ -63,3 +63,34 @@ alter table sessions add column if not exists loop_id uuid references loops(id);
 alter table sessions add column if not exists round_type text not null default 'behavioral';
 alter table sessions add column if not exists round_order int default 0;
 alter table sessions add column if not exists artifact jsonb;
+
+-- Plans: gates the free-tier daily session cap. 'free' | 'voice' | 'premium' | 'unlimited'
+create table if not exists profiles (
+  id uuid primary key references auth.users(id) on delete cascade,
+  plan text not null default 'free',
+  created_at timestamptz default now()
+);
+
+alter table profiles enable row level security;
+drop policy if exists "own profile" on profiles;
+create policy "own profile" on profiles for select
+  using (auth.uid() = id);
+
+-- Backfill anyone who signed up before this table existed.
+insert into profiles (id)
+  select id from auth.users
+  on conflict (id) do nothing;
+
+-- New sign-ups get a profile automatically.
+create or replace function public.handle_new_user()
+returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  insert into public.profiles (id) values (new.id) on conflict (id) do nothing;
+  return new;
+end;
+$$;
+
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute function public.handle_new_user();

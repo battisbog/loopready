@@ -8,6 +8,7 @@ import { planTurn, progressPayload, type TurnState } from "@/lib/interview/turn"
 import { startSession } from "@/lib/interview/start";
 import { isRoundType, ROUND_IMPLEMENTED } from "@/lib/interview/rounds";
 import { SentenceBuffer } from "@/lib/sentences";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 export const maxDuration = 60;
 
@@ -19,6 +20,9 @@ export async function POST(request: Request) {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const limited = await checkRateLimit("interview", user.id);
+  if (!limited.ok) return limited.response!;
 
   const admin = createAdminClient();
   const body = await request.json().catch(() => ({}));

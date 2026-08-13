@@ -4,6 +4,11 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { COMPANY_PROFILES } from "@/lib/interview/companies";
 import { ROUND_IMPLEMENTED, isRoundType, type RoundType } from "@/lib/interview/rounds";
 import { startSession } from "@/lib/interview/start";
+import {
+  checkDailySessionQuota,
+  checkRateLimit,
+  dailyQuotaResponse,
+} from "@/lib/rate-limit";
 
 // Creates a loop (company + level + chosen rounds) and starts its first round.
 export async function POST(request: Request) {
@@ -12,6 +17,9 @@ export async function POST(request: Request) {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const limited = await checkRateLimit("interview", user.id);
+  if (!limited.ok) return limited.response!;
 
   const body = await request.json().catch(() => ({}));
   const company = String(body.company ?? "generic");
@@ -41,6 +49,10 @@ export async function POST(request: Request) {
   }
 
   const admin = createAdminClient();
+
+  const quota = await checkDailySessionQuota(admin, user.id);
+  if (quota.exceeded) return dailyQuotaResponse(quota);
+
   const { data: loop, error } = await admin
     .from("loops")
     .insert({ user_id: user.id, company, level, rounds: roundList })
