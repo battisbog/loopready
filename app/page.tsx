@@ -2,7 +2,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 import { COMPANY_PROFILES } from "@/lib/interview/companies";
-import TranscriptDemo from "./(marketing)/transcript-demo";
 import CompanyTabs from "./(marketing)/company-tabs";
 import Nav from "./(marketing)/nav";
 import Pricing from "./(marketing)/pricing";
@@ -29,7 +28,7 @@ export default async function Landing() {
           className="pointer-events-none absolute left-1/2 top-[-18rem] h-[36rem] w-[70rem] -translate-x-1/2 rounded-full bg-emerald-500/10 blur-[120px]"
         />
         <div className="relative mx-auto w-full max-w-6xl px-6 pb-20 pt-16 sm:pt-24">
-          <div className="grid items-center gap-14 lg:grid-cols-[1.05fr_1fr]">
+          <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,0.88fr)_minmax(0,1.12fr)] lg:gap-14">
             <div className="rise">
               <span className="inline-flex items-center gap-2 rounded-full border border-zinc-800 bg-zinc-900/60 px-3 py-1 text-xs text-zinc-400">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
@@ -69,44 +68,35 @@ export default async function Landing() {
               </p>
             </div>
 
-            <div className="rise" style={{ animationDelay: "120ms" }}>
-              <TranscriptDemo />
-            </div>
+            <figure className="rise lg:-mr-4" style={{ animationDelay: "120ms" }}>
+              <div className="overflow-hidden rounded-xl border border-zinc-800 bg-zinc-950 shadow-2xl shadow-emerald-500/10">
+                <div className="flex items-center gap-1.5 border-b border-zinc-800 bg-zinc-900/80 px-4 py-2.5">
+                  <span className="h-2.5 w-2.5 rounded-full bg-zinc-700" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-zinc-700" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-zinc-700" />
+                  <span className="ml-3 truncate font-mono text-[11px] text-zinc-600">
+                    loopready.app/session
+                  </span>
+                </div>
+                <Image
+                  src="/coding-round-preview.png"
+                  alt="The LoopReady interview workspace: the interviewer panel on the left, a Python editor on the right, and a console showing test cases passing and failing."
+                  width={1672}
+                  height={941}
+                  priority
+                  quality={95}
+                  className="h-auto w-full"
+                  sizes="(max-width: 1024px) 100vw, 620px"
+                />
+              </div>
+              <figcaption className="mt-3 text-center text-xs text-zinc-600 lg:text-left">
+                All three rounds — behavioral, coding, and system design — are
+                live today.
+              </figcaption>
+            </figure>
           </div>
         </div>
       </header>
-
-      {/* ---------- Product shot ---------- */}
-      <section className="relative">
-        <div className="mx-auto w-full max-w-5xl px-6 pb-20">
-          <figure>
-            <div className="overflow-hidden rounded-xl border border-zinc-800 bg-zinc-950 shadow-2xl shadow-emerald-500/10">
-              <div className="flex items-center gap-1.5 border-b border-zinc-800 bg-zinc-900/80 px-4 py-2.5">
-                <span className="h-2.5 w-2.5 rounded-full bg-zinc-700" />
-                <span className="h-2.5 w-2.5 rounded-full bg-zinc-700" />
-                <span className="h-2.5 w-2.5 rounded-full bg-zinc-700" />
-                <span className="ml-3 font-mono text-[11px] text-zinc-600">
-                  loopready.app/session
-                </span>
-              </div>
-              <Image
-                src="/coding-round-preview.png"
-                alt="The LoopReady interview workspace: an interviewer panel on the left, a Python editor on the right, and a console showing test cases passing and failing."
-                width={1672}
-                height={941}
-                priority
-                quality={95}
-                className="h-auto w-full"
-                sizes="(max-width: 1024px) 100vw, 976px"
-              />
-            </div>
-            <figcaption className="mt-3 text-center text-xs text-zinc-600">
-              The coding round workspace. All three rounds — behavioral, coding,
-              and system design — are live today.
-            </figcaption>
-          </figure>
-        </div>
-      </section>
 
       {/* ---------- Companies ---------- */}
       <section className="border-y border-zinc-900 bg-zinc-950/60">
