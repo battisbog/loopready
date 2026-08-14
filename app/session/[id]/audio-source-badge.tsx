@@ -26,7 +26,7 @@ export default function AudioSourceBadge({
   const detail = both
     ? `Speech: ${serverAudio.sttProvider ?? "Whisper"} · Voice: ${serverAudio.ttsProvider ?? "OpenAI"}`
     : neither
-      ? "Using the browser's built-in speech — lower quality. Set an API key for natural voice."
+      ? "Using the browser's built-in speech, which is lower quality. Set an API key for natural voice."
       : `Speech: ${serverAudio.stt ? (serverAudio.sttProvider ?? "Whisper") : "browser"} · Voice: ${
           serverAudio.tts ? (serverAudio.ttsProvider ?? "OpenAI") : "browser"
         }`;

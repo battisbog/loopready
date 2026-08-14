@@ -39,7 +39,7 @@ const TIERS: Tier[] = [
     featured: true,
     features: [
       { label: "Unlimited voice mock interviews" },
-      { label: "All rounds — behavioral, coding, system design" },
+      { label: "All rounds: behavioral, coding, system design" },
       { label: "Studio-quality interviewer voice" },
       { label: "Company and level calibration" },
       { label: "Full feedback on every round" },
@@ -54,7 +54,7 @@ const TIERS: Tier[] = [
     tagline: "Face-to-face practice for the real thing.",
     cta: "Join the waitlist",
     href: "/signup?plan=premium",
-    note: "Video avatar is still in development — you'll be first in line.",
+    note: "Video avatar is still in development. You'll be first in line.",
     features: [
       { label: "Everything in Voice" },
       { label: "2 video-avatar mock interviews / month", soon: true },
@@ -218,7 +218,7 @@ export default function Pricing() {
           />
           <PriceFaq
             q="What does the Free plan actually get me?"
-            a="One short behavioral mock with the full written debrief, using your browser's built-in voice. It's enough to judge whether the feedback is worth paying for — that's the point of it."
+            a="One short behavioral mock with the full written debrief, using your browser's built-in voice. It's enough to judge whether the feedback is worth paying for. That's the point of it."
           />
           <PriceFaq
             q="Why is the interviewer voice better on paid plans?"
@@ -226,7 +226,7 @@ export default function Pricing() {
           />
           <PriceFaq
             q="When does the video avatar arrive?"
-            a="It's in development and not available yet. Premium is priced for it, so we list it as coming soon rather than pretending it's live — if you subscribe now you get everything in Voice plus first access the moment avatars ship."
+            a="It's in development and not available yet. Premium is priced for it, so we list it as coming soon rather than pretending it's live. If you subscribe now, you get everything in Voice plus first access the moment avatars ship."
           />
           <PriceFaq
             q="Do you offer student or bulk pricing?"

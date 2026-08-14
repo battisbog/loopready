@@ -21,7 +21,7 @@ export const MAX_CODING_TURNS = 14;
 
 function behavioralOpening(firstQuestion: Question, companyName?: string): string {
   const where = companyName && companyName !== "Generic FAANG" ? ` at ${companyName}` : "";
-  return `Hi, thanks for joining. I'm a senior engineer${where} and I'll be running your behavioral round today — about three questions, and I may dig into your answers. Let's get started. ${firstQuestion.text}`;
+  return `Hi, thanks for joining. I'm a senior engineer${where} and I'll be running your behavioral round today. It's about three questions, and I may dig into your answers. Let's get started. ${firstQuestion.text}`;
 }
 
 // Creates a session row (optionally inside a loop) and stores the opening turn.

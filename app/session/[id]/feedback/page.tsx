@@ -50,7 +50,7 @@ export default function FeedbackPage({
       <Shell id={id}>
         <div className="flex items-center gap-3 text-sm text-zinc-400">
           <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
-          Writing your debrief — evaluating each answer the way a real loop
+          Writing your debrief. We&rsquo;re evaluating each answer the way a real loop
           would…
         </div>
       </Shell>

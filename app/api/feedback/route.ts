@@ -68,7 +68,7 @@ export async function POST(request: Request) {
   const candidateTurns = (turns ?? []).filter((t) => t.role === "candidate");
   if (candidateTurns.length === 0) {
     return NextResponse.json(
-      { error: "Nothing to evaluate — the candidate never answered" },
+      { error: "Nothing to evaluate, because the candidate never answered" },
       { status: 422 }
     );
   }

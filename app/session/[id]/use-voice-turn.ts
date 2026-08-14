@@ -21,7 +21,7 @@ export type Status =
 
 const STATUS_LABEL: Record<Status, string> = {
   idle: "Tap the mic and answer out loud",
-  recording: "Recording — tap again when you're done",
+  recording: "Recording. Tap again when you're done",
   transcribing: "Transcribing…",
   thinking: "Interviewer is thinking…",
   speaking: "Interviewer is speaking…",
@@ -302,7 +302,7 @@ export function useVoiceTurn({
     const recognition = getSpeechRecognition();
     if (!recognition) {
       setError(
-        "This browser doesn't support speech recognition — use Chrome, or add an OpenAI key for server-side transcription."
+        "This browser doesn't support speech recognition. Use Chrome, or add an OpenAI key for server-side transcription."
       );
       return;
     }
@@ -328,7 +328,7 @@ export function useVoiceTurn({
       const text = transcriptRef.current.trim();
       if (!text) {
         setStatus("idle");
-        setError("Didn't catch that — try again.");
+        setError("Didn't catch that. Try again.");
         return;
       }
       submitAnswer(text);
@@ -354,7 +354,7 @@ export function useVoiceTurn({
       const text: string = (data.text ?? "").trim();
       if (!text) {
         setStatus("idle");
-        setError("Didn't catch that — try again.");
+        setError("Didn't catch that. Try again.");
         return;
       }
       await submitAnswer(text);
@@ -362,7 +362,7 @@ export function useVoiceTurn({
       setServerAudio((s) => ({ ...s, stt: false }));
       setStatus("idle");
       setError(
-        "Server transcription unavailable — switched to browser speech. Tap the mic and repeat your answer."
+        "Server transcription unavailable, so we switched to browser speech. Tap the mic and repeat your answer."
       );
     }
   }
@@ -372,7 +372,7 @@ export function useVoiceTurn({
       setTurns((t) => [...t, { role: "candidate", text }]);
       setHint(
         text.split(/\s+/).length > 220
-          ? "That answer ran long — in a real interview you'd want to be more concise."
+          ? "That answer ran long. In a real interview you'd want to be more concise."
           : null
       );
       setStatus("thinking");

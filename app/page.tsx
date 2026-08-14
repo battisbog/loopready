@@ -42,9 +42,8 @@ export default async function Landing() {
               </h1>
 
               <p className="mt-6 max-w-xl text-lg leading-relaxed text-zinc-400">
-                LoopReady runs a real interview out loud — an interviewer that
-                interrupts vague answers and digs until you give it something
-                specific. Then it tells you, honestly, where you would have been
+                LoopReady runs a real interview out loud. The interviewer interrupts
+                vague answers and digs until you give it something specific. Then it tells you, honestly, where you would have been
                 dinged.
               </p>
 
@@ -90,8 +89,8 @@ export default async function Landing() {
                 />
               </div>
               <figcaption className="mt-3 text-center text-xs text-zinc-600 lg:text-left">
-                All three rounds — behavioral, coding, and system design — are
-                live today.
+                All three rounds are live today: behavioral, coding, and system
+                design.
               </figcaption>
             </figure>
           </div>
@@ -127,15 +126,15 @@ export default async function Landing() {
             You said &ldquo;we&rdquo; when the interviewer needed
             &ldquo;I&rdquo;. Your impact was &ldquo;users were happy&rdquo;
             instead of a number. Your conflict story ended with you being right
-            all along. Nobody in the debrief ever tells you that — you just get
-            a rejection email six days later.
+            all along. Nobody in the debrief ever tells you that. You just get a rejection
+            email six days later.
           </p>
         </div>
 
         <div className="mt-14 grid gap-5 md:grid-cols-3">
           <Card
             title="An interviewer that actually probes"
-            body="It does not accept your first answer. If a story is vague, it asks what exactly you did, what would have happened if you hadn't, and how you measured it — the same follow-ups a bar raiser uses."
+            body="It does not accept your first answer. If a story is vague, it asks what exactly you did, what would have happened if you hadn't, and how you measured it. These are the same follow-ups a bar raiser uses."
           />
           <Card
             title="Shaped to your target"
@@ -157,7 +156,7 @@ export default async function Landing() {
             </h2>
             <p className="mt-5 text-lg leading-relaxed text-zinc-400">
               Run a single round, or the full loop back to back under one
-              configuration — the same company and level carried through every
+              configuration, with the same company and level carried through every
               round.
             </p>
           </div>
@@ -176,7 +175,7 @@ export default async function Landing() {
             <RoundCard
               status="live"
               title="Coding"
-              body="A live editor the interviewer reads as you type, running your code against real test cases — with the same questions about approach and complexity you get on the day."
+              body="A live editor the interviewer reads as you type, running your code against real test cases, with the same questions about approach and complexity you get on the day."
               points={[
                 "Python and JavaScript",
                 "Real execution against tests",
@@ -206,7 +205,7 @@ export default async function Landing() {
           <Step
             n="01"
             title="Pick your target"
-            body="Choose the company and the level you're actually interviewing for — Amazon SDE II, Google L5, Meta E4. The interview is built from that."
+            body="Choose the company and the level you're actually interviewing for: Amazon SDE II, Google L5, Meta E4. The interview is built from that."
           />
           <Step
             n="02"
@@ -233,8 +232,8 @@ export default async function Landing() {
             </h2>
             <p className="mt-5 text-lg leading-relaxed text-zinc-400">
               A generic tool asks &ldquo;tell me about a challenge.&rdquo;
-              LoopReady interviews you the way your target actually does — and
-              the level you pick changes the bar, not just the wording. Pick a
+              LoopReady interviews you the way your target actually does, and the
+              level you pick changes the bar, not just the wording. Pick a
               company to see the difference.
             </p>
           </div>
@@ -249,7 +248,7 @@ export default async function Landing() {
             This is what the debrief looks like.
           </h2>
           <p className="mt-5 text-lg text-zinc-400">
-            Real output from a session — not a mockup. Every point is tied to
+            Real output from a session, not a mockup. Every point is tied to
             something the candidate actually said.
           </p>
         </div>
@@ -304,8 +303,8 @@ export default async function Landing() {
                   &ldquo;He proposed MongoDB because he expected event payloads
                   to change often. I built a one-day prototype on 5M events:
                   Mongo won on ingest, but our three reporting queries ran 2–3×
-                  slower. I changed my own position — Postgres with JSONB — and
-                  he accepted. p95 stayed under 400 ms all quarter.&rdquo;
+                  slower. I changed my own position to Postgres with JSONB, and he
+                  accepted. p95 stayed under 400 ms all quarter.&rdquo;
                 </p>
               </div>
             </div>
@@ -389,7 +388,7 @@ export default async function Landing() {
           <dl className="mt-10 divide-y divide-zinc-900">
             <Faq
               q="Do I have to speak out loud?"
-              a="Yes, and that's the point — reading a written answer is a different skill from telling the story under pressure. You tap a mic button, answer, and the interviewer replies in voice."
+              a="Yes, and that's the point. Reading a written answer is a different skill from telling the story under pressure. You tap a mic button, answer, and the interviewer replies in voice."
             />
             <Faq
               q="How is this different from asking ChatGPT how I did?"

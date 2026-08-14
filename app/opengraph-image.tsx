@@ -2,7 +2,7 @@ import { ImageResponse } from "next/og";
 
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
-export const alt = "LoopReady — Fail your mock, not your loop";
+export const alt = "LoopReady: Fail your mock, not your loop";
 
 export default function OgImage() {
   return new ImageResponse(
@@ -61,7 +61,7 @@ export default function OgImage() {
             maxWidth: 900,
           }}
         >
-          Voice mock interviews calibrated to your target company and level —
+          Voice mock interviews calibrated to your target company and level,
           with feedback that tells you where you would get dinged.
         </div>
       </div>

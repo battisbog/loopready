@@ -98,7 +98,7 @@ export function designOpening(
 ): string {
   const where =
     companyName && companyName !== "Generic FAANG" ? ` at ${companyName}` : "";
-  return `Hi, thanks for joining. I'm a senior engineer${where} and I'll be running your system design round. Here's the prompt: ${design.statement} Take a minute — before you draw anything, tell me what questions you have about the requirements and scale.`;
+  return `Hi, thanks for joining. I'm a senior engineer${where} and I'll be running your system design round. Here's the prompt: ${design.statement} Take a minute. Before you draw anything, tell me what questions you have about the requirements and scale.`;
 }
 
 export function designClosingPrompt(): string {

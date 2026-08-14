@@ -20,7 +20,7 @@ const DEMOS: CompanyDemo[] = [
     scoredAgainst: "Ownership · Dive Deep · Earn Trust · Deliver Results",
     probes: [
       "If you had been on vacation that month, what would have happened?",
-      "How did you measure that — what was the number before and after?",
+      "How did you measure that? What was the number before and after?",
       "What did you sacrifice to hit that date, and what was the plan to repay it?",
       "Tell me about a time you were wrong about this.",
     ],
@@ -32,7 +32,7 @@ const DEMOS: CompanyDemo[] = [
     scoredAgainst: "Structured problem solving · Collaboration · Intellectual humility",
     probes: [
       "What assumptions did you write down, and how did you validate the riskiest one?",
-      "What if the data had shown the opposite — what would you have done?",
+      "What if the data had shown the opposite? What would you have done?",
       "What did you change in your own plan based on their pushback?",
       "How did you get your first ally?",
     ],
@@ -68,7 +68,7 @@ const DEMOS: CompanyDemo[] = [
     scoredAgainst: "Excellence · Depth of expertise · User experience",
     probes: [
       "When did you refuse to ship something everyone else thought was good enough?",
-      "Take me deeper on that — why did it behave that way?",
+      "Take me deeper on that. Why did it behave that way?",
       "How did you resolve a dispute with design or hardware?",
       "What detail did you obsess over that nobody asked you to?",
     ],

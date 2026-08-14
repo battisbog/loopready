@@ -42,7 +42,7 @@ interface Body {
 }
 
 function opening(firstQuestion: Question): string {
-  return `Hi, thanks for joining. I'm a senior engineer here and I'll be running your behavioral round today — about three questions, and I may dig into your answers. Let's get started. ${firstQuestion.text}`;
+  return `Hi, thanks for joining. I'm a senior engineer here and I'll be running your behavioral round today. It's about three questions, and I may dig into your answers. Let's get started. ${firstQuestion.text}`;
 }
 
 async function llm(system: string, messages: ModelMessage[]): Promise<string> {

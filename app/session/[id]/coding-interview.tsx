@@ -291,7 +291,7 @@ function ConsoleOutput({ run }: { run: RunResult }) {
         <pre className="whitespace-pre-wrap text-zinc-500">{run.stdout}</pre>
       )}
       <p className="text-zinc-400">
-        Ran {run.total} test{run.total === 1 ? "" : "s"} —{" "}
+        Ran {run.total} test{run.total === 1 ? "" : "s"},{" "}
         <span className={run.passed === run.total ? "text-emerald-400" : "text-amber-400"}>
           {run.passed} passed
         </span>

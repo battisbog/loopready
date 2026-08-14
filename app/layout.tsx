@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL("https://loopready-five.vercel.app"),
   title: {
-    default: "LoopReady — Voice mock interviews for your FAANG loop",
+    default: "LoopReady: Voice mock interviews for your FAANG loop",
     template: "%s · LoopReady",
   },
   description:
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     "system design interview",
   ],
   openGraph: {
-    title: "LoopReady — Fail your mock, not your loop",
+    title: "LoopReady: Fail your mock, not your loop",
     description:
       "Voice mock interviews calibrated to your target company and level, with feedback that tells you where you'd get dinged.",
     type: "website",
@@ -36,7 +36,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "LoopReady — Fail your mock, not your loop",
+    title: "LoopReady: Fail your mock, not your loop",
     description:
       "Voice mock interviews calibrated to your target company and level.",
   },

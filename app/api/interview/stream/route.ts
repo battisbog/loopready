@@ -108,7 +108,7 @@ export async function POST(request: Request) {
         const result = streamText({ model: interviewModel(), system, messages });
         const sentences = new SentenceBuffer();
         let full = "";
-        let sawControl = false;
+        const sawControl = false;
         // Hold back the opening tokens until we know it isn't a control token.
         let gate = detectControl ? "" : null;
 
@@ -146,14 +146,12 @@ export async function POST(request: Request) {
 
       try {
         let state: TurnState = plan.normal;
-        let { text, sawControl } = await runGeneration(
-          plan.system,
-          plan.controlToken
-        );
+        const first = await runGeneration(plan.system, plan.controlToken);
+        let text = first.text;
 
-        if (sawControl && plan.onControl) {
+        if (first.sawControl && plan.onControl) {
           state = plan.onControl.state;
-          ({ text } = await runGeneration(plan.onControl.system, null));
+          text = (await runGeneration(plan.onControl.system, null)).text;
         }
 
         // Persist exactly as the non-streaming route does.

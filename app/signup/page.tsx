@@ -43,7 +43,7 @@ export default async function SignupPage({
           </span>
 
           <h1 className="mt-5 text-2xl font-semibold tracking-tight">
-            {chosen ? `${chosen.name} — ${chosen.price}` : "Paid plans"}
+            {chosen ? `${chosen.name} · ${chosen.price}` : "Paid plans"}
           </h1>
 
           <p className="mt-3 text-sm leading-relaxed text-zinc-400">
@@ -54,8 +54,8 @@ export default async function SignupPage({
           <p className="mt-5 text-sm leading-relaxed text-zinc-400">
             LoopReady is in early access, so every round is free while the
             interview quality is being tuned with real candidates. Create an
-            account and use it now — you&rsquo;ll be first to hear when this
-            plan opens.
+            account and use it now. You&rsquo;ll be first to hear when this plan
+            opens.
           </p>
 
           <Link

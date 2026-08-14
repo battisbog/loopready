@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -11,16 +11,15 @@ export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [status, setStatus] = useState<string | null>(null);
+  // Seed from the URL so an OAuth error shows on first paint, with no
+  // setState-in-effect cascade.
+  const [status, setStatus] = useState<string | null>(() =>
+    typeof window === "undefined"
+      ? null
+      : new URLSearchParams(window.location.search).get("error")
+  );
   const [busy, setBusy] = useState<string | null>(null);
   const [showEmail, setShowEmail] = useState(false);
-
-  // Surface OAuth failures redirected back from /auth/callback. Read from
-  // window rather than useSearchParams, which would opt this page out of SSR.
-  useEffect(() => {
-    const err = new URLSearchParams(window.location.search).get("error");
-    if (err) setStatus(err);
-  }, []);
 
   async function signInWithProvider(provider: Provider) {
     setBusy(provider);
