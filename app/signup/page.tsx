@@ -31,7 +31,7 @@ export default async function SignupPage({
       />
       <div className="relative w-full max-w-md text-center">
         <Link
-          href="/#pricing"
+          href="/pricing"
           className="text-xs text-zinc-500 transition-colors hover:text-zinc-300"
         >
           ← Back to pricing

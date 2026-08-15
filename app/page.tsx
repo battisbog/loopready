@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { COMPANY_PROFILES } from "@/lib/interview/companies";
 import CompanyTabs from "./(marketing)/company-tabs";
@@ -14,12 +15,16 @@ export default async function Landing() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const ctaHref = user ? "/start" : "/login";
-  const ctaLabel = user ? "Start an interview" : "Start a free mock interview";
+  // Signed-in users belong in the app, not the marketing pitch. Plans stay
+  // reachable at /pricing.
+  if (user) redirect("/dashboard");
+
+  const ctaHref = "/login";
+  const ctaLabel = "Start a free mock interview";
 
   return (
     <div className="flex min-h-screen flex-col">
-      <Nav signedIn={Boolean(user)} />
+      <Nav signedIn={false} />
 
       {/* ---------- Hero ---------- */}
       <header className="relative overflow-hidden">

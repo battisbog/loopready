@@ -67,13 +67,16 @@ export default function StartPage() {
 
   return (
     <main className="mx-auto w-full max-w-2xl px-4 py-12">
-      <div className="mb-8 flex items-center justify-between">
-        <h1 className="text-xl font-semibold tracking-tight">
+      <div className="mb-8">
+        <Link
+          href="/dashboard"
+          className="text-xs text-zinc-500 transition-colors hover:text-zinc-300"
+        >
+          &larr; Back to dashboard
+        </Link>
+        <h1 className="mt-3 text-xl font-semibold tracking-tight">
           Configure your interview
         </h1>
-        <Link href="/" className="text-sm text-zinc-500 hover:text-zinc-300">
-          Home
-        </Link>
       </div>
 
       <Section title="Target company">
