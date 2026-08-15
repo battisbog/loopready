@@ -12,10 +12,14 @@ export const maxDuration = 30;
 
 interface Body {
   sessionId: string;
-  role: "candidate" | "interviewer";
-  text: string;
-  /** Set when the model asked to move on via the advance_question tool. */
-  requestAdvance?: boolean;
+  role?: "candidate" | "interviewer";
+  text?: string;
+  /**
+   * Set when the model called advance_question. Sent as its own request rather
+   * than riding on a turn, because the tool call and the transcription arrive
+   * independently and either can land first.
+   */
+  advanceOnly?: boolean;
 }
 
 /**
@@ -38,9 +42,12 @@ export async function POST(request: Request) {
   if (!limited.ok) return limited.response!;
 
   const body: Body = await request.json().catch(() => ({}) as Body);
-  if (!body.sessionId || !body.role || !body.text?.trim()) {
+  if (!body.sessionId) {
+    return NextResponse.json({ error: "sessionId required" }, { status: 400 });
+  }
+  if (!body.advanceOnly && (!body.role || !body.text?.trim())) {
     return NextResponse.json(
-      { error: "sessionId, role and text required" },
+      { error: "role and text required" },
       { status: 400 }
     );
   }
@@ -56,14 +63,19 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Session not found" }, { status: 404 });
   }
 
-  await admin.from("turns").insert({
-    session_id: session.id,
-    role: body.role,
-    text: body.text.trim(),
-  });
+  if (!body.advanceOnly) {
+    await admin.from("turns").insert({
+      session_id: session.id,
+      role: body.role,
+      text: body.text!.trim(),
+    });
+  }
 
-  // Only a completed candidate answer advances state, mirroring text mode.
-  if (body.role !== "candidate" || session.status !== "active") {
+  // Interviewer turns are recorded but never move the state machine.
+  if (session.status !== "active") {
+    return NextResponse.json({ ok: true, done: false });
+  }
+  if (!body.advanceOnly && body.role !== "candidate") {
     return NextResponse.json({ ok: true, done: false });
   }
 
@@ -88,10 +100,9 @@ export async function POST(request: Request) {
 
   if (session.round_type === "behavioral") {
     const questions: Question[] = session.questions ?? QUESTIONS;
-    followupCount += 1;
+    if (!body.advanceOnly) followupCount += 1;
     // The model may ask to move on early, but never past the hard cap.
-    const shouldAdvance =
-      body.requestAdvance || followupCount > MAX_FOLLOWUPS;
+    const shouldAdvance = body.advanceOnly || followupCount > MAX_FOLLOWUPS;
     if (shouldAdvance) {
       questionIndex += 1;
       followupCount = 0;
@@ -101,8 +112,8 @@ export async function POST(request: Request) {
   } else {
     const cap =
       session.round_type === "coding" ? MAX_CODING_TURNS : MAX_DESIGN_TURNS;
-    questionIndex += 1;
-    done = body.requestAdvance === true || questionIndex >= cap;
+    if (!body.advanceOnly) questionIndex += 1;
+    done = body.advanceOnly === true || questionIndex >= cap;
   }
 
   await admin
