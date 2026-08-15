@@ -23,6 +23,7 @@ export default function InterviewerPresence({
   mode?: PresenceMode;
   /** Accepts both push-to-talk and live statuses. */
   status: Status | OrbState;
+  /** Only used by the portrait mode; the orb is deliberately caption-free. */
   line?: string;
   variant?: "hero" | "compact";
 }) {
@@ -68,17 +69,6 @@ export default function InterviewerPresence({
         </span>
       </div>
 
-      {line && (
-        <p
-          className={`text-balance text-center leading-relaxed ${
-            hero
-              ? "max-w-2xl text-lg text-zinc-100 sm:text-xl"
-              : "max-w-full text-sm text-zinc-300"
-          }`}
-        >
-          {line}
-        </p>
-      )}
     </div>
   );
 }

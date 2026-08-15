@@ -49,16 +49,7 @@ export default function LiveInterview({
       ),
   });
 
-  const lastInterviewer = [...turns]
-    .reverse()
-    .find((t) => t.role === "interviewer");
   const progress = Math.min(qIndex + 1, questionCount);
-
-  // Show the interviewer's words as they are spoken, then the settled turn.
-  const spokenLine =
-    partial?.role === "interviewer" && partial.text
-      ? partial.text
-      : lastInterviewer?.text;
 
   return (
     <main className="flex h-screen flex-col bg-zinc-950">
@@ -101,7 +92,6 @@ export default function LiveInterview({
         <InterviewerPresence
           mode="orb"
           status={status === "connecting" ? "connecting" : speaking ? "speaking" : "listening"}
-          line={spokenLine}
           variant="hero"
         />
       </section>
@@ -111,7 +101,6 @@ export default function LiveInterview({
           status={status}
           statusLabel={statusLabel}
           error={error}
-          partial={partial}
         />
         <TranscriptPanel turns={turns} className="text-center" />
       </section>

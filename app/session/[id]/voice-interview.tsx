@@ -49,10 +49,6 @@ export default function VoiceInterview({
       ),
   });
 
-  const lastInterviewer = [...turns]
-    .reverse()
-    .find((t) => t.role === "interviewer");
-  const lastCandidate = [...turns].reverse().find((t) => t.role === "candidate");
   const progress = Math.min(qIndex + 1, questionCount);
 
   return (
@@ -94,12 +90,7 @@ export default function VoiceInterview({
 
       {/* Stage — the interviewer is the screen */}
       <section className="flex min-h-0 flex-1 items-center justify-center overflow-y-auto px-6 py-8">
-        <InterviewerPresence
-          mode="orb"
-          status={status}
-          line={lastInterviewer?.text}
-          variant="hero"
-        />
+        <InterviewerPresence mode="orb" status={status} variant="hero" />
       </section>
 
       {/* Candidate controls */}
@@ -109,7 +100,6 @@ export default function VoiceInterview({
           recording={recording}
           busy={busy}
           onToggle={toggleRecording}
-          answer={status === "idle" ? lastCandidate?.text : undefined}
           error={error}
           hint={hint}
         />
