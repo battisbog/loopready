@@ -99,3 +99,26 @@ create trigger on_auth_user_created
 alter table loops add column if not exists summary jsonb;
 alter table loops add column if not exists overall_signal text;
 alter table loops add column if not exists completed_at timestamptz;
+
+-- Billing. subscription_tier is the canonical entitlement; `plan` above is
+-- legacy and kept only so existing rows are not lost.
+alter table profiles add column if not exists subscription_tier text not null default 'free';
+alter table profiles add column if not exists paypal_subscription_id text;
+alter table profiles add column if not exists paypal_order_id text;
+alter table profiles add column if not exists subscription_status text;
+alter table profiles add column if not exists current_period_end timestamptz;
+alter table profiles add column if not exists updated_at timestamptz default now();
+
+-- Carry any pre-existing plan values over to the new column.
+update profiles set subscription_tier = plan
+  where plan is not null and subscription_tier = 'free';
+
+create index if not exists profiles_paypal_subscription_idx
+  on profiles (paypal_subscription_id);
+
+-- Users may READ their own profile. There is deliberately no insert/update
+-- policy: RLS denies by default, so a tier can only ever be changed by the
+-- service role (i.e. the verified webhook), never from the browser.
+drop policy if exists "own profile" on profiles;
+create policy "own profile" on profiles for select
+  using (auth.uid() = id);

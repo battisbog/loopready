@@ -1,7 +1,15 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const PUBLIC_PATHS = ["/login", "/auth", "/signup", "/pricing"];
+const PUBLIC_PATHS = [
+  "/login",
+  "/auth",
+  "/signup",
+  "/pricing",
+  // PayPal posts server-to-server with no session. This route authenticates
+  // itself by verifying the PayPal signature, so session auth must not block it.
+  "/api/paypal/webhook",
+];
 
 // Public surface: marketing page, auth, and crawler files. Everything else
 // requires a session.
