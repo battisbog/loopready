@@ -140,6 +140,10 @@ export function useVoiceTurn({
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const spokeOpening = useRef(false);
   const queueRef = useRef<SpeechQueue | null>(null);
+  // The opening line plays on mount, before a state-based capabilities fetch
+  // could ever resolve. Awaiting a promise instead stops the first thing the
+  // candidate hears from silently defaulting to the browser voice.
+  const capabilitiesRef = useRef<Promise<ServerAudio> | null>(null);
   // Guards every async continuation: audio must never start (or keep going)
   // after the user leaves the interview.
   const aliveRef = useRef(true);
@@ -184,11 +188,22 @@ export function useVoiceTurn({
     return () => clearInterval(t);
   }, []);
 
+  function loadCapabilities(): Promise<ServerAudio> {
+    if (!capabilitiesRef.current) {
+      capabilitiesRef.current = fetch("/api/audio/capabilities")
+        .then((r) => r.json())
+        .then((caps: ServerAudio) => {
+          setServerAudio(caps);
+          return caps;
+        })
+        .catch(() => ({ stt: false, tts: false }) as ServerAudio);
+    }
+    return capabilitiesRef.current;
+  }
+
   useEffect(() => {
-    fetch("/api/audio/capabilities")
-      .then((r) => r.json())
-      .then(setServerAudio)
-      .catch(() => {});
+    void loadCapabilities();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -226,7 +241,9 @@ export function useVoiceTurn({
 
   /** Fetches one chunk of speech. Returns null to signal "use the fallback". */
   async function fetchSpeech(text: string): Promise<Blob | null> {
-    if (!serverAudio.tts || !aliveRef.current) return null;
+    if (!aliveRef.current) return null;
+    const caps = await loadCapabilities();
+    if (!caps.tts || !aliveRef.current) return null;
     try {
       const res = await fetch("/api/tts", {
         method: "POST",
@@ -269,7 +286,9 @@ export function useVoiceTurn({
   async function playTts(text: string): Promise<void> {
     if (!aliveRef.current) return;
     setStatus("speaking");
-    if (!serverAudio.tts) {
+    const caps = await loadCapabilities();
+    if (!aliveRef.current) return;
+    if (!caps.tts) {
       await speakWithBrowser(text);
       return;
     }
@@ -286,7 +305,8 @@ export function useVoiceTurn({
       return;
     }
     if (status !== "idle") return;
-    if (serverAudio.stt) startMediaRecorder();
+    const caps = await loadCapabilities();
+    if (caps.stt) startMediaRecorder();
     else startBrowserRecognition();
   }
 
