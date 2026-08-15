@@ -234,6 +234,20 @@ export function useVoiceTurn({
         body: JSON.stringify({ text }),
       });
       if (!res.ok) return null;
+      // Report the provider that actually served this clip, not just what the
+      // config implies. If ElevenLabs errored and OpenAI covered, this shows it.
+      const served = res.headers.get("x-tts-provider");
+      if (served) {
+        const label =
+          served === "elevenlabs"
+            ? "ElevenLabs"
+            : served === "openai"
+              ? "OpenAI"
+              : served;
+        setServerAudio((prev) =>
+          prev.ttsProvider === label ? prev : { ...prev, ttsProvider: label }
+        );
+      }
       const blob = await res.blob();
       return aliveRef.current && blob.size > 0 ? blob : null;
     } catch {

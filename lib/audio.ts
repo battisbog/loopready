@@ -7,10 +7,22 @@
 
 export const TTS_MAX_CHARS = 1000;
 
-// Calm, professional male narrator — suits an interviewer.
+// Calm, professional male narrator. Override with ELEVENLABS_VOICE_ID; see
+// docs/voices.md for alternatives that suit an interviewer.
 const ELEVENLABS_VOICE_ID =
   process.env.ELEVENLABS_VOICE_ID || "onwK4e9ZLuTAKqWW03F9"; // "Daniel"
 const ELEVENLABS_MODEL = process.env.ELEVENLABS_MODEL || "eleven_turbo_v2_5";
+
+// OpenAI is the fallback provider. gpt-4o-mini-tts accepts delivery
+// instructions, which is the difference between a flat narrator read and
+// something that sounds like a person conducting an interview.
+const OPENAI_TTS_MODEL = process.env.OPENAI_TTS_MODEL || "gpt-4o-mini-tts";
+const OPENAI_TTS_VOICE = process.env.OPENAI_TTS_VOICE || "ash";
+const OPENAI_TTS_INSTRUCTIONS =
+  process.env.OPENAI_TTS_INSTRUCTIONS ||
+  "Speak as a calm, experienced senior engineer conducting a job interview. " +
+    "Measured pace, warm but professional, natural conversational intonation. " +
+    "Do not sound like a narrator, an announcer, or an assistant.";
 
 export interface AudioCapabilities {
   stt: boolean;
@@ -80,10 +92,13 @@ async function openAISpeak(text: string): Promise<ArrayBuffer> {
     method: "POST",
     headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
     body: JSON.stringify({
-      model: "gpt-4o-mini-tts",
-      voice: "onyx",
+      model: OPENAI_TTS_MODEL,
+      voice: OPENAI_TTS_VOICE,
       input: text,
       response_format: "mp3",
+      ...(OPENAI_TTS_MODEL.startsWith("gpt-")
+        ? { instructions: OPENAI_TTS_INSTRUCTIONS }
+        : {}),
     }),
   });
   if (!res.ok) {
@@ -128,11 +143,14 @@ async function openAIStream(text: string): Promise<ReadableStream<Uint8Array>> {
     method: "POST",
     headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
     body: JSON.stringify({
-      model: "gpt-4o-mini-tts",
-      voice: "onyx",
+      model: OPENAI_TTS_MODEL,
+      voice: OPENAI_TTS_VOICE,
       input: text,
       response_format: "mp3",
       stream_format: "audio",
+      ...(OPENAI_TTS_MODEL.startsWith("gpt-")
+        ? { instructions: OPENAI_TTS_INSTRUCTIONS }
+        : {}),
     }),
   });
   if (!res.ok || !res.body) {
@@ -145,19 +163,39 @@ async function openAIStream(text: string): Promise<ReadableStream<Uint8Array>> {
  * Returns audio as a stream so the client can start playing before the whole
  * clip exists. Falls back down the provider chain on failure.
  */
+const announced = new Set<string>();
+function announceProvider(provider: string, detail: string) {
+  if (announced.has(provider)) return;
+  announced.add(provider);
+  console.log(`[tts] serving audio via ${provider} (${detail})`);
+}
+
 export async function speakStream(rawText: string): Promise<SpeakStreamResult> {
   const text = rawText.slice(0, TTS_MAX_CHARS);
 
   if (process.env.ELEVENLABS_API_KEY) {
     try {
-      return { stream: await elevenLabsStream(text), provider: "elevenlabs" };
+      const stream = await elevenLabsStream(text);
+      announceProvider(
+        "elevenlabs",
+        `voice=${ELEVENLABS_VOICE_ID} model=${ELEVENLABS_MODEL}`
+      );
+      return { stream, provider: "elevenlabs" };
     } catch (e) {
-      console.error("ElevenLabs stream failed, falling back to OpenAI:", e);
+      console.error("[tts] ElevenLabs failed, falling back to OpenAI:", e);
     }
   }
   if (process.env.OPENAI_API_KEY) {
-    return { stream: await openAIStream(text), provider: "openai" };
+    const stream = await openAIStream(text);
+    announceProvider(
+      "openai",
+      `voice=${OPENAI_TTS_VOICE} model=${OPENAI_TTS_MODEL}`
+    );
+    return { stream, provider: "openai" };
   }
+  console.warn(
+    "[tts] No TTS provider configured. The client will use browser speech."
+  );
   throw new Error("No TTS provider configured");
 }
 
