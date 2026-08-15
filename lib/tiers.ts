@@ -124,3 +124,181 @@ export function upgradeRequired(
     { status: 402 }
   );
 }
+
+// ============================================================
+// Video interview credits
+// ============================================================
+
+/** Credits granted by an active Premium subscription each cycle. */
+export const PREMIUM_VIDEO_ALLOWANCE = Number(
+  process.env.PREMIUM_VIDEO_ALLOWANCE ?? 3
+);
+
+/** Credits added by a one-time video pack purchase. */
+export const VIDEO_PACK_CREDITS = Number(process.env.VIDEO_PACK_CREDITS ?? 3);
+
+export interface Entitlements {
+  tier: Tier;
+  videoCreditsRemaining: number;
+  videoPlanAllowance: number;
+  videoCreditsResetAt: string | null;
+  /** Session currently holding a reservation, if any. */
+  openReservationSessionId: string | null;
+  canUseVideo: boolean;
+}
+
+/**
+ * Everything the server needs to decide what a user may start.
+ *
+ * Like getUserTier, this fails closed: on any error the caller sees a free
+ * tier with zero credits.
+ */
+export async function getEntitlements(
+  admin: SupabaseClient,
+  userId: string
+): Promise<Entitlements> {
+  const empty: Entitlements = {
+    tier: "free",
+    videoCreditsRemaining: 0,
+    videoPlanAllowance: 0,
+    videoCreditsResetAt: null,
+    openReservationSessionId: null,
+    canUseVideo: false,
+  };
+
+  const { data, error } = await admin
+    .from("profiles")
+    .select(
+      "subscription_tier, subscription_status, video_credits_remaining, video_plan_allowance, video_credits_reset_at, video_reservation_session_id"
+    )
+    .eq("id", userId)
+    .maybeSingle();
+
+  if (error || !data) return empty;
+
+  const tier = await getUserTier(admin, userId);
+  const remaining = Number(data.video_credits_remaining ?? 0);
+
+  return {
+    tier,
+    videoCreditsRemaining: remaining,
+    videoPlanAllowance: Number(data.video_plan_allowance ?? 0),
+    videoCreditsResetAt: data.video_credits_reset_at ?? null,
+    openReservationSessionId: data.video_reservation_session_id ?? null,
+    // Video is a Premium feature AND needs a credit. Both must hold.
+    canUseVideo: featuresFor(tier).videoSlots > 0 && remaining > 0,
+  };
+}
+
+export type CreditFailure =
+  | "no_credits"
+  | "reservation_open"
+  | "no_reservation"
+  | "error";
+
+export type CreditResult =
+  | { ok: true; remaining?: number }
+  | { ok: false; reason: CreditFailure };
+
+const FAILURES: CreditFailure[] = [
+  "no_credits",
+  "reservation_open",
+  "no_reservation",
+  "error",
+];
+
+function toFailure(reason: unknown): CreditFailure {
+  return FAILURES.includes(reason as CreditFailure)
+    ? (reason as CreditFailure)
+    : "error";
+}
+
+async function creditRpc(
+  admin: SupabaseClient,
+  fn: string,
+  args: Record<string, unknown>
+): Promise<CreditResult> {
+  const { data, error } = await admin.rpc(fn, args);
+  if (error) {
+    console.error(`[credits] ${fn} failed:`, error.message);
+    return { ok: false, reason: "error" };
+  }
+  const result = data as
+    | { ok?: boolean; reason?: string; remaining?: number }
+    | null;
+  if (result?.ok) return { ok: true, remaining: result.remaining };
+  return { ok: false, reason: toFailure(result?.reason) };
+}
+
+/**
+ * Takes a credit and marks the session as holding it.
+ *
+ * Atomic in one SQL statement, so two parallel requests cannot both spend the
+ * last credit, and a user cannot hold two reservations at once. Re-reserving
+ * the same session is idempotent (reconnects are not double charges).
+ */
+export function reserveVideoCredit(
+  admin: SupabaseClient,
+  userId: string,
+  sessionId: string
+): Promise<CreditResult> {
+  return creditRpc(admin, "reserve_video_credit", {
+    p_user: userId,
+    p_session: sessionId,
+  });
+}
+
+/** Confirms the spend once the interview genuinely started. */
+export function commitVideoCredit(
+  admin: SupabaseClient,
+  userId: string,
+  sessionId: string
+): Promise<CreditResult> {
+  return creditRpc(admin, "commit_video_credit", {
+    p_user: userId,
+    p_session: sessionId,
+  });
+}
+
+/** Hands the credit back when the session never really began. */
+export function releaseVideoCredit(
+  admin: SupabaseClient,
+  userId: string,
+  sessionId: string
+): Promise<CreditResult> {
+  return creditRpc(admin, "release_video_credit", {
+    p_user: userId,
+    p_session: sessionId,
+  });
+}
+
+/** Returns a credit that was already committed (support/refund path). */
+export function refundVideoCredit(
+  admin: SupabaseClient,
+  userId: string,
+  sessionId: string,
+  detail?: string
+): Promise<CreditResult> {
+  return creditRpc(admin, "refund_video_credit", {
+    p_user: userId,
+    p_session: sessionId,
+    p_detail: detail ?? null,
+  });
+}
+
+/** 402 for a video request with no credit left, offering the voice path. */
+export function outOfVideoCredits(ent: Entitlements): NextResponse {
+  return NextResponse.json(
+    {
+      error:
+        "You've used your video interviews this cycle. Continue with voice (unlimited on your plan), or buy more video credits.",
+      outOfVideoCredits: true,
+      currentTier: ent.tier,
+      videoCreditsRemaining: ent.videoCreditsRemaining,
+      videoCreditsResetAt: ent.videoCreditsResetAt,
+      buyMoreUrl: "/checkout?product=video-pack",
+      fallbackMode: "voice",
+    },
+    { status: 402 }
+  );
+}

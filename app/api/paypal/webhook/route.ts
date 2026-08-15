@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { paypalFetch } from "@/lib/paypal/client";
-import type { Tier } from "@/lib/tiers";
+import {
+  PREMIUM_VIDEO_ALLOWANCE,
+  VIDEO_PACK_CREDITS,
+  type Tier,
+} from "@/lib/tiers";
 
 export const maxDuration = 30;
 
@@ -76,16 +80,34 @@ async function verifySignature(
  * subscription or order. Falls back to a stored subscription id so renewals
  * and cancellations still map even when custom_id is absent.
  */
+type Purpose = "premium" | "voice" | "video-pack" | null;
+
+/**
+ * custom_id is written as `<userId>` or `<userId>:<purpose>` at checkout, so a
+ * single webhook can tell a Premium subscription from a one-time video pack.
+ */
+function splitCustomId(raw: string): { userId: string; purpose: Purpose } {
+  const [userId, purpose] = raw.split(":");
+  const known: Purpose[] = ["premium", "voice", "video-pack"];
+  return {
+    userId,
+    purpose: known.includes(purpose as Purpose) ? (purpose as Purpose) : null,
+  };
+}
+
 async function resolveUserId(
   admin: ReturnType<typeof createAdminClient>,
   resource: Record<string, unknown>
-): Promise<string | null> {
+): Promise<{ userId: string | null; purpose: Purpose }> {
   const custom =
     (resource.custom_id as string | undefined) ??
     (resource.custom as string | undefined) ??
     ((resource.purchase_units as { custom_id?: string }[] | undefined)?.[0]
       ?.custom_id as string | undefined);
-  if (custom) return custom;
+  if (custom) {
+    const parsed = splitCustomId(custom);
+    return { userId: parsed.userId || null, purpose: parsed.purpose };
+  }
 
   const subscriptionId =
     (resource.id as string | undefined) ??
@@ -96,9 +118,17 @@ async function resolveUserId(
       .select("id")
       .eq("paypal_subscription_id", subscriptionId)
       .maybeSingle();
-    if (data?.id) return data.id;
+    if (data?.id) return { userId: data.id, purpose: null };
   }
-  return null;
+  return { userId: null, purpose: null };
+}
+
+/** Period end from a subscription resource, used as the credit reset date. */
+function periodEnd(resource: Record<string, unknown>): string | null {
+  const billing = resource.billing_info as
+    | { next_billing_time?: string }
+    | undefined;
+  return billing?.next_billing_time ?? null;
 }
 
 export async function POST(request: Request) {
@@ -120,7 +150,7 @@ export async function POST(request: Request) {
   const type = event.event_type ?? "";
   const resource = event.resource ?? {};
   const admin = createAdminClient();
-  const userId = await resolveUserId(admin, resource);
+  const { userId, purpose } = await resolveUserId(admin, resource);
 
   if (!userId) {
     // Acknowledge so PayPal stops retrying, but record it: this means a
@@ -131,22 +161,39 @@ export async function POST(request: Request) {
 
   const patch: Record<string, unknown> = { updated_at: new Date().toISOString() };
   let tier: Tier | null = null;
+  // Video credits are written through an RPC (atomic + audited), not this patch.
+  let credits:
+    | { mode: "set" | "add"; amount: number; reset: string | null; detail: string }
+    | null = null;
 
   switch (type) {
     // --- Subscriptions (Voice) ---
     case "BILLING.SUBSCRIPTION.ACTIVATED":
     case "BILLING.SUBSCRIPTION.RE-ACTIVATED": {
-      tier = "voice";
+      const isPremium = purpose === "premium";
+      tier = isPremium ? "premium" : "voice";
       patch.subscription_status = "ACTIVE";
       patch.paypal_subscription_id = resource.id;
+      if (isPremium) {
+        credits = {
+          mode: "set",
+          amount: PREMIUM_VIDEO_ALLOWANCE,
+          reset: periodEnd(resource),
+          detail: `${type} premium allowance`,
+        };
+      }
       break;
     }
     case "BILLING.SUBSCRIPTION.UPDATED": {
       const status = String(resource.status ?? "");
       patch.subscription_status = status || "ACTIVE";
       patch.paypal_subscription_id = resource.id;
+      const active = status === "ACTIVE" || status === "";
       // Only an active subscription keeps the paid tier.
-      tier = status === "ACTIVE" || status === "" ? "voice" : "free";
+      tier = active ? (purpose === "premium" ? "premium" : "voice") : "free";
+      if (!active) {
+        credits = { mode: "set", amount: 0, reset: null, detail: type };
+      }
       break;
     }
     case "BILLING.SUBSCRIPTION.CANCELLED":
@@ -155,28 +202,75 @@ export async function POST(request: Request) {
     case "BILLING.SUBSCRIPTION.PAYMENT.FAILED": {
       tier = "free";
       patch.subscription_status = type.split(".").pop();
+      // Losing the subscription loses the plan allowance immediately.
+      credits = { mode: "set", amount: 0, reset: null, detail: type };
       break;
     }
     // Renewal payments: keep the subscription alive.
     case "PAYMENT.SALE.COMPLETED": {
       if (resource.billing_agreement_id) {
-        tier = "voice";
         patch.subscription_status = "ACTIVE";
+        // A renewal payment refreshes the cycle. Read the stored tier rather
+        // than assuming: this event carries no plan information.
+        const { data: prof } = await admin
+          .from("profiles")
+          .select("subscription_tier, video_plan_allowance")
+          .eq("id", userId)
+          .maybeSingle();
+        const existing = prof?.subscription_tier;
+        tier = existing === "premium" ? "premium" : "voice";
+        const allowance = Number(prof?.video_plan_allowance ?? 0);
+        if (allowance > 0) {
+          // Plan credits do not roll over: reset, never accumulate.
+          credits = {
+            mode: "set",
+            amount: allowance,
+            reset: null,
+            detail: "renewal reset",
+          };
+        }
       }
       break;
     }
     // --- One-time purchase (Premium) ---
     case "PAYMENT.CAPTURE.COMPLETED":
     case "CHECKOUT.ORDER.COMPLETED": {
-      tier = "premium";
       patch.paypal_order_id = resource.id;
-      patch.subscription_status = "COMPLETED";
+      if (purpose === "video-pack") {
+        // A pack tops up on TOP of whatever is left; it never sets the tier.
+        credits = {
+          mode: "add",
+          amount: VIDEO_PACK_CREDITS,
+          reset: null,
+          detail: "video pack purchase",
+        };
+      } else {
+        tier = "premium";
+        patch.subscription_status = "COMPLETED";
+        credits = {
+          mode: "set",
+          amount: PREMIUM_VIDEO_ALLOWANCE,
+          reset: null,
+          detail: "premium purchase",
+        };
+      }
       break;
     }
     case "PAYMENT.CAPTURE.REFUNDED":
     case "PAYMENT.CAPTURE.REVERSED": {
-      tier = "free";
-      patch.subscription_status = "REFUNDED";
+      if (purpose === "video-pack") {
+        // Refunding a pack removes the credits it granted, floored at zero.
+        credits = {
+          mode: "add",
+          amount: -VIDEO_PACK_CREDITS,
+          reset: null,
+          detail: "video pack refunded",
+        };
+      } else {
+        tier = "free";
+        patch.subscription_status = "REFUNDED";
+        credits = { mode: "set", amount: 0, reset: null, detail: type };
+      }
       break;
     }
     default:
@@ -203,6 +297,33 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Update failed" }, { status: 500 });
   }
 
-  console.log(`[paypal] ${type} applied for user ${userId} -> ${tier ?? "no tier change"}`);
+  if (credits) {
+    const { data: current } = await admin
+      .from("profiles")
+      .select("subscription_tier")
+      .eq("id", userId)
+      .maybeSingle();
+    if (current?.subscription_tier === "unlimited") {
+      console.log(`[paypal] ${type}: skipped credit change for comp account`);
+    } else {
+      const { error: creditError } = await admin.rpc("grant_video_credits", {
+        p_user: userId,
+        p_allowance: credits.amount,
+        p_reset: credits.reset,
+        p_mode: credits.mode,
+        p_detail: credits.detail,
+      });
+      if (creditError) {
+        console.error("[paypal] credit grant failed:", creditError.message);
+        return NextResponse.json({ error: "Credit update failed" }, { status: 500 });
+      }
+    }
+  }
+
+  console.log(
+    `[paypal] ${type} applied for ${userId} -> tier=${tier ?? "unchanged"} credits=${
+      credits ? `${credits.mode} ${credits.amount}` : "unchanged"
+    }`
+  );
   return NextResponse.json({ ok: true, handled: true });
 }

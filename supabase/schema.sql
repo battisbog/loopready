@@ -122,3 +122,172 @@ create index if not exists profiles_paypal_subscription_idx
 drop policy if exists "own profile" on profiles;
 create policy "own profile" on profiles for select
   using (auth.uid() = id);
+
+-- ============================================================
+-- Video interview credits
+-- ============================================================
+alter table profiles add column if not exists video_credits_remaining int not null default 0;
+alter table profiles add column if not exists video_plan_allowance int not null default 0;
+alter table profiles add column if not exists video_credits_reset_at timestamptz;
+-- Holds the session currently occupying a reservation. Makes "one open
+-- reservation per user" enforceable in a single atomic UPDATE.
+alter table profiles add column if not exists video_reservation_session_id uuid;
+
+create table if not exists video_credit_events (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  session_id uuid references sessions(id) on delete set null,
+  action text not null,          -- reserve | commit | release | grant | refund
+  detail text,
+  created_at timestamptz default now()
+);
+
+create index if not exists video_credit_events_user_idx
+  on video_credit_events (user_id, created_at desc);
+
+alter table video_credit_events enable row level security;
+
+-- Users may read their own ledger. No insert/update/delete policy exists, so
+-- RLS denies all client writes; only the service role can record events.
+drop policy if exists "own credit events" on video_credit_events;
+create policy "own credit events" on video_credit_events for select
+  using (auth.uid() = user_id);
+
+-- ------------------------------------------------------------
+-- Credit operations.
+-- These run as single atomic statements so two concurrent requests cannot
+-- both spend the last credit, and a user cannot hold two reservations.
+-- SECURITY DEFINER + revoked execute = service role only.
+-- ------------------------------------------------------------
+create or replace function reserve_video_credit(p_user uuid, p_session uuid)
+returns jsonb language plpgsql security definer set search_path = public as $$
+declare
+  v_remaining int;
+  v_held uuid;
+begin
+  -- Idempotent: re-reserving the same session is a no-op success.
+  select video_reservation_session_id into v_held from profiles where id = p_user;
+  if v_held = p_session then
+    select video_credits_remaining into v_remaining from profiles where id = p_user;
+    return jsonb_build_object('ok', true, 'remaining', v_remaining, 'reason', 'already_held');
+  end if;
+
+  update profiles
+     set video_credits_remaining = video_credits_remaining - 1,
+         video_reservation_session_id = p_session,
+         updated_at = now()
+   where id = p_user
+     and video_credits_remaining > 0
+     and video_reservation_session_id is null
+  returning video_credits_remaining into v_remaining;
+
+  if v_remaining is null then
+    select video_credits_remaining, video_reservation_session_id
+      into v_remaining, v_held from profiles where id = p_user;
+    return jsonb_build_object(
+      'ok', false,
+      'remaining', coalesce(v_remaining, 0),
+      'reason', case when v_held is not null then 'reservation_open' else 'no_credits' end
+    );
+  end if;
+
+  insert into video_credit_events (user_id, session_id, action)
+  values (p_user, p_session, 'reserve');
+
+  return jsonb_build_object('ok', true, 'remaining', v_remaining);
+end;
+$$;
+
+-- Commit keeps the already-decremented credit and clears the hold.
+create or replace function commit_video_credit(p_user uuid, p_session uuid)
+returns jsonb language plpgsql security definer set search_path = public as $$
+declare v_rows int;
+begin
+  update profiles
+     set video_reservation_session_id = null, updated_at = now()
+   where id = p_user and video_reservation_session_id = p_session;
+  get diagnostics v_rows = row_count;
+
+  if v_rows = 0 then
+    return jsonb_build_object('ok', false, 'reason', 'no_reservation');
+  end if;
+
+  insert into video_credit_events (user_id, session_id, action)
+  values (p_user, p_session, 'commit');
+  return jsonb_build_object('ok', true);
+end;
+$$;
+
+-- Release hands the credit back: the session never really happened.
+create or replace function release_video_credit(p_user uuid, p_session uuid)
+returns jsonb language plpgsql security definer set search_path = public as $$
+declare v_remaining int;
+begin
+  update profiles
+     set video_credits_remaining = video_credits_remaining + 1,
+         video_reservation_session_id = null,
+         updated_at = now()
+   where id = p_user and video_reservation_session_id = p_session
+  returning video_credits_remaining into v_remaining;
+
+  if v_remaining is null then
+    return jsonb_build_object('ok', false, 'reason', 'no_reservation');
+  end if;
+
+  insert into video_credit_events (user_id, session_id, action)
+  values (p_user, p_session, 'release');
+  return jsonb_build_object('ok', true, 'remaining', v_remaining);
+end;
+$$;
+
+-- Refund credits a session that was already committed (support action).
+create or replace function refund_video_credit(p_user uuid, p_session uuid, p_detail text default null)
+returns jsonb language plpgsql security definer set search_path = public as $$
+declare v_remaining int;
+begin
+  update profiles
+     set video_credits_remaining = video_credits_remaining + 1, updated_at = now()
+   where id = p_user
+  returning video_credits_remaining into v_remaining;
+
+  insert into video_credit_events (user_id, session_id, action, detail)
+  values (p_user, p_session, 'refund', p_detail);
+  return jsonb_build_object('ok', true, 'remaining', coalesce(v_remaining, 0));
+end;
+$$;
+
+-- Webhook-owned: set the plan allowance, or top up from a one-time pack.
+create or replace function grant_video_credits(
+  p_user uuid, p_allowance int, p_reset timestamptz, p_mode text, p_detail text default null
+) returns jsonb language plpgsql security definer set search_path = public as $$
+declare v_remaining int;
+begin
+  if p_mode = 'set' then
+    -- Renewal: plan credits do not roll over.
+    update profiles
+       set video_plan_allowance = p_allowance,
+           video_credits_remaining = p_allowance,
+           video_credits_reset_at = p_reset,
+           updated_at = now()
+     where id = p_user
+    returning video_credits_remaining into v_remaining;
+  else
+    -- One-time pack: add on top of whatever is left.
+    update profiles
+       set video_credits_remaining = video_credits_remaining + p_allowance,
+           updated_at = now()
+     where id = p_user
+    returning video_credits_remaining into v_remaining;
+  end if;
+
+  insert into video_credit_events (user_id, action, detail)
+  values (p_user, 'grant', coalesce(p_detail, p_mode));
+  return jsonb_build_object('ok', true, 'remaining', coalesce(v_remaining, 0));
+end;
+$$;
+
+revoke execute on function reserve_video_credit(uuid, uuid) from public, anon, authenticated;
+revoke execute on function commit_video_credit(uuid, uuid) from public, anon, authenticated;
+revoke execute on function release_video_credit(uuid, uuid) from public, anon, authenticated;
+revoke execute on function refund_video_credit(uuid, uuid, text) from public, anon, authenticated;
+revoke execute on function grant_video_credits(uuid, int, timestamptz, text, text) from public, anon, authenticated;
