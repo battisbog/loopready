@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useRealtimeTurn } from "./use-realtime-turn";
 import type { Turn } from "./use-voice-turn";
-import InterviewerStage from "./interviewer-stage";
+import InterviewerPresence from "./interviewer-presence";
 import LiveIndicator from "./live-indicator";
 import TranscriptPanel from "./transcript-panel";
 import { Badge } from "@/components/ui";
@@ -98,8 +98,9 @@ export default function LiveInterview({
       </div>
 
       <section className="flex min-h-0 flex-1 items-center justify-center overflow-y-auto px-6 py-8">
-        <InterviewerStage
-          status={speaking ? "speaking" : "idle"}
+        <InterviewerPresence
+          mode="orb"
+          status={status === "connecting" ? "connecting" : speaking ? "speaking" : "listening"}
           line={spokenLine}
           variant="hero"
         />

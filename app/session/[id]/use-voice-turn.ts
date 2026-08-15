@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { ServerAudio } from "./audio-source-badge";
 import { SpeechQueue } from "./speech-queue";
+import { audioLevels } from "@/lib/audio-levels";
 
 export interface Turn {
   role: string;
@@ -169,6 +170,7 @@ export function useVoiceTurn({
   }, []);
 
   function stopAllAudio() {
+    audioLevels.detachAll();
     queueRef.current?.stop();
     queueRef.current = null;
     const audio = audioRef.current;
@@ -317,10 +319,13 @@ export function useVoiceTurn({
         ? "audio/webm"
         : "audio/mp4";
       const recorder = new MediaRecorder(stream, { mimeType: mime });
+      // Feed the orb the candidate's voice while recording.
+      audioLevels.attachStream("input", stream);
       chunksRef.current = [];
       recorder.ondataavailable = (e) =>
         e.data.size > 0 && chunksRef.current.push(e.data);
       recorder.onstop = () => {
+        audioLevels.detach("input");
         stream.getTracks().forEach((t) => t.stop());
         transcribeAndAnswer(new Blob(chunksRef.current, { type: mime }), mime);
       };

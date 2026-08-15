@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useVoiceTurn, type Turn } from "./use-voice-turn";
 import AudioSourceBadge from "./audio-source-badge";
-import InterviewerStage from "./interviewer-stage";
+import InterviewerPresence from "./interviewer-presence";
 import MicControl from "./mic-control";
 import TranscriptPanel from "./transcript-panel";
 
@@ -94,7 +94,8 @@ export default function VoiceInterview({
 
       {/* Stage — the interviewer is the screen */}
       <section className="flex min-h-0 flex-1 items-center justify-center overflow-y-auto px-6 py-8">
-        <InterviewerStage
+        <InterviewerPresence
+          mode="orb"
           status={status}
           line={lastInterviewer?.text}
           variant="hero"

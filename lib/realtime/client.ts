@@ -15,6 +15,8 @@
  * stays on the server (see /api/realtime/turn).
  */
 
+import { audioLevels } from "@/lib/audio-levels";
+
 const CALLS_URL = "https://api.openai.com/v1/realtime/calls";
 
 export interface RealtimeHandlers {
@@ -77,9 +79,13 @@ export class RealtimeSession {
     this.audioEl.autoplay = true;
     pc.ontrack = (e) => {
       if (this.audioEl) this.audioEl.srcObject = e.streams[0];
+      // The interviewer's voice drives the orb in live mode.
+      audioLevels.attachStream("output", e.streams[0]);
     };
 
     this.stream.getTracks().forEach((t) => pc.addTrack(t, this.stream!));
+    // The mic is open for the whole round, so the candidate side is always live.
+    audioLevels.attachStream("input", this.stream);
 
     const dc = pc.createDataChannel("oai-events");
     this.dc = dc;
@@ -223,6 +229,7 @@ export class RealtimeSession {
 
   stop() {
     this.closed = true;
+    audioLevels.detachAll();
     try {
       this.dc?.close();
     } catch {}

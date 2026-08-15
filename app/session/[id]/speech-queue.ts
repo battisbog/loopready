@@ -1,5 +1,7 @@
 "use client";
 
+import { audioLevels } from "@/lib/audio-levels";
+
 /**
  * Plays TTS chunks in order while fetching later ones concurrently.
  *
@@ -57,8 +59,11 @@ export class SpeechQueue {
       const url = URL.createObjectURL(blob);
       const audio = new Audio(url);
       this.current = audio;
+      // Feed the orb the interviewer's voice while this clip plays.
+      audioLevels.attachElement("output", audio);
       const finish = () => {
         URL.revokeObjectURL(url);
+        audioLevels.detach("output");
         if (this.current === audio) this.current = null;
         resolve();
       };
