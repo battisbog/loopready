@@ -50,8 +50,14 @@ export default function DesignInterview({
       nodes: stateRef.current.nodes,
       edges: stateRef.current.edges,
     }),
-    onDone: (next) =>
-      router.push(next ? `/session/${next}` : `/session/${sessionId}/feedback`),
+    onDone: (next, loopId) =>
+      router.push(
+        next
+          ? `/session/${next}`
+          : loopId
+            ? `/loop/${loopId}`
+            : `/session/${sessionId}/feedback`
+      ),
   });
 
   // Autosave the diagram between spoken turns.

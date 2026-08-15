@@ -112,7 +112,7 @@ interface Options {
   // Extra artifact state (code, diagram) sent with each answer.
   getArtifactPatch?: () => object | undefined;
   onProgress?: (data: { questionIndex: number; questionCount: number }) => void;
-  onDone: (nextSessionId: string | null) => void;
+  onDone: (nextSessionId: string | null, loopId?: string | null) => void;
 }
 
 // Shared push-to-talk pipeline: record → transcribe → interview → speak.
@@ -399,6 +399,7 @@ export function useVoiceTurn({
           reply: string;
           done: boolean;
           nextRound?: { sessionId: string } | null;
+          loopComplete?: string | null;
           questionIndex: number;
           questionCount: number;
         } | null;
@@ -449,7 +450,7 @@ export function useVoiceTurn({
       if (result.done) {
         setStatus("done");
         stopAllAudio();
-        onDone(result.nextRound?.sessionId ?? null);
+        onDone(result.nextRound?.sessionId ?? null, result.loopComplete ?? null);
       } else {
         setStatus("idle");
       }
@@ -464,12 +465,15 @@ export function useVoiceTurn({
     aliveRef.current = false;
     stopAllAudio();
     setStatus("done");
-    await fetch("/api/interview/end", {
+    const res = await fetch("/api/interview/end", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ sessionId }),
     });
-    onDone(null);
+    // Ending a round inside a loop moves on to the next round rather than
+    // abandoning the remaining ones.
+    const data = await res.json().catch(() => ({}));
+    onDone(data.nextRound?.sessionId ?? null, data.loopComplete ?? null);
   }
 
   return {

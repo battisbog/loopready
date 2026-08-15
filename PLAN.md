@@ -86,7 +86,7 @@ React Flow (`@xyflow/react`) canvas — nodes/edges/labels serialized to `sessio
 
 **GATE: 3 real design rounds; must probe trade-offs like a staff interviewer.**
 
-### M9: Full-loop mode (optional)
+### M9: Full-loop mode — DONE
 
 Chain all three rounds with combined summary. Only after all three are individually solid.
 
@@ -103,7 +103,7 @@ Chain all three rounds with combined summary. Only after all three are individua
 - [ ] Behavioral round: full voice mock, zero keyboard, company/level-calibrated
 - [ ] Coding round: voice + editor + execution + coding-specific feedback, level-scaled
 - [ ] System design round: voice + canvas the AI references + design feedback, level-scoped
-- [ ] Full loop: rounds in sequence under one config, combined summary
+- [x] Full loop: rounds in sequence under one config, combined summary
 - [ ] Feedback references the candidate's actual work; beats "better than ChatGPT"
 - [ ] History persists, labeled by company/level/round
 - [ ] Three different people completed a mock; at least one would pay

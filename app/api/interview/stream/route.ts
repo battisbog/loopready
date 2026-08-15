@@ -170,6 +170,9 @@ export async function POST(request: Request) {
           .eq("id", session.id);
 
         let nextRound: { roundType: string; sessionId: string } | null = null;
+        // Set when a MULTI-round loop just finished, so the client can send the
+        // candidate to the combined verdict instead of the last round's debrief.
+        let loopComplete: string | null = null;
         if (state.done && session.loop_id && loop) {
           const nextOrder = (session.round_order ?? 0) + 1;
           const upcoming = loop.rounds?.[nextOrder];
@@ -189,6 +192,7 @@ export async function POST(request: Request) {
               .from("loops")
               .update({ status: "completed" })
               .eq("id", session.loop_id);
+            if ((loop.rounds?.length ?? 0) > 1) loopComplete = session.loop_id;
           }
         }
 
@@ -196,6 +200,7 @@ export async function POST(request: Request) {
           reply: text,
           done: state.done,
           nextRound,
+          loopComplete,
           ...progressPayload(session, state),
         });
       } catch (e) {

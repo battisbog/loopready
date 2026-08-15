@@ -39,8 +39,14 @@ export default function VoiceInterview({
     sessionId,
     initialTurns,
     onProgress: ({ questionIndex: i }) => setQIndex(i),
-    onDone: (next) =>
-      router.push(next ? `/session/${next}` : `/session/${sessionId}/feedback`),
+    onDone: (next, loopId) =>
+      router.push(
+        next
+          ? `/session/${next}`
+          : loopId
+            ? `/loop/${loopId}`
+            : `/session/${sessionId}/feedback`
+      ),
   });
 
   const lastInterviewer = [...turns]

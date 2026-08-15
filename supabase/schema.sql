@@ -94,3 +94,8 @@ drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function public.handle_new_user();
+
+-- M9: combined loop verdict
+alter table loops add column if not exists summary jsonb;
+alter table loops add column if not exists overall_signal text;
+alter table loops add column if not exists completed_at timestamptz;

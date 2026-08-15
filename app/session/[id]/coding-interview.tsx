@@ -77,9 +77,13 @@ export default function CodingInterview({
     sessionId,
     initialTurns,
     getArtifactPatch: () => ({ language, code: codeRef.current }),
-    onDone: (next) =>
+    onDone: (next, loopId) =>
       router.push(
-        next ? `/session/${next}` : `/session/${sessionId}/feedback`
+        next
+          ? `/session/${next}`
+          : loopId
+            ? `/loop/${loopId}`
+            : `/session/${sessionId}/feedback`
       ),
   });
 

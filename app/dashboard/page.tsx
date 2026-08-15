@@ -58,6 +58,16 @@ export default async function Dashboard() {
     .eq("id", user.id)
     .maybeSingle();
 
+  const { data: loops } = await admin
+    .from("loops")
+    .select("id, company, level, rounds, status, overall_signal, created_at")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false })
+    .limit(10);
+
+  // Single-round loops have nothing extra to say; their round debrief is it.
+  const fullLoops = (loops ?? []).filter((l) => (l.rounds?.length ?? 0) > 1);
+
   const rows = sessions ?? [];
   const plan = profile?.plan ?? "free";
   const planCopy = PLAN_COPY[plan] ?? PLAN_COPY.free;
@@ -146,6 +156,47 @@ export default async function Dashboard() {
             </Card>
           </div>
         </Section>
+
+        {/* Full loops */}
+        {fullLoops.length > 0 && (
+          <Section title="Full loops">
+            <div className="space-y-2">
+              {fullLoops.map((l) => {
+                const profileFor = COMPANY_PROFILES[l.company];
+                const levelLabel =
+                  profileFor?.levels[l.level]?.label ?? l.level;
+                return (
+                  <Card
+                    key={l.id}
+                    href={`/loop/${l.id}`}
+                    className="flex flex-wrap items-center justify-between gap-3 px-5 py-4"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium text-primary">
+                        {profileFor?.displayName ?? l.company} · {levelLabel}
+                      </p>
+                      <p className="mt-1 text-xs text-muted">
+                        {l.rounds.length} rounds ·{" "}
+                        {new Date(l.created_at).toLocaleDateString(undefined, {
+                          dateStyle: "medium",
+                        })}
+                      </p>
+                    </div>
+                    {l.overall_signal ? (
+                      <Badge tone={SIGNAL_TONE[l.overall_signal] ?? "neutral"}>
+                        {l.overall_signal}
+                      </Badge>
+                    ) : (
+                      <Badge tone={l.status === "active" ? "accent" : "outline"}>
+                        {l.status === "active" ? "In progress" : "View verdict"}
+                      </Badge>
+                    )}
+                  </Card>
+                );
+              })}
+            </div>
+          </Section>
+        )}
 
         {/* Recent sessions */}
         <Section

@@ -240,6 +240,7 @@ export async function POST(request: Request) {
   // Full-loop sequencing: if this round finished and the loop has more rounds,
   // tell the client where to go next.
   let nextRound: { roundType: string; sessionId: string } | null = null;
+  let loopComplete: string | null = null;
   if (done && session.loop_id) {
     const { data: loop } = await admin
       .from("loops")
@@ -264,6 +265,7 @@ export async function POST(request: Request) {
         .from("loops")
         .update({ status: "completed" })
         .eq("id", session.loop_id);
+      if ((loop.rounds?.length ?? 0) > 1) loopComplete = session.loop_id;
     }
   }
 
@@ -271,6 +273,7 @@ export async function POST(request: Request) {
     sessionId: session.id,
     reply: reply!,
     nextRound,
+    loopComplete,
     done,
     ...(session.round_type !== "behavioral"
       ? { questionIndex: 0, questionCount: 1, turn: questionIndex }
