@@ -169,16 +169,6 @@ export default async function Landing() {
           <div className="mt-12 grid gap-5 md:grid-cols-3">
             <RoundCard
               status="live"
-              title="Behavioral"
-              body="Three questions across different competencies, each with real follow-up probing. Answered by voice, graded against your target company's values."
-              points={[
-                "Voice in, voice out",
-                "Up to two probes per question",
-                "18-question bank across 6 competencies",
-              ]}
-            />
-            <RoundCard
-              status="live"
               title="Coding"
               body="A live editor the interviewer reads as you type, running your code against real test cases, with the same questions about approach and complexity you get on the day."
               points={[
@@ -195,6 +185,16 @@ export default async function Landing() {
                 "Drag-and-drop components",
                 "Interviewer reads your diagram",
                 "Pushes on bottlenecks and trade-offs",
+              ]}
+            />
+            <RoundCard
+              status="live"
+              title="Behavioral"
+              body="Three questions across different competencies, each with real follow-up probing. Answered by voice, graded against your target company's values."
+              points={[
+                "Voice in, voice out",
+                "Up to two probes per question",
+                "18-question bank across 6 competencies",
               ]}
             />
           </div>

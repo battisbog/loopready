@@ -2,7 +2,12 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { COMPANY_PROFILES } from "@/lib/interview/companies";
-import { ROUND_IMPLEMENTED, isRoundType, type RoundType } from "@/lib/interview/rounds";
+import {
+  ROUND_IMPLEMENTED,
+  ROUND_TYPES,
+  isRoundType,
+  type RoundType,
+} from "@/lib/interview/rounds";
 import { startSession } from "@/lib/interview/start";
 import {
   checkDailySessionQuota,
@@ -36,10 +41,12 @@ export async function POST(request: Request) {
   if (!Array.isArray(rounds) || rounds.length === 0) {
     return NextResponse.json({ error: "Pick at least one round" }, { status: 400 });
   }
-  const roundList = rounds.filter(isRoundType) as RoundType[];
-  if (roundList.length !== rounds.length) {
+  const requested = rounds.filter(isRoundType) as RoundType[];
+  if (requested.length !== rounds.length) {
     return NextResponse.json({ error: "Unknown round type" }, { status: 400 });
   }
+  // A loop always runs in canonical order regardless of what the client sent.
+  const roundList = ROUND_TYPES.filter((r) => requested.includes(r));
   const unavailable = roundList.filter((r) => !ROUND_IMPLEMENTED[r]);
   if (unavailable.length) {
     return NextResponse.json(

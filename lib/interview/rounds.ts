@@ -3,7 +3,10 @@
 // a feedback rubric. M1-5 implement behavioral; coding lands in M7 and
 // system_design in M8 by flipping their flag and adding their prompt builders.
 
-export const ROUND_TYPES = ["behavioral", "coding", "system_design"] as const;
+// Order matters: this is the sequence a full loop runs in, and the order
+// rounds are listed in the picker. Technical rounds come first, behavioral
+// closes the loop.
+export const ROUND_TYPES = ["coding", "system_design", "behavioral"] as const;
 export type RoundType = (typeof ROUND_TYPES)[number];
 
 export const ROUND_IMPLEMENTED: Record<RoundType, boolean> = {

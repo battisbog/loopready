@@ -117,7 +117,7 @@ export default async function Dashboard() {
             <Card>
               <CardLabel>By round</CardLabel>
               <div className="mt-3 space-y-1.5">
-                {(["behavioral", "coding", "system_design"] as RoundType[]).map(
+                {(["coding", "system_design", "behavioral"] as RoundType[]).map(
                   (r) => (
                     <div
                       key={r}
