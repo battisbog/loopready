@@ -15,6 +15,14 @@ interface Body {
   role?: "candidate" | "interviewer";
   text?: string;
   /**
+   * Coding/design work product. Realtime instructions are set once when the
+   * session opens, so the model would otherwise never see code written after
+   * that. Sending it here refreshes the model's view.
+   */
+  artifact?: object;
+  /** Push an artifact update without recording a turn (e.g. after "Run"). */
+  artifactOnly?: boolean;
+  /**
    * Set when the model called advance_question. Sent as its own request rather
    * than riding on a turn, because the tool call and the transcription arrive
    * independently and either can land first.
@@ -45,7 +53,7 @@ export async function POST(request: Request) {
   if (!body.sessionId) {
     return NextResponse.json({ error: "sessionId required" }, { status: 400 });
   }
-  if (!body.advanceOnly && (!body.role || !body.text?.trim())) {
+  if (!body.advanceOnly && !body.artifactOnly && (!body.role || !body.text?.trim())) {
     return NextResponse.json(
       { error: "role and text required" },
       { status: 400 }
@@ -63,20 +71,21 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Session not found" }, { status: 404 });
   }
 
-  if (!body.advanceOnly) {
+  // Merge (never replace) so server-owned fields like problemId survive.
+  if (body.artifact !== undefined) {
+    session.artifact = { ...session.artifact, ...body.artifact };
+    await admin
+      .from("sessions")
+      .update({ artifact: session.artifact })
+      .eq("id", session.id);
+  }
+
+  if (!body.advanceOnly && !body.artifactOnly) {
     await admin.from("turns").insert({
       session_id: session.id,
       role: body.role,
       text: body.text!.trim(),
     });
-  }
-
-  // Interviewer turns are recorded but never move the state machine.
-  if (session.status !== "active") {
-    return NextResponse.json({ ok: true, done: false });
-  }
-  if (!body.advanceOnly && body.role !== "candidate") {
-    return NextResponse.json({ ok: true, done: false });
   }
 
   let ctx = null;
@@ -91,6 +100,28 @@ export async function POST(request: Request) {
       loop = data;
       ctx = getContext(data.company, data.level);
     }
+  }
+
+  /** Working rounds embed the artifact in their prompt, so it must be rebuilt. */
+  const artifactDrivenRound = session.round_type !== "behavioral";
+
+  // Artifact-only push: refresh what the model can see, change no state.
+  if (body.artifactOnly) {
+    return NextResponse.json({
+      ok: true,
+      done: false,
+      instructions: artifactDrivenRound
+        ? buildRealtimeInstructions(session, ctx)
+        : null,
+    });
+  }
+
+  // Interviewer turns are recorded but never move the state machine.
+  if (session.status !== "active") {
+    return NextResponse.json({ ok: true, done: false });
+  }
+  if (!body.advanceOnly && body.role !== "candidate") {
+    return NextResponse.json({ ok: true, done: false });
   }
 
   let questionIndex: number = session.question_index;
@@ -157,6 +188,16 @@ export async function POST(request: Request) {
   // the new question and the follow-up budget.
   let instructions: string | null = null;
   let sayNext: string | null = null;
+
+  // Coding/design: refresh every turn so the interviewer sees the latest code
+  // or diagram, matching what push-to-talk rebuilds on each request.
+  if (artifactDrivenRound && !done) {
+    instructions = buildRealtimeInstructions(
+      { ...session, question_index: questionIndex, followup_count: followupCount },
+      ctx
+    );
+  }
+
   if (advanced && !done) {
     const refreshed = {
       ...session,

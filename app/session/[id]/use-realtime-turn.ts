@@ -191,6 +191,20 @@ export function useRealtimeTurn({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionId]);
 
+  /**
+   * Pushes the current work surface (code, run results, diagram) to the model
+   * without recording a turn. Called after "Run" and on a debounce while the
+   * candidate edits, so the interviewer can reference what is on screen.
+   */
+  const pushArtifact = useCallback(async () => {
+    const patch = getArtifactPatch?.();
+    if (!patch || !sessionRef.current) return;
+    const data = await post({ artifactOnly: true, artifact: patch });
+    if (data?.instructions && aliveRef.current) {
+      sessionRef.current.updateInstructions(data.instructions);
+    }
+  }, [getArtifactPatch, post]);
+
   const endEarly = useCallback(async () => {
     aliveRef.current = false;
     sessionRef.current?.stop();
@@ -211,6 +225,7 @@ export function useRealtimeTurn({
     elapsed,
     partial,
     endEarly,
+    pushArtifact,
     speaking: status === "speaking",
     connecting: status === "connecting",
   };

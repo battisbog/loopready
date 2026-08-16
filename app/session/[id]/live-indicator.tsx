@@ -2,6 +2,9 @@
 
 import type { LiveStatus } from "./use-realtime-turn";
 
+/** Accepts push-to-talk statuses too, so the shared shell can pass either. */
+export type LiveStatusLike = LiveStatus | "idle" | "recording" | "transcribing";
+
 /**
  * Replaces the mic button in hands-free mode. There is nothing to press, so
  * this exists to make it obvious the mic is open and who currently has the
@@ -14,14 +17,14 @@ export default function LiveIndicator({
   partial,
   size = "large",
 }: {
-  status: LiveStatus;
+  status: LiveStatusLike;
   statusLabel: string;
   error?: string | null;
   partial?: { role: string; text: string } | null;
   size?: "large" | "small";
 }) {
   const large = size === "large";
-  const listening = status === "listening";
+  const listening = status === "listening" || status === "recording";
   const connecting = status === "connecting";
   const failed = status === "failed";
 
