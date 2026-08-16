@@ -127,6 +127,17 @@ console.log("___RESULTS___" + JSON.stringify(__out));
 
 const MARKER = "___RESULTS___";
 
+/** Wall-clock limit for one candidate program. */
+const RUN_TIMEOUT_MS = Number(process.env.RUN_TIMEOUT_MS ?? 10_000);
+/** Hard cap on captured output, so a print-loop cannot exhaust memory. */
+const MAX_OUTPUT_CHARS = Number(process.env.RUN_MAX_OUTPUT ?? 64_000);
+
+function truncate(text: string): string {
+  return text.length > MAX_OUTPUT_CHARS
+    ? text.slice(0, MAX_OUTPUT_CHARS) + "\n…output truncated…"
+    : text;
+}
+
 // Runs candidate code against the problem's tests inside an ephemeral Vercel
 // Sandbox microVM — never in this process.
 export async function runTests(
@@ -134,7 +145,10 @@ export async function runTests(
   language: Language,
   problem: Problem
 ): Promise<RunResult> {
-  const sandbox = await Sandbox.create({ runtime: "node24", timeout: 120_000 });
+  // Sandbox-level ceiling. The per-command timeout below fires well before it;
+  // this is the backstop if the command never returns at all.
+  const sandbox = await Sandbox.create({ runtime: "node24", timeout: 60_000 });
+  let timedOut = false;
   try {
     const isPy = language === "python";
     const file = isPy ? "solution.py" : "solution.js";
@@ -146,9 +160,33 @@ export async function runTests(
       { path: file, content: Buffer.from(source, "utf8") },
     ]);
 
-    const cmd = await sandbox.runCommand(isPy ? "python3" : "node", [file]);
-    const rawOut = await cmd.stdout();
-    const rawErr = await cmd.stderr();
+    // Race the program against a wall clock. An infinite loop in candidate
+    // code would otherwise burn the full sandbox lifetime on every run.
+    const timer = new Promise<null>((resolve) =>
+      setTimeout(() => {
+        timedOut = true;
+        resolve(null);
+      }, RUN_TIMEOUT_MS)
+    );
+    const cmd = await Promise.race([
+      sandbox.runCommand(isPy ? "python3" : "node", [file]),
+      timer,
+    ]);
+
+    if (!cmd || timedOut) {
+      return {
+        results: [],
+        passed: 0,
+        total: problem.tests.length,
+        stdout: "",
+        compileError: `Your code ran longer than ${Math.round(
+          RUN_TIMEOUT_MS / 1000
+        )} seconds and was stopped. Check for an infinite loop or a very slow algorithm.`,
+      };
+    }
+
+    const rawOut = truncate(await cmd.stdout());
+    const rawErr = truncate(await cmd.stderr());
 
     const markerAt = rawOut.lastIndexOf(MARKER);
     if (markerAt === -1) {

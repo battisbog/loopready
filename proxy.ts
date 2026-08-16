@@ -9,6 +9,9 @@ const PUBLIC_PATHS = [
   // PayPal posts server-to-server with no session. This route authenticates
   // itself by verifying the PayPal signature, so session auth must not block it.
   "/api/paypal/webhook",
+  // Uptime monitors have no session. The route itself returns only a bare
+  // status to anonymous callers and detail to signed-in ones.
+  "/api/health",
 ];
 
 // Public surface: marketing page, auth, and crawler files. Everything else
