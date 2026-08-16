@@ -12,6 +12,8 @@ const PUBLIC_PATHS = [
   // Uptime monitors have no session. The route itself returns only a bare
   // status to anonymous callers and detail to signed-in ones.
   "/api/health",
+  "/terms",
+  "/privacy",
 ];
 
 // Public surface: marketing page, auth, and crawler files. Everything else

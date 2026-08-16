@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import { usePathname } from "next/navigation";
 import { cn } from "@/lib/cn";
+import AccountMenu from "./account-menu";
 
 const LINKS = [
   { href: "/dashboard", label: "Dashboard" },
@@ -12,14 +12,7 @@ const LINKS = [
 
 /** Navigation for signed-in app pages. Distinct from the marketing nav. */
 export default function AppNav({ email }: { email?: string }) {
-  const router = useRouter();
   const pathname = usePathname();
-
-  async function signOut() {
-    await createClient().auth.signOut();
-    router.push("/login");
-    router.refresh();
-  }
 
   return (
     <nav className="sticky top-0 z-40 border-b border-line bg-base/85 backdrop-blur">
@@ -53,19 +46,7 @@ export default function AppNav({ email }: { email?: string }) {
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          {email && (
-            <span className="hidden max-w-[14rem] truncate text-xs text-muted sm:block">
-              {email}
-            </span>
-          )}
-          <button
-            onClick={signOut}
-            className="rounded-sm border border-line px-3 py-1.5 text-xs text-secondary transition-colors hover:border-line-strong hover:text-primary"
-          >
-            Sign out
-          </button>
-        </div>
+        <AccountMenu email={email} />
       </div>
 
       {/* Compact links on mobile */}

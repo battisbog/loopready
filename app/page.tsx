@@ -469,6 +469,13 @@ export default async function Landing() {
                   { href: "#faq", label: "FAQ" },
                 ]}
               />
+              <FooterCol
+                title="Legal"
+                links={[
+                  { href: "/terms", label: "Terms" },
+                  { href: "/privacy", label: "Privacy" },
+                ]}
+              />
             </div>
           </div>
           <div className="mt-10 border-t border-zinc-900 pt-6">

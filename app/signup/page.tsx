@@ -71,6 +71,18 @@ export default async function SignupPage({
           >
             Back to home
           </Link>
+
+          <p className="mt-5 text-[11px] leading-relaxed text-zinc-600">
+            Purchases are subject to our{" "}
+            <Link href="/terms" className="underline hover:text-zinc-400">
+              Terms
+            </Link>{" "}
+            and{" "}
+            <Link href="/privacy" className="underline hover:text-zinc-400">
+              Privacy Policy
+            </Link>
+            .
+          </p>
         </div>
       </div>
     </main>

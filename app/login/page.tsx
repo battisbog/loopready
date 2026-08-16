@@ -150,6 +150,18 @@ export default function LoginPage() {
             </>
           )}
 
+          <p className="pt-2 text-center text-[11px] leading-relaxed text-zinc-600">
+            By continuing you agree to our{" "}
+            <Link href="/terms" className="underline hover:text-zinc-400">
+              Terms
+            </Link>{" "}
+            and{" "}
+            <Link href="/privacy" className="underline hover:text-zinc-400">
+              Privacy Policy
+            </Link>
+            .
+          </p>
+
           {status && (
             <p className="pt-1 text-sm text-zinc-400" role="status">
               {status}

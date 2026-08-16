@@ -291,3 +291,6 @@ revoke execute on function commit_video_credit(uuid, uuid) from public, anon, au
 revoke execute on function release_video_credit(uuid, uuid) from public, anon, authenticated;
 revoke execute on function refund_video_credit(uuid, uuid, text) from public, anon, authenticated;
 revoke execute on function grant_video_credits(uuid, int, timestamptz, text, text) from public, anon, authenticated;
+
+-- Settings
+alter table profiles add column if not exists email_notifications boolean not null default true;
