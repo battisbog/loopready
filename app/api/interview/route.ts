@@ -3,26 +3,9 @@ import { generateText, type ModelMessage } from "ai";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { interviewModel } from "@/lib/ai";
-import { MAX_FOLLOWUPS, QUESTIONS, type Question } from "@/lib/interview/questions";
+import { planTurn, progressPayload } from "@/lib/interview/turn";
 import { MAX_CODING_TURNS, MAX_DESIGN_TURNS, startSession } from "@/lib/interview/start";
 import { getContext } from "@/lib/interview/companies";
-import { getProblem } from "@/lib/coding/problems";
-import {
-  codingClosingPrompt,
-  codingSystemPrompt,
-  type CodingArtifact,
-} from "@/lib/coding/prompt";
-import { getDesignPrompt } from "@/lib/design/prompts";
-import {
-  designClosingPrompt,
-  designSystemPrompt,
-  type DesignArtifact,
-} from "@/lib/design/prompt";
-import {
-  closingPrompt,
-  interviewerSystemPrompt,
-  transitionPrompt,
-} from "@/lib/interview/prompt";
 import { ROUND_IMPLEMENTED, isRoundType } from "@/lib/interview/rounds";
 import {
   checkDailySessionQuota,
@@ -39,10 +22,6 @@ interface Body {
   level?: string;
   userMessage?: string;
   artifact?: object;
-}
-
-function opening(firstQuestion: Question): string {
-  return `Hi, thanks for joining. I'm a senior engineer here and I'll be running your behavioral round today. It's about three questions, and I may dig into your answers. Let's get started. ${firstQuestion.text}`;
 }
 
 async function llm(system: string, messages: ModelMessage[]): Promise<string> {
@@ -160,70 +139,25 @@ export async function POST(request: Request) {
     if (loop) ctx = getContext(loop.company, loop.level);
   }
 
-  const questions: Question[] = session.questions ?? QUESTIONS;
-  let questionIndex: number = session.question_index;
-  let followupCount: number = session.followup_count;
-  let reply: string;
-  let done = false;
-
-  if (session.round_type === "system_design") {
-    const artifact = (session.artifact ?? {}) as DesignArtifact;
-    const design = getDesignPrompt(artifact.promptId);
-    if (!design) {
-      return NextResponse.json({ error: "Session has no design prompt" }, { status: 409 });
-    }
-    questionIndex += 1;
-    done = questionIndex >= MAX_DESIGN_TURNS;
-    if (!done) {
-      reply = await llm(designSystemPrompt(design, artifact, ctx), messages);
-      if (reply.startsWith("[DONE]")) done = true;
-    }
-    if (done) reply = await llm(designClosingPrompt(), messages);
-  } else if (session.round_type === "coding") {
-    // Coding is one problem over many turns; question_index counts turns.
-    const artifact = (session.artifact ?? {}) as CodingArtifact;
-    const problem = getProblem(artifact.problemId);
-    if (!problem) {
-      return NextResponse.json({ error: "Session has no problem" }, { status: 409 });
-    }
-    questionIndex += 1;
-    done = questionIndex >= MAX_CODING_TURNS;
-    if (!done) {
-      reply = await llm(codingSystemPrompt(problem, artifact, ctx), messages);
-      // The interviewer signals it has enough signal rather than padding out
-      // the remaining turns with small talk.
-      if (reply.startsWith("[DONE]")) done = true;
-    }
-    if (done) {
-      reply = await llm(codingClosingPrompt(), messages);
-    }
-  } else {
-  // Decide: follow-up probe on the current question, or move on?
-  let advance = followupCount >= MAX_FOLLOWUPS;
-  if (!advance) {
-    const probe = await llm(
-      interviewerSystemPrompt(questions[questionIndex], followupCount, ctx),
-      messages
-    );
-    if (probe.startsWith("[NEXT]")) {
-      advance = true;
-    } else {
-      followupCount += 1;
-      reply = probe;
-    }
+  // Both routes share one state machine, so the phase arc and the question
+  // logic cannot drift between streaming and non-streaming.
+  const plan = planTurn(session, ctx);
+  if ("error" in plan) {
+    return NextResponse.json({ error: plan.error }, { status: 409 });
   }
 
-  if (advance) {
-    questionIndex += 1;
-    followupCount = 0;
-    if (questionIndex >= questions.length) {
-      done = true;
-      reply = await llm(closingPrompt(), messages);
-    } else {
-      reply = await llm(transitionPrompt(questions[questionIndex], ctx), messages);
-    }
+  let state = plan.normal;
+  let reply = await llm(plan.system, messages);
+
+  if (plan.controlToken && reply.startsWith(plan.controlToken) && plan.onControl) {
+    state = plan.onControl.state;
+    reply = await llm(plan.onControl.system, messages);
   }
-  }
+
+  const questionIndex = state.questionIndex;
+  const followupCount = state.followupCount;
+  const phase = state.phase;
+  const done = state.done;
 
   await admin
     .from("turns")
@@ -233,6 +167,7 @@ export async function POST(request: Request) {
     .update({
       question_index: questionIndex,
       followup_count: followupCount,
+      phase,
       ...(done ? { status: "completed", ended_at: new Date().toISOString() } : {}),
     })
     .eq("id", session.id);
@@ -275,11 +210,6 @@ export async function POST(request: Request) {
     nextRound,
     loopComplete,
     done,
-    ...(session.round_type !== "behavioral"
-      ? { questionIndex: 0, questionCount: 1, turn: questionIndex }
-      : {
-          questionIndex: Math.min(questionIndex, questions.length - 1),
-          questionCount: questions.length,
-        }),
+    ...progressPayload(session, state),
   });
 }

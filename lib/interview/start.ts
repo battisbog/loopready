@@ -1,4 +1,7 @@
+import { generateText } from "ai";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { interviewModel } from "@/lib/ai";
+import { greetingPrompt } from "./prompt";
 import { getContext } from "./companies";
 import { pickSessionQuestions, type Question } from "./questions";
 import type { RoundType } from "./rounds";
@@ -19,9 +22,30 @@ interface StartArgs {
 
 export const MAX_CODING_TURNS = 14;
 
-function behavioralOpening(firstQuestion: Question, companyName?: string): string {
-  const where = companyName && companyName !== "Generic FAANG" ? ` at ${companyName}` : "";
-  return `Hi, thanks for joining. I'm a senior engineer${where} and I'll be running your behavioral round today. It's about three questions, and I may dig into your answers. Let's get started. ${firstQuestion.text}`;
+/**
+ * The opening is generated rather than templated: a fixed string is exactly the
+ * "script being read" feel we are trying to avoid, and the interviewer needs to
+ * invent a consistent name and team for itself.
+ */
+async function generateGreeting(
+  ctx: ReturnType<typeof getContext>,
+  companyName?: string
+): Promise<string> {
+  try {
+    const { text } = await generateText({
+      model: interviewModel(),
+      system: greetingPrompt(ctx),
+      messages: [{ role: "user", content: "(The candidate joins the call.)" }],
+    });
+    const greeting = text.trim();
+    if (greeting) return greeting;
+  } catch (e) {
+    console.error("[interview] greeting generation failed:", e);
+  }
+  // Never block the start of an interview on the model.
+  const where =
+    companyName && companyName !== "Generic FAANG" ? ` at ${companyName}` : "";
+  return `Hi, thanks for joining. I'm a senior engineer${where}, and I'll be running your interview today. Before we start, tell me a bit about yourself and what you've been working on recently.`;
 }
 
 // Creates a session row (optionally inside a loop) and stores the opening turn.
@@ -43,13 +67,14 @@ export async function startSession({
     round_order: roundOrder,
   };
 
-  let reply: string;
   let questionCount = 1;
 
+  // The round's material is chosen now, but the interview OPENS with a
+  // greeting. The problem or first question is presented later, once the
+  // candidate has introduced themselves and heard the format.
   if (roundType === "system_design") {
     const design = pickDesignPrompt(ctx?.tier ?? "mid");
     row.artifact = { promptId: design.id, nodes: [], edges: [] };
-    reply = designOpening(design, ctx?.profile.displayName);
   } else if (roundType === "coding") {
     const problem = pickProblem(ctx?.tier ?? "mid");
     const language = "python";
@@ -58,13 +83,14 @@ export async function startSession({
       language,
       code: problem.signatures[language],
     };
-    reply = codingOpening(problem, ctx?.profile.displayName);
   } else {
     const questions = pickSessionQuestions(3, ctx?.profile.competencyEmphasis ?? []);
     row.questions = questions;
     questionCount = questions.length;
-    reply = behavioralOpening(questions[0], ctx?.profile.displayName);
   }
+
+  row.phase = "greeting";
+  const reply = await generateGreeting(ctx, ctx?.profile.displayName);
 
   const { data: session, error } = await admin
     .from("sessions")

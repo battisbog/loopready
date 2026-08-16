@@ -294,3 +294,7 @@ revoke execute on function grant_video_credits(uuid, int, timestamptz, text, tex
 
 -- Settings
 alter table profiles add column if not exists email_notifications boolean not null default true;
+
+-- Interview arc: greeting -> format -> questions -> closing.
+-- Existing rows default to 'questions' so in-flight sessions are unaffected.
+alter table sessions add column if not exists phase text not null default 'questions';

@@ -163,6 +163,7 @@ export async function POST(request: Request) {
           .update({
             question_index: state.questionIndex,
             followup_count: state.followupCount,
+            phase: state.phase,
             ...(state.done
               ? { status: "completed", ended_at: new Date().toISOString() }
               : {}),

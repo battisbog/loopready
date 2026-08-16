@@ -2,8 +2,12 @@ import type { InterviewContext } from "./companies";
 import { MAX_FOLLOWUPS, QUESTIONS, type Question } from "./questions";
 import {
   closingPrompt,
+  firstQuestionPrompt,
+  formatPrompt,
+  greetingPrompt,
   interviewerSystemPrompt,
   transitionPrompt,
+  type Phase,
 } from "./prompt";
 import { MAX_CODING_TURNS, MAX_DESIGN_TURNS } from "./start";
 import { getProblem } from "@/lib/coding/problems";
@@ -23,6 +27,7 @@ export interface TurnState {
   questionIndex: number;
   followupCount: number;
   done: boolean;
+  phase: Phase;
 }
 
 export interface TurnPlan {
@@ -42,6 +47,8 @@ interface SessionRow {
   followup_count: number;
   questions?: Question[] | null;
   artifact?: unknown;
+  /** Sessions created before phases existed default to "questions". */
+  phase?: string | null;
 }
 
 /**
@@ -54,6 +61,50 @@ export function planTurn(
 ): TurnPlan | { error: string } {
   const questionIndex = session.question_index;
   const followupCount = session.followup_count;
+  const phase = (session.phase ?? "questions") as Phase;
+
+  // ---- Opening arc, before any interview question is asked ----
+  // Every round type shares this: greet, hear their intro, set expectations,
+  // then begin. Only after that does the round-specific machine take over.
+  if (phase === "greeting") {
+    return {
+      system: formatPrompt(session.round_type, ctx),
+      controlToken: null,
+      normal: {
+        questionIndex,
+        followupCount,
+        done: false,
+        phase: "format",
+      },
+      onControl: null,
+    };
+  }
+
+  if (phase === "format") {
+    // Behavioral asks its first question here; the working rounds present
+    // their problem via the round prompt instead.
+    const questions: Question[] = session.questions ?? QUESTIONS;
+    const opener =
+      session.round_type === "behavioral"
+        ? firstQuestionPrompt(questions[0], ctx)
+        : null;
+
+    if (opener) {
+      return {
+        system: opener,
+        controlToken: null,
+        normal: {
+          questionIndex: 0,
+          followupCount: 0,
+          done: false,
+          phase: "questions",
+        },
+        onControl: null,
+      };
+    }
+    // Coding / system design: fall through to the round prompt, which states
+    // the problem, but mark the phase as started.
+  }
 
   if (session.round_type === "system_design") {
     const artifact = (session.artifact ?? {}) as DesignArtifact;
@@ -63,7 +114,12 @@ export function planTurn(
     const outOfTurns = next >= MAX_DESIGN_TURNS;
     const closing = {
       system: designClosingPrompt(),
-      state: { questionIndex: next, followupCount: 0, done: true },
+      state: {
+        questionIndex: next,
+        followupCount: 0,
+        done: true,
+        phase: "closing" as Phase,
+      },
     };
     if (outOfTurns) {
       return { system: closing.system, controlToken: null, normal: closing.state, onControl: null };
@@ -71,7 +127,12 @@ export function planTurn(
     return {
       system: designSystemPrompt(design, artifact, ctx),
       controlToken: "[DONE]",
-      normal: { questionIndex: next, followupCount: 0, done: false },
+      normal: {
+        questionIndex: next,
+        followupCount: 0,
+        done: false,
+        phase: "questions",
+      },
       onControl: closing,
     };
   }
@@ -84,7 +145,12 @@ export function planTurn(
     const outOfTurns = next >= MAX_CODING_TURNS;
     const closing = {
       system: codingClosingPrompt(),
-      state: { questionIndex: next, followupCount: 0, done: true },
+      state: {
+        questionIndex: next,
+        followupCount: 0,
+        done: true,
+        phase: "closing" as Phase,
+      },
     };
     if (outOfTurns) {
       return { system: closing.system, controlToken: null, normal: closing.state, onControl: null };
@@ -92,7 +158,12 @@ export function planTurn(
     return {
       system: codingSystemPrompt(problem, artifact, ctx),
       controlToken: "[DONE]",
-      normal: { questionIndex: next, followupCount: 0, done: false },
+      normal: {
+        questionIndex: next,
+        followupCount: 0,
+        done: false,
+        phase: "questions",
+      },
       onControl: closing,
     };
   }
@@ -109,6 +180,7 @@ export function planTurn(
       questionIndex: advanceIndex,
       followupCount: 0,
       done: finished,
+      phase: (finished ? "closing" : "questions") as Phase,
     },
   };
 
@@ -128,6 +200,7 @@ export function planTurn(
       questionIndex,
       followupCount: followupCount + 1,
       done: false,
+      phase: "questions",
     },
     onControl: advance,
   };
