@@ -3,8 +3,6 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import VoiceInterview from "./voice-interview";
-import LiveInterview from "./live-interview";
-import { REALTIME_ENABLED } from "@/lib/realtime/config";
 import CodingInterview from "./coding-interview";
 import DesignInterview from "./design-interview";
 import { getProblem } from "@/lib/coding/problems";
@@ -95,11 +93,9 @@ export default async function SessionPage({
         />
       );
     }
-    // Hands-free live voice when the flag is on; push-to-talk (ElevenLabs or
-    // OpenAI TTS) otherwise, so the two can be compared.
-    const Round = REALTIME_ENABLED ? LiveInterview : VoiceInterview;
+    // Voice mode is chosen inside RoundShell, so every round behaves the same.
     return (
-      <Round
+      <VoiceInterview
         sessionId={id}
         initialTurns={turns ?? []}
         questionIndex={session.question_index}

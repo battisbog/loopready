@@ -139,9 +139,19 @@ function PushToTalkRound({
       busy={busy}
       onToggleRecording={toggleRecording}
       serverAudio={serverAudio}
-      // Push-to-talk rebuilds the prompt server-side each turn, so the surface
-      // has nothing extra to push.
-      surface={renderSurface?.({ pushArtifact: () => {} })}
+      // Push-to-talk rebuilds the prompt server-side on each turn, so there is
+      // nothing to refresh — but the work still needs persisting.
+      surface={renderSurface?.({
+        pushArtifact: () => {
+          const patch = getArtifactPatch?.();
+          if (!patch) return;
+          void fetch("/api/artifact", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ sessionId, patch }),
+          }).catch(() => {});
+        },
+      })}
     />
   );
 }
