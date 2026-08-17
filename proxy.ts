@@ -5,6 +5,7 @@ const PUBLIC_PATHS = [
   "/login",
   "/auth",
   "/signup",
+  "/checkout",
   "/pricing",
   // PayPal posts server-to-server with no session. This route authenticates
   // itself by verifying the PayPal signature, so session auth must not block it.

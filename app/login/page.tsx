@@ -21,6 +21,8 @@ export default function LoginPage() {
   );
   const [busy, setBusy] = useState<string | null>(null);
   const [showEmail, setShowEmail] = useState(false);
+  // Preserve where the user was heading (e.g. /checkout?plan=voice).
+  const [next, setNext] = useState("/dashboard");
 
   async function signInWithProvider(provider: Provider) {
     setBusy(provider);
@@ -28,7 +30,7 @@ export default function LoginPage() {
     const supabase = createClient();
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
-      options: { redirectTo: getAuthCallbackUrl("/dashboard") },
+      options: { redirectTo: getAuthCallbackUrl(next) },
     });
     if (error) {
       setBusy(null);
@@ -50,7 +52,7 @@ export default function LoginPage() {
     const res = await fetch("/api/auth/signup", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, redirectTo: getAuthCallbackUrl("/dashboard") }),
+      body: JSON.stringify({ email, redirectTo: getAuthCallbackUrl(next) }),
     });
     const data = await res.json().catch(() => ({}));
     setBusy(null);
@@ -65,7 +67,7 @@ export default function LoginPage() {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setBusy(null);
     if (error) return setStatus(error.message);
-    router.push("/dashboard");
+    router.push(next);
     router.refresh();
   }
 

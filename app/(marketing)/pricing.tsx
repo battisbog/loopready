@@ -36,7 +36,7 @@ const TIERS: Tier[] = [
     cadence: "/mo",
     tagline: "Unlimited practice across the whole loop, in a natural voice.",
     cta: "Get Voice",
-    href: "/signup?plan=voice",
+    href: "/checkout?plan=voice",
     featured: true,
     features: [
       { label: "Unlimited voice mock interviews" },
@@ -54,7 +54,7 @@ const TIERS: Tier[] = [
     cadence: "/mo",
     tagline: "Face-to-face practice for the real thing.",
     cta: "Join the waitlist",
-    href: "/signup?plan=premium",
+    href: "/checkout?plan=premium",
     note: "Video avatar is still in development. You'll be first in line.",
     features: [
       { label: "Everything in Voice" },

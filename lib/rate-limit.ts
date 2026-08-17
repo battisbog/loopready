@@ -284,7 +284,13 @@ export function clientIp(request: Request): string {
   return "unknown";
 }
 
-export type IpLimitName = "signup" | "interview" | "tts" | "transcribe" | "run";
+export type IpLimitName =
+  | "signup"
+  | "checkout"
+  | "interview"
+  | "tts"
+  | "transcribe"
+  | "run";
 
 const IP_LIMITS: Record<
   IpLimitName,
@@ -296,6 +302,13 @@ const IP_LIMITS: Record<
     window: "1 h",
     message:
       "Too many accounts created from this network. Try again later, or contact us if you're on a shared connection.",
+  },
+  // Checkout deliberately does NOT share the signup budget: a network that
+  // hit the signup limit must still be able to pay.
+  checkout: {
+    tokens: 30,
+    window: "1 h",
+    message: "Too many payment attempts from this network. Try again shortly.",
   },
   interview: {
     tokens: 150,

@@ -304,7 +304,7 @@ export default async function Dashboard() {
               </p>
             </div>
             <Button
-              href={plan === "free" ? "/pricing" : "/signup?plan=voice"}
+              href={plan === "free" ? "/pricing" : "/billing"}
               variant="secondary"
             >
               {plan === "free" ? "Upgrade" : "Manage plan"}
