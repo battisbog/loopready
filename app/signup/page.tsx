@@ -1,15 +1,16 @@
 import Link from "next/link";
+import { PRICING } from "@/lib/pricing";
 
 const PLAN_COPY: Record<string, { name: string; price: string; blurb: string }> = {
   voice: {
     name: "Voice",
-    price: "$19/mo",
+    price: PRICING.voice.displayWithInterval,
     blurb:
       "Unlimited voice mocks across behavioral, coding, and system design, with the studio interviewer voice.",
   },
   premium: {
     name: "Premium",
-    price: "$69/mo",
+    price: PRICING.premium.displayWithInterval,
     blurb:
       "Everything in Voice, plus video-avatar interviews the moment they ship.",
   },

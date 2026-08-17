@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PRICING } from "@/lib/pricing";
 
 interface Tier {
   id: string;
@@ -31,7 +32,7 @@ const TIERS: Tier[] = [
   {
     id: "voice",
     name: "Voice",
-    price: "$19",
+    price: PRICING.voice.display,
     cadence: "/mo",
     tagline: "Unlimited practice across the whole loop, in a natural voice.",
     cta: "Get Voice",
@@ -49,7 +50,7 @@ const TIERS: Tier[] = [
   {
     id: "premium",
     name: "Premium",
-    price: "$69",
+    price: PRICING.premium.display,
     cadence: "/mo",
     tagline: "Face-to-face practice for the real thing.",
     cta: "Join the waitlist",
@@ -185,10 +186,10 @@ export default function Pricing() {
                   <th className="py-4 pr-4 font-medium text-zinc-500"> </th>
                   <th className="px-4 py-4 font-medium text-zinc-300">Free</th>
                   <th className="px-4 py-4 font-semibold text-emerald-400">
-                    Voice · $19/mo
+                    Voice · {PRICING.voice.displayWithInterval}
                   </th>
                   <th className="px-4 py-4 font-medium text-zinc-300">
-                    Premium · $69/mo
+                    Premium · {PRICING.premium.displayWithInterval}
                   </th>
                 </tr>
               </thead>

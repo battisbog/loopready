@@ -5,6 +5,7 @@ import {
   peekGlobalBudget,
   rateLimitHealth,
 } from "@/lib/rate-limit";
+import { PRICING, assertPricingMatchesPayPal } from "@/lib/pricing";
 
 export const dynamic = "force-dynamic";
 
@@ -16,17 +17,24 @@ export const dynamic = "force-dynamic";
  * operationally is returned only to a signed-in session.
  */
 export async function GET() {
-  const [limits, budget] = await Promise.all([
+  const [limits, budget, prices] = await Promise.all([
     rateLimitHealth(),
     peekGlobalBudget(),
+    assertPricingMatchesPayPal(),
   ]);
 
+  // A price mismatch means customers would be charged something other than
+  // what we advertise, so it degrades health rather than being informational.
+  const priceMismatch = prices.some((p) => p.status === "MISMATCH");
+
   const limitsHealthy = limits.configured && limits.reachable;
-  const status = !limitsHealthy
-    ? "degraded"
-    : budget.exceeded
-      ? "at_capacity"
-      : "ok";
+  const status = priceMismatch
+    ? "price_mismatch"
+    : !limitsHealthy
+      ? "degraded"
+      : budget.exceeded
+        ? "at_capacity"
+        : "ok";
 
   const supabase = await createClient();
   const {
@@ -53,6 +61,13 @@ export async function GET() {
       cap: budget.cap,
       exceeded: budget.exceeded,
       tracked: !budget.unknown,
+    },
+    pricing: {
+      advertised: {
+        voice: PRICING.voice.displayWithInterval,
+        premium: PRICING.premium.displayWithInterval,
+      },
+      paypal: prices,
     },
     checkedAt: new Date().toISOString(),
   });
