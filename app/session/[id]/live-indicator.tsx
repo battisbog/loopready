@@ -32,7 +32,7 @@ export default function LiveIndicator({
     <div className="flex flex-col items-center gap-3">
       {partial?.role === "candidate" && partial.text && (
         <p
-          className={`text-center italic leading-relaxed text-zinc-500 ${
+          className={`text-center italic leading-relaxed text-muted ${
             large ? "max-w-xl text-sm" : "max-w-full text-xs"
           }`}
         >
@@ -41,7 +41,7 @@ export default function LiveIndicator({
       )}
 
       {error && (
-        <p className={`text-center text-red-400 ${large ? "text-sm" : "text-xs"}`}>
+        <p className={`text-center text-error ${large ? "text-sm" : "text-xs"}`}>
           {error}
         </p>
       )}
@@ -51,10 +51,10 @@ export default function LiveIndicator({
           large ? "py-2.5" : "py-2"
         } ${
           failed
-            ? "border-red-500/40 bg-red-500/10"
+            ? "border-error/40 bg-error/10"
             : listening
-              ? "border-emerald-500/40 bg-emerald-500/10"
-              : "border-zinc-800 bg-zinc-900/60"
+              ? "border-accent-border bg-accent-muted"
+              : "border-line bg-surface"
         }`}
       >
         {/* Live mic meter: bars move only while the candidate has the floor */}
@@ -63,7 +63,7 @@ export default function LiveIndicator({
             <span
               key={i}
               className={`w-0.5 rounded-full ${
-                listening ? "wave-bar bg-emerald-400" : "bg-zinc-700"
+                listening ? "wave-bar bg-accent-hover" : "bg-elevated"
               } ${listening ? "h-4" : "h-1.5"}`}
               style={{ animationDelay: `${i * 0.13}s` }}
             />
@@ -73,10 +73,10 @@ export default function LiveIndicator({
         <span
           className={`font-medium ${large ? "text-sm" : "text-xs"} ${
             failed
-              ? "text-red-400"
+              ? "text-error"
               : listening
-                ? "text-emerald-300"
-                : "text-zinc-400"
+                ? "text-accent"
+                : "text-secondary"
           }`}
         >
           {connecting ? "Connecting…" : statusLabel}
@@ -84,7 +84,7 @@ export default function LiveIndicator({
       </div>
 
       {!large && (
-        <p className="text-center text-[11px] text-zinc-600">
+        <p className="text-center text-[11px] text-muted">
           Hands free. Just talk.
         </p>
       )}

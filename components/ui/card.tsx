@@ -5,6 +5,16 @@ import { cn } from "@/lib/cn";
 const SURFACE =
   "rounded-lg border border-line bg-surface shadow-[var(--shadow-sm)]";
 
+/** Semantic surfaces. Use these instead of hand-written colour classes. */
+const TONES = {
+  default: "",
+  accent: "border-accent-border bg-accent-muted",
+  warn: "border-warn/30 bg-warn-muted",
+  error: "border-error/30 bg-error-muted",
+} as const;
+
+export type CardTone = keyof typeof TONES;
+
 export function Card({
   children,
   className,
@@ -12,17 +22,23 @@ export function Card({
   /** Turns the whole card into a link with hover feedback. */
   href,
   accent,
+  tone = "default",
+  /** Denser padding for list rows. */
+  compact,
 }: {
   children: ReactNode;
   className?: string;
   padded?: boolean;
   href?: string;
+  /** Shorthand for tone="accent". */
   accent?: boolean;
+  tone?: CardTone;
+  compact?: boolean;
 }) {
   const classes = cn(
     SURFACE,
-    padded && "p-5",
-    accent && "border-accent-border bg-accent-muted",
+    padded && (compact ? "px-5 py-4" : "p-5"),
+    TONES[accent ? "accent" : tone],
     href &&
       "block transition-colors duration-150 hover:border-line-strong hover:bg-elevated",
     className

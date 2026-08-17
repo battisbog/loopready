@@ -5,9 +5,9 @@ import Link from "next/link";
 import type { FeedbackReport } from "@/lib/feedback/schema";
 
 const SIGNAL_STYLES: Record<string, string> = {
-  hire: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
-  borderline: "bg-amber-500/15 text-amber-400 border-amber-500/30",
-  "no-hire": "bg-red-500/15 text-red-400 border-red-500/30",
+  hire: "bg-accent-muted text-accent border-accent-border",
+  borderline: "bg-warn-muted text-warn border-warn/30",
+  "no-hire": "bg-error-muted text-error border-error/30",
 };
 
 export default function FeedbackPage({
@@ -40,7 +40,7 @@ export default function FeedbackPage({
   if (error) {
     return (
       <Shell id={id}>
-        <p className="text-sm text-red-400">{error}</p>
+        <p className="text-sm text-error">{error}</p>
       </Shell>
     );
   }
@@ -48,8 +48,8 @@ export default function FeedbackPage({
   if (!report) {
     return (
       <Shell id={id}>
-        <div className="flex items-center gap-3 text-sm text-zinc-400">
-          <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
+        <div className="flex items-center gap-3 text-sm text-secondary">
+          <span className="h-2 w-2 animate-pulse rounded-full bg-accent" />
           Writing your debrief. We&rsquo;re evaluating each answer the way a real loop
           would…
         </div>
@@ -67,15 +67,15 @@ export default function FeedbackPage({
         {report.overallSignal.toUpperCase()}
       </div>
 
-      <p className="mt-4 text-sm leading-relaxed text-zinc-300">
+      <p className="mt-4 text-sm leading-relaxed text-secondary">
         {report.overallSummary}
       </p>
 
       <Section title="Per-answer breakdown">
         <div className="space-y-4">
           {report.perAnswer.map((a, i) => (
-            <div key={i} className="rounded-lg border border-zinc-800 p-4">
-              <p className="text-sm font-medium text-zinc-200">{a.question}</p>
+            <div key={i} className="rounded-lg border border-line p-4">
+              <p className="text-sm font-medium text-primary">{a.question}</p>
               <dl className="mt-3 space-y-2 text-sm">
                 <Row label="Structure" value={a.structure} />
                 <Row label="Impact" value={a.impact} />
@@ -88,7 +88,7 @@ export default function FeedbackPage({
       </Section>
 
       <Section title="Top issues">
-        <ol className="list-decimal space-y-2 pl-5 text-sm text-zinc-300">
+        <ol className="list-decimal space-y-2 pl-5 text-sm text-secondary">
           {report.topIssues.map((issue, i) => (
             <li key={i}>{issue}</li>
           ))}
@@ -98,15 +98,15 @@ export default function FeedbackPage({
       <Section title="Rewrites">
         <div className="space-y-4">
           {report.rewrites.map((r, i) => (
-            <div key={i} className="rounded-lg border border-zinc-800 p-4">
-              <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">
+            <div key={i} className="rounded-lg border border-line p-4">
+              <p className="text-xs font-medium uppercase tracking-wide text-muted">
                 What you said
               </p>
-              <p className="mt-1 text-sm text-zinc-400">{r.original}</p>
-              <p className="mt-3 text-xs font-medium uppercase tracking-wide text-emerald-500">
+              <p className="mt-1 text-sm text-secondary">{r.original}</p>
+              <p className="mt-3 text-xs font-medium uppercase tracking-wide text-accent">
                 Stronger version
               </p>
-              <p className="mt-1 text-sm text-zinc-200">{r.better}</p>
+              <p className="mt-1 text-sm text-primary">{r.better}</p>
             </div>
           ))}
         </div>
@@ -123,10 +123,10 @@ function Shell({ id, children }: { id: string; children: React.ReactNode }) {
           Interview debrief
         </h1>
         <div className="flex gap-4 text-sm">
-          <Link href={`/session/${id}`} className="text-zinc-500 hover:text-zinc-300">
+          <Link href={`/session/${id}`} className="text-muted hover:text-secondary">
             Transcript
           </Link>
-          <Link href="/dashboard" className="text-zinc-500 hover:text-zinc-300">
+          <Link href="/dashboard" className="text-muted hover:text-secondary">
             Home
           </Link>
         </div>
@@ -145,7 +145,7 @@ function Section({
 }) {
   return (
     <div className="mt-8">
-      <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-zinc-500">
+      <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted">
         {title}
       </h2>
       {children}
@@ -164,8 +164,8 @@ function Row({
 }) {
   return (
     <div className="flex gap-3">
-      <dt className="w-24 shrink-0 text-zinc-500">{label}</dt>
-      <dd className={accent ? "text-amber-300/90" : "text-zinc-300"}>{value}</dd>
+      <dt className="w-24 shrink-0 text-muted">{label}</dt>
+      <dd className={accent ? "text-warn" : "text-secondary"}>{value}</dd>
     </div>
   );
 }

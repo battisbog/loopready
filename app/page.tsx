@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Button } from "@/components/ui";
 import Image from "next/image";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -30,55 +31,49 @@ export default async function Landing() {
       <header className="relative overflow-hidden">
         <div
           aria-hidden
-          className="pointer-events-none absolute left-1/2 top-[-18rem] h-[36rem] w-[70rem] -translate-x-1/2 rounded-full bg-emerald-500/10 blur-[120px]"
+          className="pointer-events-none absolute left-1/2 top-[-18rem] h-[36rem] w-[70rem] -translate-x-1/2 rounded-full bg-accent-muted blur-[120px]"
         />
         <div className="relative mx-auto w-full max-w-6xl px-6 pb-20 pt-16 sm:pt-24">
           <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,0.88fr)_minmax(0,1.12fr)] lg:gap-14">
             <div className="rise">
-              <span className="inline-flex items-center gap-2 rounded-full border border-zinc-800 bg-zinc-900/60 px-3 py-1 text-xs text-zinc-400">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+              <span className="inline-flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-1 text-xs text-secondary">
+                <span className="h-1.5 w-1.5 rounded-full bg-accent-hover" />
                 Voice interviews · Calibrated to company and level
               </span>
 
               <h1 className="mt-6 text-4xl font-semibold leading-[1.08] tracking-tight sm:text-5xl lg:text-6xl">
                 Fail your mock,
                 <br />
-                <span className="text-emerald-400">not your loop.</span>
+                <span className="text-accent">not your loop.</span>
               </h1>
 
-              <p className="mt-6 max-w-xl text-lg leading-relaxed text-zinc-400">
+              <p className="mt-6 max-w-xl text-lg leading-relaxed text-secondary">
                 LoopReady runs a real interview out loud. The interviewer interrupts
                 vague answers and digs until you give it something specific. Then it tells you, honestly, where you would have been
                 dinged.
               </p>
 
               <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
-                <Link
-                  href={ctaHref}
-                  className="inline-flex items-center justify-center rounded-lg bg-emerald-500 px-6 py-3.5 text-sm font-semibold text-zinc-950 transition-colors hover:bg-emerald-400"
-                >
+                <Button href={ctaHref} size="lg">
                   {ctaLabel}
-                </Link>
-                <Link
-                  href="#feedback"
-                  className="inline-flex items-center justify-center rounded-lg border border-zinc-800 px-6 py-3.5 text-sm font-medium text-zinc-300 transition-colors hover:border-zinc-700 hover:text-white"
-                >
+                </Button>
+                <Button href="#feedback" variant="secondary" size="lg">
                   See real feedback
-                </Link>
+                </Button>
               </div>
 
-              <p className="mt-4 text-xs text-zinc-600">
+              <p className="mt-4 text-xs text-muted">
                 Free while in early access · No credit card · About 15 minutes
               </p>
             </div>
 
             <figure className="rise lg:-mr-4" style={{ animationDelay: "120ms" }}>
-              <div className="overflow-hidden rounded-xl border border-zinc-800 bg-zinc-950 shadow-2xl shadow-emerald-500/10">
-                <div className="flex items-center gap-1.5 border-b border-zinc-800 bg-zinc-900/80 px-4 py-2.5">
-                  <span className="h-2.5 w-2.5 rounded-full bg-zinc-700" />
-                  <span className="h-2.5 w-2.5 rounded-full bg-zinc-700" />
-                  <span className="h-2.5 w-2.5 rounded-full bg-zinc-700" />
-                  <span className="ml-3 truncate font-mono text-[11px] text-zinc-600">
+              <div className="overflow-hidden rounded-lg border border-line bg-base shadow-2xl shadow-[var(--shadow-lg)]">
+                <div className="flex items-center gap-1.5 border-b border-line bg-surface px-4 py-2.5">
+                  <span className="h-2.5 w-2.5 rounded-full bg-elevated" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-elevated" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-elevated" />
+                  <span className="ml-3 truncate font-mono text-[11px] text-muted">
                     loopready.app/session
                   </span>
                 </div>
@@ -93,7 +88,7 @@ export default async function Landing() {
                   sizes="(max-width: 1024px) 100vw, 620px"
                 />
               </div>
-              <figcaption className="mt-3 text-center text-xs text-zinc-600 lg:text-left">
+              <figcaption className="mt-3 text-center text-xs text-muted lg:text-left">
                 All three rounds are live today: behavioral, coding, and system
                 design.
               </figcaption>
@@ -103,16 +98,16 @@ export default async function Landing() {
       </header>
 
       {/* ---------- Companies ---------- */}
-      <section className="border-y border-zinc-900 bg-zinc-950/60">
+      <section className="border-y border-line bg-base/60">
         <div className="mx-auto w-full max-w-6xl px-6 py-10">
-          <p className="text-center text-xs uppercase tracking-[0.2em] text-zinc-600">
+          <p className="text-center text-xs uppercase tracking-[0.2em] text-muted">
             Calibrated to the bar at
           </p>
           <div className="mt-6 flex flex-wrap items-center justify-center gap-x-10 gap-y-4">
             {COMPANIES.map((key) => (
               <span
                 key={key}
-                className="text-lg font-medium text-zinc-500 transition-colors hover:text-zinc-300"
+                className="text-lg font-medium text-muted transition-colors hover:text-secondary"
               >
                 {COMPANY_PROFILES[key].displayName}
               </span>
@@ -127,7 +122,7 @@ export default async function Landing() {
           <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
             Most people fail the loop for reasons nobody tells them.
           </h2>
-          <p className="mt-5 text-lg leading-relaxed text-zinc-400">
+          <p className="mt-5 text-lg leading-relaxed text-secondary">
             You said &ldquo;we&rdquo; when the interviewer needed
             &ldquo;I&rdquo;. Your impact was &ldquo;users were happy&rdquo;
             instead of a number. Your conflict story ended with you being right
@@ -153,13 +148,13 @@ export default async function Landing() {
       </section>
 
       {/* ---------- Rounds ---------- */}
-      <section id="rounds" className="border-t border-zinc-900 bg-zinc-950/60">
+      <section id="rounds" className="border-t border-line bg-base/60">
         <div className="mx-auto w-full max-w-6xl px-6 py-24">
           <div className="max-w-3xl">
             <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
               The whole loop, one engine.
             </h2>
-            <p className="mt-5 text-lg leading-relaxed text-zinc-400">
+            <p className="mt-5 text-lg leading-relaxed text-secondary">
               Run a single round, or the full loop back to back under one
               configuration, with the same company and level carried through every
               round.
@@ -228,14 +223,14 @@ export default async function Landing() {
       {/* ---------- Calibration ---------- */}
       <section
         id="calibration"
-        className="border-t border-zinc-900 bg-zinc-950/60"
+        className="border-t border-line bg-base/60"
       >
         <div className="mx-auto w-full max-w-6xl px-6 py-24">
           <div className="max-w-3xl">
             <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
               Six companies. Six different interviews.
             </h2>
-            <p className="mt-5 text-lg leading-relaxed text-zinc-400">
+            <p className="mt-5 text-lg leading-relaxed text-secondary">
               A generic tool asks &ldquo;tell me about a challenge.&rdquo;
               LoopReady interviews you the way your target actually does, and the
               level you pick changes the bar, not just the wording. Pick a
@@ -252,24 +247,24 @@ export default async function Landing() {
           <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
             This is what the debrief looks like.
           </h2>
-          <p className="mt-5 text-lg text-zinc-400">
+          <p className="mt-5 text-lg text-secondary">
             Real output from a session, not a mockup. Every point is tied to
             something the candidate actually said.
           </p>
         </div>
 
-        <div className="mt-10 overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-950">
-          <div className="flex flex-wrap items-center gap-3 border-b border-zinc-800 bg-zinc-900/50 px-6 py-4">
-            <span className="rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-400">
+        <div className="mt-10 overflow-hidden rounded-lg border border-line bg-base">
+          <div className="flex flex-wrap items-center gap-3 border-b border-line bg-surface px-6 py-4">
+            <span className="rounded-full border border-warn/30 bg-warn-muted px-3 py-1 text-xs font-semibold text-warn">
               BORDERLINE
             </span>
-            <span className="text-sm text-zinc-500">
+            <span className="text-sm text-muted">
               Amazon · SDE III (L6) · Behavioral
             </span>
           </div>
 
-          <div className="space-y-6 p-6 sm:p-8">
-            <p className="leading-relaxed text-zinc-300">
+          <div className="space-y-6 p-5">
+            <p className="leading-relaxed text-secondary">
               Borderline for Amazon SDE III/L6, with stronger-than-average
               behavioral structure but not enough senior-level scope. The
               candidate gave clean STAR answers, accepted personal
@@ -277,11 +272,11 @@ export default async function Landing() {
               main ding is level calibration.
             </p>
 
-            <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-5">
-              <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">
+            <div className="rounded-lg border border-line bg-surface p-5">
+              <p className="text-xs font-medium uppercase tracking-wide text-muted">
                 What an interviewer wanted and did not hear
               </p>
-              <p className="mt-2 leading-relaxed text-amber-300/90">
+              <p className="mt-2 leading-relaxed text-warn">
                 A hire-level answer needed the manager&rsquo;s real argument for
                 MongoDB, the evidence you brought, and what you conceded in your
                 own position. The story made you look certain rather than
@@ -290,21 +285,21 @@ export default async function Landing() {
             </div>
 
             <div className="grid gap-5 sm:grid-cols-2">
-              <div className="rounded-xl border border-zinc-800 p-5">
-                <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">
+              <div className="rounded-lg border border-line p-5">
+                <p className="text-xs font-medium uppercase tracking-wide text-muted">
                   What you said
                 </p>
-                <p className="mt-2 text-sm leading-relaxed text-zinc-400">
+                <p className="mt-2 text-sm leading-relaxed text-secondary">
                   &ldquo;My manager wanted MongoDB but I thought Postgres was
                   better. We talked about it and eventually went with Postgres
                   and it worked out fine.&rdquo;
                 </p>
               </div>
-              <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/[0.04] p-5">
-                <p className="text-xs font-medium uppercase tracking-wide text-emerald-500">
+              <div className="rounded-lg border border-accent-border bg-accent-muted p-5">
+                <p className="text-xs font-medium uppercase tracking-wide text-accent">
                   Stronger version
                 </p>
-                <p className="mt-2 text-sm leading-relaxed text-zinc-300">
+                <p className="mt-2 text-sm leading-relaxed text-secondary">
                   &ldquo;He proposed MongoDB because he expected event payloads
                   to change often. I built a one-day prototype on 5M events:
                   Mongo won on ingest, but our three reporting queries ran 2–3×
@@ -318,12 +313,12 @@ export default async function Landing() {
       </section>
 
       {/* ---------- Comparison ---------- */}
-      <section className="border-t border-zinc-900 bg-zinc-950/60">
+      <section className="border-t border-line bg-base/60">
         <div className="mx-auto w-full max-w-5xl px-6 py-24">
           <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
             Why not just practice with a chatbot?
           </h2>
-          <p className="mt-5 max-w-2xl text-lg text-zinc-400">
+          <p className="mt-5 max-w-2xl text-lg text-secondary">
             Because reading your own polished summary back to a model is not the
             skill being tested.
           </p>
@@ -331,20 +326,20 @@ export default async function Landing() {
           <div className="mt-10 overflow-x-auto">
             <table className="w-full min-w-[38rem] border-collapse text-left text-sm">
               <thead>
-                <tr className="border-b border-zinc-800">
-                  <th className="py-4 pr-4 font-medium text-zinc-500"> </th>
-                  <th className="px-4 py-4 font-semibold text-emerald-400">
+                <tr className="border-b border-line">
+                  <th className="py-4 pr-4 font-medium text-muted"> </th>
+                  <th className="px-4 py-4 font-semibold text-accent">
                     LoopReady
                   </th>
-                  <th className="px-4 py-4 font-medium text-zinc-400">
+                  <th className="px-4 py-4 font-medium text-secondary">
                     Chatbot prompt
                   </th>
-                  <th className="px-4 py-4 font-medium text-zinc-400">
+                  <th className="px-4 py-4 font-medium text-secondary">
                     Friend mock
                   </th>
                 </tr>
               </thead>
-              <tbody className="text-zinc-300">
+              <tbody className="text-secondary">
                 <Row
                   label="You answer out loud"
                   a="yes"
@@ -385,12 +380,12 @@ export default async function Landing() {
       <Pricing />
 
       {/* ---------- FAQ ---------- */}
-      <section id="faq" className="border-t border-zinc-900 bg-zinc-950/60">
+      <section id="faq" className="border-t border-line bg-base/60">
         <div className="mx-auto w-full max-w-3xl px-6 py-24">
           <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
             Questions
           </h2>
-          <dl className="mt-10 divide-y divide-zinc-900">
+          <dl className="mt-10 divide-y divide-line">
             <Faq
               q="Do I have to speak out loud?"
               a="Yes, and that's the point. Reading a written answer is a different skill from telling the story under pressure. You tap a mic button, answer, and the interviewer replies in voice."
@@ -420,33 +415,30 @@ export default async function Landing() {
       </section>
 
       {/* ---------- Closing CTA ---------- */}
-      <section className="relative overflow-hidden border-t border-zinc-900">
+      <section className="relative overflow-hidden border-t border-line">
         <div
           aria-hidden
-          className="pointer-events-none absolute left-1/2 top-1/2 h-[24rem] w-[48rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-emerald-500/10 blur-[100px]"
+          className="pointer-events-none absolute left-1/2 top-1/2 h-[24rem] w-[48rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent-muted blur-[100px]"
         />
         <div className="relative mx-auto w-full max-w-3xl px-6 py-24 text-center">
           <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
             Find out where you&rsquo;d get dinged.
           </h2>
-          <p className="mx-auto mt-5 max-w-xl text-lg text-zinc-400">
+          <p className="mx-auto mt-5 max-w-xl text-lg text-secondary">
             Fifteen minutes now beats a rejection email later.
           </p>
-          <Link
-            href={ctaHref}
-            className="mt-8 inline-flex items-center justify-center rounded-lg bg-emerald-500 px-7 py-3.5 text-sm font-semibold text-zinc-950 transition-colors hover:bg-emerald-400"
-          >
+          <Button href={ctaHref} size="lg" className="mt-8">
             {ctaLabel}
-          </Link>
+          </Button>
         </div>
       </section>
 
-      <footer className="border-t border-zinc-900">
+      <footer className="border-t border-line">
         <div className="mx-auto w-full max-w-6xl px-6 py-12">
           <div className="flex flex-col justify-between gap-8 sm:flex-row">
             <div className="max-w-xs">
               <span className="text-sm font-semibold">LoopReady</span>
-              <p className="mt-2 text-sm text-zinc-500">
+              <p className="mt-2 text-sm text-muted">
                 Voice mock interviews calibrated to what actually passes a FAANG
                 loop.
               </p>
@@ -478,8 +470,8 @@ export default async function Landing() {
               />
             </div>
           </div>
-          <div className="mt-10 border-t border-zinc-900 pt-6">
-            <p className="text-xs leading-relaxed text-zinc-600">
+          <div className="mt-10 border-t border-line pt-6">
+            <p className="text-xs leading-relaxed text-muted">
               Not affiliated with, or endorsed by, Amazon, Google, Meta,
               Microsoft, Apple, or Netflix. Company names describe interview
               styles only.
@@ -493,9 +485,9 @@ export default async function Landing() {
 
 function Card({ title, body }: { title: string; body: string }) {
   return (
-    <div className="rounded-2xl border border-zinc-800 bg-zinc-900/30 p-6 transition-colors hover:border-zinc-700">
-      <h3 className="text-base font-semibold text-zinc-100">{title}</h3>
-      <p className="mt-3 text-sm leading-relaxed text-zinc-400">{body}</p>
+    <div className="rounded-lg border border-line bg-surface p-5 transition-colors hover:border-line-strong">
+      <h3 className="text-base font-semibold text-primary">{title}</h3>
+      <p className="mt-3 text-sm leading-relaxed text-secondary">{body}</p>
     </div>
   );
 }
@@ -513,31 +505,31 @@ function RoundCard({
 }) {
   return (
     <div
-      className={`rounded-2xl border p-6 ${
+      className={`rounded-lg border p-5 ${
         status === "live"
-          ? "border-emerald-500/30 bg-emerald-500/[0.04]"
-          : "border-zinc-800 bg-zinc-900/30"
+          ? "border-accent-border bg-accent-muted"
+          : "border-line bg-surface"
       }`}
     >
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-zinc-100">{title}</h3>
+        <h3 className="text-lg font-semibold text-primary">{title}</h3>
         <span
           className={`rounded-full px-2.5 py-1 text-xs font-medium ${
             status === "live"
-              ? "bg-emerald-500/15 text-emerald-400"
-              : "bg-zinc-800 text-zinc-400"
+              ? "bg-accent-muted text-accent"
+              : "bg-elevated text-secondary"
           }`}
         >
           {status === "live" ? "Live" : "In development"}
         </span>
       </div>
-      <p className="mt-3 text-sm leading-relaxed text-zinc-400">{body}</p>
+      <p className="mt-3 text-sm leading-relaxed text-secondary">{body}</p>
       <ul className="mt-5 space-y-2">
         {points.map((p) => (
-          <li key={p} className="flex items-start gap-2 text-sm text-zinc-400">
+          <li key={p} className="flex items-start gap-2 text-sm text-secondary">
             <span
               className={
-                status === "live" ? "mt-0.5 text-emerald-400" : "mt-0.5 text-zinc-600"
+                status === "live" ? "mt-0.5 text-accent" : "mt-0.5 text-muted"
               }
             >
               ✓
@@ -553,9 +545,9 @@ function RoundCard({
 function Step({ n, title, body }: { n: string; title: string; body: string }) {
   return (
     <div>
-      <span className="font-mono text-sm text-emerald-500">{n}</span>
-      <h3 className="mt-3 text-lg font-semibold text-zinc-100">{title}</h3>
-      <p className="mt-2 text-sm leading-relaxed text-zinc-400">{body}</p>
+      <span className="font-mono text-sm text-accent">{n}</span>
+      <h3 className="mt-3 text-lg font-semibold text-primary">{title}</h3>
+      <p className="mt-2 text-sm leading-relaxed text-secondary">{body}</p>
     </div>
   );
 }
@@ -573,16 +565,16 @@ function Row({
 }) {
   const cell = (v: string, accent?: boolean) =>
     v === "yes" ? (
-      <span className={accent ? "text-emerald-400" : "text-zinc-400"}>✓</span>
+      <span className={accent ? "text-accent" : "text-secondary"}>✓</span>
     ) : v === "no" ? (
-      <span className="text-zinc-700">—</span>
+      <span className="text-muted">—</span>
     ) : (
-      <span className="text-zinc-500">{v}</span>
+      <span className="text-muted">{v}</span>
     );
 
   return (
-    <tr className="border-b border-zinc-900">
-      <td className="py-4 pr-4 text-zinc-300">{label}</td>
+    <tr className="border-b border-line">
+      <td className="py-4 pr-4 text-secondary">{label}</td>
       <td className="px-4 py-4">{cell(a, true)}</td>
       <td className="px-4 py-4">{cell(b)}</td>
       <td className="px-4 py-4">{cell(c)}</td>
@@ -593,8 +585,8 @@ function Row({
 function Faq({ q, a }: { q: string; a: string }) {
   return (
     <div className="py-6">
-      <dt className="text-base font-medium text-zinc-100">{q}</dt>
-      <dd className="mt-2 text-sm leading-relaxed text-zinc-400">{a}</dd>
+      <dt className="text-base font-medium text-primary">{q}</dt>
+      <dd className="mt-2 text-sm leading-relaxed text-secondary">{a}</dd>
     </div>
   );
 }
@@ -608,7 +600,7 @@ function FooterCol({
 }) {
   return (
     <div>
-      <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">
+      <p className="text-xs font-medium uppercase tracking-wide text-muted">
         {title}
       </p>
       <ul className="mt-3 space-y-2">
@@ -616,7 +608,7 @@ function FooterCol({
           <li key={l.href + l.label}>
             <Link
               href={l.href}
-              className="text-sm text-zinc-400 transition-colors hover:text-white"
+              className="text-sm text-secondary transition-colors hover:text-primary"
             >
               {l.label}
             </Link>

@@ -33,7 +33,7 @@ export default function AppNav({ email }: { email?: string }) {
                   key={l.href}
                   href={l.href}
                   className={cn(
-                    "rounded-sm px-3 py-1.5 text-sm transition-colors",
+                    "rounded-md px-3 py-1.5 text-sm transition-colors",
                     active
                       ? "bg-elevated text-primary"
                       : "text-secondary hover:text-primary"
@@ -56,7 +56,7 @@ export default function AppNav({ email }: { email?: string }) {
             key={l.href}
             href={l.href}
             className={cn(
-              "rounded-sm px-3 py-1.5 text-sm transition-colors",
+              "rounded-md px-3 py-1.5 text-sm transition-colors",
               pathname === l.href
                 ? "bg-elevated text-primary"
                 : "text-secondary"

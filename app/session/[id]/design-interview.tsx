@@ -67,15 +67,15 @@ function DesignSurface({
     <div className="flex h-full min-h-0 flex-col">
       <button
         onClick={() => setShowPrompt((p) => !p)}
-        className="flex items-center justify-between border-b border-zinc-800 px-4 py-2.5 text-left"
+        className="flex items-center justify-between border-b border-line px-4 py-2.5 text-left"
       >
-        <span className="text-sm font-medium text-zinc-300">{design.title}</span>
-        <span className="text-xs text-zinc-600">
+        <span className="text-sm font-medium text-secondary">{design.title}</span>
+        <span className="text-xs text-muted">
           {showPrompt ? "hide" : "show"}
         </span>
       </button>
       {showPrompt && (
-        <p className="border-b border-zinc-800 px-4 py-3 text-sm leading-relaxed text-zinc-400">
+        <p className="border-b border-line px-4 py-3 text-sm leading-relaxed text-secondary">
           {design.statement}
         </p>
       )}

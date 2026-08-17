@@ -16,7 +16,7 @@ export default function Nav({ signedIn }: { signedIn: boolean }) {
   const [open, setOpen] = useState(false);
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-zinc-900/80 bg-zinc-950/85 backdrop-blur">
+    <nav className="sticky top-0 z-50 border-b border-line bg-base/85 backdrop-blur">
       <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-4">
         <Link
           href="/"
@@ -31,7 +31,7 @@ export default function Nav({ signedIn }: { signedIn: boolean }) {
             <Link
               key={l.href}
               href={l.href}
-              className="text-sm text-zinc-400 transition-colors hover:text-white"
+              className="text-sm text-secondary transition-colors hover:text-primary"
             >
               {l.label}
             </Link>
@@ -41,7 +41,7 @@ export default function Nav({ signedIn }: { signedIn: boolean }) {
         <div className="flex items-center gap-3">
           <Link
             href={signedIn ? "/dashboard" : "/login"}
-            className="rounded-md bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-950 transition-colors hover:bg-white"
+            className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-accent-fg transition-colors hover:bg-primary"
           >
             {signedIn ? "Dashboard" : "Sign in"}
           </Link>
@@ -49,7 +49,7 @@ export default function Nav({ signedIn }: { signedIn: boolean }) {
             onClick={() => setOpen((o) => !o)}
             aria-label={open ? "Close menu" : "Open menu"}
             aria-expanded={open}
-            className="rounded-md border border-zinc-800 p-2 text-zinc-400 lg:hidden"
+            className="rounded-md border border-line p-2 text-secondary lg:hidden"
           >
             <svg
               viewBox="0 0 24 24"
@@ -69,14 +69,14 @@ export default function Nav({ signedIn }: { signedIn: boolean }) {
       </div>
 
       {open && (
-        <div className="border-t border-zinc-900 bg-zinc-950 lg:hidden">
+        <div className="border-t border-line bg-base lg:hidden">
           <div className="mx-auto flex w-full max-w-6xl flex-col px-6 py-2">
             {LINKS.map((l) => (
               <Link
                 key={l.href}
                 href={l.href}
                 onClick={() => setOpen(false)}
-                className="border-b border-zinc-900/70 py-3 text-sm text-zinc-300 last:border-0"
+                className="border-b border-line/70 py-3 text-sm text-secondary last:border-0"
               >
                 {l.label}
               </Link>
@@ -97,9 +97,9 @@ function Logo() {
         stroke="currentColor"
         strokeWidth="2.5"
         strokeLinecap="round"
-        className="text-emerald-400"
+        className="text-accent"
       />
-      <circle cx="12" cy="12" r="3" className="fill-emerald-400" />
+      <circle cx="12" cy="12" r="3" className="fill-accent" />
     </svg>
   );
 }

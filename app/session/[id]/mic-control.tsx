@@ -39,7 +39,7 @@ export default function MicControl({
     <div className="flex flex-col items-center gap-3">
       {answer && !error && (
         <p
-          className={`text-center italic leading-relaxed text-zinc-500 ${
+          className={`text-center italic leading-relaxed text-muted ${
             large ? "max-w-xl text-sm" : "max-w-full text-xs"
           }`}
         >
@@ -48,12 +48,12 @@ export default function MicControl({
       )}
 
       {error && (
-        <p className={`text-center text-red-400 ${large ? "text-sm" : "text-xs"}`}>
+        <p className={`text-center text-error ${large ? "text-sm" : "text-xs"}`}>
           {error}
         </p>
       )}
       {hint && !error && (
-        <p className={`text-center text-amber-400/80 ${large ? "text-xs" : "text-[11px]"}`}>
+        <p className={`text-center text-warn ${large ? "text-xs" : "text-[11px]"}`}>
           {hint}
         </p>
       )}
@@ -66,15 +66,15 @@ export default function MicControl({
           large ? "h-20 w-20" : "h-14 w-14"
         } ${
           recording
-            ? "bg-red-500 shadow-[0_0_44px_-6px_rgba(239,68,68,0.7)] hover:bg-red-400"
-            : "bg-emerald-500 shadow-[0_0_44px_-10px_rgba(52,211,153,0.7)] hover:bg-emerald-400 enabled:hover:scale-105"
+            ? "bg-error shadow-[0_0_44px_-6px_rgba(239,68,68,0.7)] hover:bg-error"
+            : "bg-accent shadow-[0_0_44px_-10px_rgba(52,211,153,0.7)] hover:bg-accent-hover enabled:hover:scale-105"
         }`}
       >
         {recording && (
-          <span className="ring-pulse absolute inset-0 rounded-full border-2 border-red-400/70" />
+          <span className="ring-pulse absolute inset-0 rounded-full border-2 border-error/40" />
         )}
         {recording ? (
-          <span className={`rounded-sm bg-zinc-950 ${large ? "h-6 w-6" : "h-4 w-4"}`} />
+          <span className={`rounded-md bg-base ${large ? "h-6 w-6" : "h-4 w-4"}`} />
         ) : (
           <svg
             viewBox="0 0 24 24"
@@ -82,7 +82,7 @@ export default function MicControl({
             stroke="currentColor"
             strokeWidth="2"
             strokeLinecap="round"
-            className={`text-zinc-950 ${large ? "h-8 w-8" : "h-6 w-6"}`}
+            className={`text-accent-fg ${large ? "h-8 w-8" : "h-6 w-6"}`}
           >
             <rect x="9" y="2" width="6" height="12" rx="3" />
             <path d="M5 10v1a7 7 0 0 0 14 0v-1" />
@@ -94,7 +94,7 @@ export default function MicControl({
       <p
         className={`font-medium tracking-wide ${
           large ? "text-sm" : "text-xs"
-        } ${recording ? "text-red-400" : "text-zinc-400"}`}
+        } ${recording ? "text-error" : "text-secondary"}`}
       >
         {LABEL[status]}
       </p>

@@ -1,12 +1,9 @@
-import Link from "next/link";
+import { Button } from "@/components/ui";
 
 export default function StartButton() {
   return (
-    <Link
-      href="/start"
-      className="inline-block rounded-lg bg-emerald-500 px-5 py-3 text-sm font-semibold text-zinc-950 hover:bg-emerald-400"
-    >
+    <Button href="/start" size="lg">
       Start an interview
-    </Link>
+    </Button>
   );
 }

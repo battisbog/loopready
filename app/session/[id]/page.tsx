@@ -113,7 +113,7 @@ export default async function SessionPage({
           <h1 className="text-xl font-semibold tracking-tight">
             {header ?? "Transcript"}
           </h1>
-          <p className="mt-1 text-sm text-zinc-500">
+          <p className="mt-1 text-sm text-muted">
             {new Date(session.started_at).toLocaleString(undefined, {
               dateStyle: "medium",
               timeStyle: "short",
@@ -123,11 +123,11 @@ export default async function SessionPage({
         <div className="flex gap-4 text-sm">
           <Link
             href={`/session/${id}/feedback`}
-            className="text-emerald-400 hover:text-emerald-300"
+            className="text-accent hover:text-accent"
           >
             Feedback
           </Link>
-          <Link href="/dashboard" className="text-zinc-500 hover:text-zinc-300">
+          <Link href="/dashboard" className="text-muted hover:text-secondary">
             Home
           </Link>
         </div>
@@ -139,8 +139,8 @@ export default async function SessionPage({
             key={i}
             className={`max-w-[85%] rounded-lg px-3 py-2 text-sm whitespace-pre-wrap ${
               t.role === "interviewer"
-                ? "bg-zinc-900 text-zinc-200"
-                : "ml-auto bg-emerald-500/15 text-emerald-100"
+                ? "bg-surface text-primary"
+                : "ml-auto bg-accent-muted text-accent"
             }`}
           >
             {t.text}

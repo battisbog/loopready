@@ -75,17 +75,17 @@ export default function LoginPage() {
     <main className="relative flex min-h-screen items-center justify-center px-4">
       <div
         aria-hidden
-        className="pointer-events-none absolute left-1/2 top-0 h-[26rem] w-[42rem] -translate-x-1/2 rounded-full bg-emerald-500/10 blur-[110px]"
+        className="pointer-events-none absolute left-1/2 top-0 h-[26rem] w-[42rem] -translate-x-1/2 rounded-full bg-accent-muted blur-[110px]"
       />
       <div className="relative w-full max-w-sm">
         <Link
           href="/"
-          className="text-xs text-zinc-500 transition-colors hover:text-zinc-300"
+          className="text-xs text-muted transition-colors hover:text-secondary"
         >
           ← Back to home
         </Link>
         <h1 className="mt-4 text-2xl font-semibold tracking-tight">LoopReady</h1>
-        <p className="mt-1 text-sm text-zinc-400">
+        <p className="mt-1 text-sm text-secondary">
           Voice mock interviews, calibrated to what passes a FAANG loop.
         </p>
 
@@ -93,7 +93,7 @@ export default function LoginPage() {
           <button
             onClick={() => signInWithProvider("google")}
             disabled={Boolean(busy)}
-            className="flex w-full items-center justify-center gap-3 rounded-md bg-zinc-100 px-3 py-2.5 text-sm font-medium text-zinc-900 transition-colors hover:bg-white disabled:opacity-50"
+            className="flex w-full items-center justify-center gap-3 rounded-md bg-primary px-3 py-2.5 text-sm font-medium text-base transition-colors hover:bg-primary/90 disabled:opacity-50"
           >
             <GoogleMark />
             {busy === "google" ? "Redirecting…" : "Continue with Google"}
@@ -102,7 +102,7 @@ export default function LoginPage() {
           <button
             onClick={() => signInWithProvider("github")}
             disabled={Boolean(busy)}
-            className="flex w-full items-center justify-center gap-3 rounded-md border border-zinc-800 bg-zinc-900 px-3 py-2.5 text-sm font-medium text-zinc-200 transition-colors hover:border-zinc-700 disabled:opacity-50"
+            className="flex w-full items-center justify-center gap-3 rounded-md border border-line bg-surface px-3 py-2.5 text-sm font-medium text-primary transition-colors hover:border-line-strong disabled:opacity-50"
           >
             <GithubMark />
             {busy === "github" ? "Redirecting…" : "Continue with GitHub"}
@@ -111,16 +111,16 @@ export default function LoginPage() {
           {!showEmail ? (
             <button
               onClick={() => setShowEmail(true)}
-              className="w-full py-1 text-center text-xs text-zinc-500 transition-colors hover:text-zinc-300"
+              className="w-full py-1 text-center text-xs text-muted transition-colors hover:text-secondary"
             >
               Continue with email instead
             </button>
           ) : (
             <>
-              <div className="flex items-center gap-3 py-1 text-xs text-zinc-600">
-                <div className="h-px flex-1 bg-zinc-800" />
+              <div className="flex items-center gap-3 py-1 text-xs text-muted">
+                <div className="h-px flex-1 bg-elevated" />
                 or with email
-                <div className="h-px flex-1 bg-zinc-800" />
+                <div className="h-px flex-1 bg-elevated" />
               </div>
 
               <input
@@ -128,7 +128,7 @@ export default function LoginPage() {
                 placeholder="you@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full rounded-md border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm outline-none focus:border-emerald-500"
+                className="w-full rounded-md border border-line bg-surface px-3 py-2 text-sm outline-none focus:border-accent"
               />
               <input
                 type="password"
@@ -136,39 +136,39 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && signInWithPassword()}
-                className="w-full rounded-md border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm outline-none focus:border-emerald-500"
+                className="w-full rounded-md border border-line bg-surface px-3 py-2 text-sm outline-none focus:border-accent"
               />
               <button
                 onClick={signInWithPassword}
                 disabled={Boolean(busy)}
-                className="w-full rounded-md bg-emerald-500 px-3 py-2 text-sm font-semibold text-zinc-950 hover:bg-emerald-400 disabled:opacity-50"
+                className="w-full rounded-md bg-accent px-3 py-2 text-sm font-semibold text-accent-fg hover:bg-accent-hover disabled:opacity-50"
               >
                 {busy === "password" ? "Signing in…" : "Sign in"}
               </button>
               <button
                 onClick={sendMagicLink}
                 disabled={Boolean(busy)}
-                className="w-full text-center text-xs text-zinc-500 transition-colors hover:text-zinc-300 disabled:opacity-50"
+                className="w-full text-center text-xs text-muted transition-colors hover:text-secondary disabled:opacity-50"
               >
                 {busy === "magic" ? "Sending…" : "Email me a sign-in link instead"}
               </button>
             </>
           )}
 
-          <p className="pt-2 text-center text-[11px] leading-relaxed text-zinc-600">
+          <p className="pt-2 text-center text-[11px] leading-relaxed text-muted">
             By continuing you agree to our{" "}
-            <Link href="/terms" className="underline hover:text-zinc-400">
+            <Link href="/terms" className="underline hover:text-secondary">
               Terms
             </Link>{" "}
             and{" "}
-            <Link href="/privacy" className="underline hover:text-zinc-400">
+            <Link href="/privacy" className="underline hover:text-secondary">
               Privacy Policy
             </Link>
             .
           </p>
 
           {status && (
-            <p className="pt-1 text-sm text-zinc-400" role="status">
+            <p className="pt-1 text-sm text-secondary" role="status">
               {status}
             </p>
           )}

@@ -23,7 +23,7 @@ export default function TranscriptPanel({
       <button
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
-        className="mx-auto flex items-center gap-1.5 rounded-full border border-zinc-800 px-3 py-1.5 text-xs text-zinc-500 transition-colors hover:border-zinc-700 hover:text-zinc-300"
+        className="mx-auto flex items-center gap-1.5 rounded-full border border-line px-3 py-1.5 text-xs text-muted transition-colors hover:border-line-strong hover:text-secondary"
       >
         <svg
           viewBox="0 0 24 24"
@@ -36,25 +36,25 @@ export default function TranscriptPanel({
           <path d="m6 9 6 6 6-6" />
         </svg>
         Transcript
-        <span className="text-zinc-600">({turns.length})</span>
+        <span className="text-muted">({turns.length})</span>
       </button>
 
       {open && (
-        <div className="mx-auto mt-3 max-h-64 w-full max-w-2xl space-y-3 overflow-y-auto rounded-xl border border-zinc-800 bg-zinc-900/40 p-4">
+        <div className="mx-auto mt-3 max-h-64 w-full max-w-2xl space-y-3 overflow-y-auto rounded-lg border border-line bg-surface p-4">
           {turns.map((t, i) => (
             <div key={i} className="text-sm leading-relaxed">
               <span
                 className={`mr-2 text-xs font-medium uppercase tracking-wide ${
-                  t.role === "interviewer" ? "text-emerald-500" : "text-zinc-500"
+                  t.role === "interviewer" ? "text-accent" : "text-muted"
                 }`}
               >
                 {t.role === "interviewer" ? "Interviewer" : "You"}
               </span>
-              <span className="text-zinc-300">{t.text}</span>
+              <span className="text-secondary">{t.text}</span>
             </div>
           ))}
           {turns.length === 0 && (
-            <p className="text-sm text-zinc-600">Nothing said yet.</p>
+            <p className="text-sm text-muted">Nothing said yet.</p>
           )}
           <div ref={bottomRef} />
         </div>

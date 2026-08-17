@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Button } from "@/components/ui";
 import { PRICING } from "@/lib/pricing";
 
 interface Tier {
@@ -84,13 +85,13 @@ const COMPARISON: {
 
 export default function Pricing() {
   return (
-    <section id="pricing" className="border-t border-zinc-900">
+    <section id="pricing" className="border-t border-line">
       <div className="mx-auto w-full max-w-6xl px-6 py-24">
         <div className="max-w-3xl">
           <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
             Pricing
           </h2>
-          <p className="mt-5 text-lg leading-relaxed text-zinc-400">
+          <p className="mt-5 text-lg leading-relaxed text-secondary">
             One failed loop costs you a year of compounding. Practice is the
             cheapest part of the process.
           </p>
@@ -101,62 +102,59 @@ export default function Pricing() {
           {TIERS.map((tier) => (
             <div
               key={tier.id}
-              className={`relative flex flex-col rounded-2xl border p-7 ${
+              className={`relative flex flex-col rounded-lg border p-5 ${
                 tier.featured
-                  ? "border-emerald-500/50 bg-emerald-500/[0.04]"
-                  : "border-zinc-800 bg-zinc-900/30"
+                  ? "border-accent-border bg-accent-muted"
+                  : "border-line bg-surface"
               }`}
             >
               {tier.featured && (
-                <span className="absolute -top-3 left-7 rounded-full bg-emerald-500 px-3 py-1 text-xs font-semibold text-zinc-950">
+                <span className="absolute -top-3 left-7 rounded-full bg-accent px-3 py-1 text-xs font-semibold text-accent-fg">
                   Most popular
                 </span>
               )}
 
-              <h3 className="text-lg font-semibold text-zinc-100">
+              <h3 className="text-lg font-semibold text-primary">
                 {tier.name}
               </h3>
-              <p className="mt-1 min-h-10 text-sm leading-relaxed text-zinc-400">
+              <p className="mt-1 min-h-10 text-sm leading-relaxed text-secondary">
                 {tier.tagline}
               </p>
 
               <p className="mt-6 flex items-baseline gap-1">
-                <span className="text-4xl font-semibold text-zinc-50">
+                <span className="text-4xl font-semibold text-primary">
                   {tier.price}
                 </span>
                 {tier.cadence && (
-                  <span className="text-sm text-zinc-500">{tier.cadence}</span>
+                  <span className="text-sm text-muted">{tier.cadence}</span>
                 )}
               </p>
 
-              <Link
+              <Button
                 href={tier.href}
-                className={`mt-6 rounded-lg px-5 py-3 text-center text-sm font-semibold transition-colors ${
-                  tier.featured
-                    ? "bg-emerald-500 text-zinc-950 hover:bg-emerald-400"
-                    : "border border-zinc-700 text-zinc-200 hover:border-zinc-600 hover:bg-zinc-900"
-                }`}
+                variant={tier.featured ? "primary" : "secondary"}
+                className="mt-6 w-full"
               >
                 {tier.cta}
-              </Link>
+              </Button>
 
               <ul className="mt-7 space-y-3">
                 {tier.features.map((f) => (
                   <li
                     key={f.label}
-                    className="flex items-start gap-2.5 text-sm text-zinc-300"
+                    className="flex items-start gap-2.5 text-sm text-secondary"
                   >
                     <span
                       className={`mt-0.5 shrink-0 ${
-                        f.soon ? "text-zinc-600" : "text-emerald-400"
+                        f.soon ? "text-muted" : "text-accent"
                       }`}
                     >
                       ✓
                     </span>
-                    <span className={f.soon ? "text-zinc-500" : undefined}>
+                    <span className={f.soon ? "text-muted" : undefined}>
                       {f.label}
                       {f.soon && (
-                        <span className="ml-2 rounded bg-zinc-800 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-amber-400">
+                        <span className="ml-2 rounded-md bg-elevated px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-warn">
                           Coming soon
                         </span>
                       )}
@@ -166,7 +164,7 @@ export default function Pricing() {
               </ul>
 
               {tier.note && (
-                <p className="mt-6 border-t border-zinc-800 pt-4 text-xs leading-relaxed text-zinc-500">
+                <p className="mt-6 border-t border-line pt-4 text-xs leading-relaxed text-muted">
                   {tier.note}
                 </p>
               )}
@@ -176,27 +174,27 @@ export default function Pricing() {
 
         {/* Comparison table */}
         <div className="mt-16">
-          <h3 className="text-sm font-medium uppercase tracking-wide text-zinc-500">
+          <h3 className="text-sm font-medium uppercase tracking-wide text-muted">
             What each plan includes
           </h3>
           <div className="mt-4 overflow-x-auto">
             <table className="w-full min-w-[42rem] border-collapse text-left text-sm">
               <thead>
-                <tr className="border-b border-zinc-800">
-                  <th className="py-4 pr-4 font-medium text-zinc-500"> </th>
-                  <th className="px-4 py-4 font-medium text-zinc-300">Free</th>
-                  <th className="px-4 py-4 font-semibold text-emerald-400">
+                <tr className="border-b border-line">
+                  <th className="py-4 pr-4 font-medium text-muted"> </th>
+                  <th className="px-4 py-4 font-medium text-secondary">Free</th>
+                  <th className="px-4 py-4 font-semibold text-accent">
                     Voice · {PRICING.voice.displayWithInterval}
                   </th>
-                  <th className="px-4 py-4 font-medium text-zinc-300">
+                  <th className="px-4 py-4 font-medium text-secondary">
                     Premium · {PRICING.premium.displayWithInterval}
                   </th>
                 </tr>
               </thead>
               <tbody>
                 {COMPARISON.map((row) => (
-                  <tr key={row.label} className="border-b border-zinc-900">
-                    <td className="py-4 pr-4 text-zinc-300">{row.label}</td>
+                  <tr key={row.label} className="border-b border-line">
+                    <td className="py-4 pr-4 text-secondary">{row.label}</td>
                     <Cell value={row.free} />
                     <Cell value={row.voice} accent />
                     <Cell value={row.premium} />
@@ -243,11 +241,11 @@ function Cell({ value, accent }: { value: string | boolean; accent?: boolean }) 
   return (
     <td className="px-4 py-4">
       {value === true ? (
-        <span className={accent ? "text-emerald-400" : "text-zinc-400"}>✓</span>
+        <span className={accent ? "text-accent" : "text-secondary"}>✓</span>
       ) : value === false ? (
-        <span className="text-zinc-700">—</span>
+        <span className="text-muted">—</span>
       ) : (
-        <span className={accent ? "text-emerald-300" : "text-zinc-400"}>
+        <span className={accent ? "text-accent" : "text-secondary"}>
           {value}
         </span>
       )}
@@ -258,8 +256,8 @@ function Cell({ value, accent }: { value: string | boolean; accent?: boolean }) 
 function PriceFaq({ q, a }: { q: string; a: string }) {
   return (
     <div>
-      <p className="text-base font-medium text-zinc-100">{q}</p>
-      <p className="mt-2 text-sm leading-relaxed text-zinc-400">{a}</p>
+      <p className="text-base font-medium text-primary">{q}</p>
+      <p className="mt-2 text-sm leading-relaxed text-secondary">{a}</p>
     </div>
   );
 }

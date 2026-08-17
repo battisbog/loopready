@@ -57,13 +57,13 @@ export default function InterviewerPresence({
       <div className="relative flex items-center justify-center">
         <VoiceOrb state={status as OrbState} size={hero ? 300 : 132} />
         <span
-          className={`absolute flex items-center gap-1.5 rounded-full border border-zinc-800 bg-zinc-950/90 px-2.5 py-1 text-[11px] font-medium text-zinc-300 backdrop-blur ${
+          className={`absolute flex items-center gap-1.5 rounded-full border border-line bg-base/90 px-2.5 py-1 text-[11px] font-medium text-secondary backdrop-blur ${
             hero ? "bottom-2" : "-bottom-1 scale-90"
           }`}
         >
           <span className="relative flex h-1.5 w-1.5">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-            <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent-hover opacity-75" />
+            <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-accent" />
           </span>
           Live
         </span>

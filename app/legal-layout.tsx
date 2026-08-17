@@ -24,7 +24,7 @@ export default function LegalLayout({
       </h1>
       <p className="mt-2 text-sm text-muted">Last updated: {updated}</p>
 
-      <div className="mt-4 rounded-md border border-warn/30 bg-warn-muted p-4">
+      <div className="mt-4 rounded-md border border-warn/30 bg-warn-muted p-5">
         <p className="text-sm leading-relaxed text-warn">
           This is a draft prepared for review. It has not been checked by a
           lawyer and should be reviewed before launch.

@@ -5,8 +5,10 @@ import { cn } from "@/lib/cn";
 export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
 export type ButtonSize = "sm" | "md" | "lg";
 
+// Radius, colour and padding live here and nowhere else. Callers may pass
+// className for LAYOUT only (margin, width); anything visual belongs in a prop.
 const BASE =
-  "inline-flex items-center justify-center gap-2 rounded-sm font-medium " +
+  "inline-flex items-center justify-center gap-2 rounded-md font-medium " +
   "transition-colors duration-150 disabled:pointer-events-none disabled:opacity-50";
 
 const VARIANTS: Record<ButtonVariant, string> = {

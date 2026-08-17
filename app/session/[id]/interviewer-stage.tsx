@@ -34,10 +34,10 @@ export default function InterviewerStage({
         {speaking && (
           <>
             <span
-              className={`ring-pulse pointer-events-none absolute inset-0 rounded-full border border-emerald-400/60 ${frame}`}
+              className={`ring-pulse pointer-events-none absolute inset-0 rounded-full border border-accent ${frame}`}
             />
             <span
-              className={`ring-pulse pointer-events-none absolute inset-0 rounded-full border border-emerald-400/40 ${frame}`}
+              className={`ring-pulse pointer-events-none absolute inset-0 rounded-full border border-accent-border ${frame}`}
               style={{ animationDelay: "0.8s" }}
             />
           </>
@@ -54,8 +54,8 @@ export default function InterviewerStage({
         />
 
         <div
-          className={`relative overflow-hidden rounded-full border-2 bg-zinc-900 transition-colors duration-500 ${frame} ${
-            speaking ? "border-emerald-400/70" : "border-zinc-700/70"
+          className={`relative overflow-hidden rounded-full border-2 bg-surface transition-colors duration-500 ${frame} ${
+            speaking ? "border-accent" : "border-line-strong/70"
           }`}
         >
           {imageFailed ? (
@@ -75,13 +75,13 @@ export default function InterviewerStage({
 
         {/* Live badge */}
         <span
-          className={`absolute flex items-center gap-1.5 rounded-full border border-zinc-700 bg-zinc-950/90 px-2.5 py-1 text-[11px] font-medium text-zinc-300 backdrop-blur ${
+          className={`absolute flex items-center gap-1.5 rounded-full border border-line-strong bg-base/90 px-2.5 py-1 text-[11px] font-medium text-secondary backdrop-blur ${
             hero ? "-bottom-3" : "-bottom-2 scale-90"
           }`}
         >
           <span className="relative flex h-1.5 w-1.5">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-            <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent-hover opacity-75" />
+            <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-accent" />
           </span>
           Live
         </span>
@@ -97,7 +97,7 @@ export default function InterviewerStage({
         {[0, 1, 2, 3, 4].map((i) => (
           <span
             key={i}
-            className={`wave-bar w-1 rounded-full bg-emerald-400 ${
+            className={`wave-bar w-1 rounded-full bg-accent-hover ${
               hero ? "h-5" : "h-3"
             }`}
             style={{ animationDelay: `${i * 0.12}s` }}
@@ -107,10 +107,10 @@ export default function InterviewerStage({
 
       {line && (
         <p
-          className={`text-balance text-center leading-relaxed text-zinc-100 ${
+          className={`text-balance text-center leading-relaxed text-primary ${
             hero
               ? "max-w-2xl text-lg sm:text-xl"
-              : "max-w-full text-sm text-zinc-300"
+              : "max-w-full text-sm text-secondary"
           }`}
         >
           {line}

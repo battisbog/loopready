@@ -197,12 +197,12 @@ export default function DesignCanvas({
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex flex-wrap items-center gap-1.5 border-b border-zinc-800 px-3 py-2">
+      <div className="flex flex-wrap items-center gap-1.5 border-b border-line px-3 py-2">
         {PALETTE.map((p) => (
           <button
             key={p.kind}
             onClick={() => addNode(p.kind, p.label)}
-            className="rounded border border-zinc-800 px-2 py-1 text-xs text-zinc-400 transition-colors hover:border-zinc-600 hover:text-zinc-200"
+            className="rounded-md border border-line px-2 py-1 text-xs text-secondary transition-colors hover:border-line-strong hover:text-primary"
             style={{ borderLeftColor: KIND_COLOR[p.kind], borderLeftWidth: 3 }}
           >
             + {p.label}
@@ -210,7 +210,7 @@ export default function DesignCanvas({
         ))}
         <button
           onClick={renameSelected}
-          className="ml-auto rounded border border-zinc-800 px-2 py-1 text-xs text-zinc-500 hover:text-zinc-300"
+          className="ml-auto rounded-md border border-line px-2 py-1 text-xs text-muted hover:text-secondary"
         >
           Rename selected
         </button>
@@ -227,7 +227,7 @@ export default function DesignCanvas({
           colorMode="dark"
         >
           <Background color="#27272a" gap={18} />
-          <Controls className="!bg-zinc-900 !border-zinc-800" />
+          <Controls className="!bg-surface !border-line" />
         </ReactFlow>
       </div>
     </div>

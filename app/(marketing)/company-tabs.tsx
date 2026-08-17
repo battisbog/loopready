@@ -106,8 +106,8 @@ export default function CompanyTabs() {
             onClick={() => setActive(i)}
             className={`rounded-lg border px-4 py-2 text-sm font-medium transition-colors ${
               active === i
-                ? "border-emerald-500 bg-emerald-500/10 text-emerald-300"
-                : "border-zinc-800 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200"
+                ? "border-accent bg-accent-muted text-accent"
+                : "border-line text-secondary hover:border-line-strong hover:text-primary"
             }`}
           >
             {d.name}
@@ -115,26 +115,26 @@ export default function CompanyTabs() {
         ))}
       </div>
 
-      <div className="mt-6 rounded-2xl border border-zinc-800 bg-zinc-900/30 p-6 sm:p-8">
+      <div className="mt-6 rounded-lg border border-line bg-surface p-5">
         <div className="flex flex-wrap items-baseline justify-between gap-3">
-          <h3 className="text-lg font-semibold text-zinc-100">
+          <h3 className="text-lg font-semibold text-primary">
             {demo.name} · {demo.lens}
           </h3>
-          <span className="text-xs text-zinc-500">
+          <span className="text-xs text-muted">
             Scored against: {demo.scoredAgainst}
           </span>
         </div>
 
-        <p className="mt-6 text-xs font-medium uppercase tracking-wide text-zinc-500">
+        <p className="mt-6 text-xs font-medium uppercase tracking-wide text-muted">
           Follow-ups your interviewer will actually ask
         </p>
         <ul className="mt-4 space-y-3">
           {demo.probes.map((p) => (
             <li
               key={p}
-              className="rounded-xl border border-zinc-800 bg-zinc-950/60 px-4 py-3 text-sm leading-relaxed text-zinc-300"
+              className="rounded-lg border border-line bg-base/60 px-4 py-3 text-sm leading-relaxed text-secondary"
             >
-              <span className="mr-2 text-emerald-500">&rsaquo;</span>
+              <span className="mr-2 text-accent">&rsaquo;</span>
               {p}
             </li>
           ))}

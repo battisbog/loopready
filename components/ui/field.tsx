@@ -7,7 +7,7 @@ import type {
 import { cn } from "@/lib/cn";
 
 const CONTROL =
-  "w-full rounded-sm border border-line bg-inset px-3 text-sm text-primary " +
+  "w-full rounded-md border border-line bg-inset px-3 text-sm text-primary " +
   "placeholder:text-muted transition-colors hover:border-line-strong " +
   "focus:border-accent disabled:opacity-50";
 

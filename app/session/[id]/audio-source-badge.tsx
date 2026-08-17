@@ -36,15 +36,15 @@ export default function AudioSourceBadge({
       title={detail}
       className={`inline-flex cursor-help items-center gap-1.5 rounded-full border px-2 py-0.5 text-[11px] font-medium ${
         both
-          ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
+          ? "border-accent-border bg-accent-muted text-accent"
           : neither
-            ? "border-amber-500/30 bg-amber-500/10 text-amber-400"
-            : "border-zinc-700 bg-zinc-800/60 text-zinc-400"
+            ? "border-warn/30 bg-warn-muted text-warn"
+            : "border-line-strong bg-elevated/60 text-secondary"
       }`}
     >
       <span
         className={`h-1.5 w-1.5 rounded-full ${
-          both ? "bg-emerald-400" : neither ? "bg-amber-400" : "bg-zinc-400"
+          both ? "bg-accent-hover" : neither ? "bg-warn" : "bg-muted"
         }`}
       />
       {label}

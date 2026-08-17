@@ -27,15 +27,15 @@ export default async function PricingPage() {
 
       <Pricing />
 
-      <footer className="border-t border-zinc-900">
+      <footer className="border-t border-line">
         <div className="mx-auto flex w-full max-w-6xl flex-col items-center justify-between gap-3 px-6 py-8 sm:flex-row">
           <Link
             href={user ? "/dashboard" : "/"}
-            className="text-sm text-zinc-400 transition-colors hover:text-white"
+            className="text-sm text-secondary transition-colors hover:text-primary"
           >
             {user ? "Back to dashboard" : "Back to home"}
           </Link>
-          <span className="text-xs text-zinc-600">
+          <span className="text-xs text-muted">
             Not affiliated with, or endorsed by, any company named on this site.
           </span>
         </div>

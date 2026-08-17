@@ -101,16 +101,16 @@ export default function CodeSurface({
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="flex items-center justify-between border-b border-zinc-800 px-4 py-2">
+      <div className="flex items-center justify-between border-b border-line px-4 py-2">
         <div className="flex gap-1">
           {(["problem", "console"] as const).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
-              className={`rounded px-3 py-1.5 text-sm capitalize transition-colors ${
+              className={`rounded-md px-3 py-1.5 text-sm capitalize transition-colors ${
                 tab === t
-                  ? "bg-zinc-800 text-zinc-100"
-                  : "text-zinc-500 hover:text-zinc-300"
+                  ? "bg-elevated text-primary"
+                  : "text-muted hover:text-secondary"
               }`}
             >
               {t}
@@ -121,7 +121,7 @@ export default function CodeSurface({
           <select
             value={language}
             onChange={(e) => switchLanguage(e.target.value)}
-            className="rounded-md border border-zinc-800 bg-zinc-900 px-2 py-1.5 text-sm text-zinc-300 outline-none"
+            className="rounded-md border border-line bg-surface px-2 py-1.5 text-sm text-secondary outline-none"
           >
             {LANGUAGES.map((l) => (
               <option key={l.key} value={l.key}>
@@ -132,7 +132,7 @@ export default function CodeSurface({
           <button
             onClick={runCode}
             disabled={running}
-            className="flex items-center gap-1.5 rounded-md bg-emerald-500 px-4 py-1.5 text-sm font-semibold text-zinc-950 hover:bg-emerald-400 disabled:opacity-50"
+            className="flex items-center gap-1.5 rounded-md bg-accent px-4 py-1.5 text-sm font-semibold text-accent-fg hover:bg-accent-hover disabled:opacity-50"
           >
             {running ? "Running…" : "▶ Run"}
           </button>
@@ -158,20 +158,20 @@ export default function CodeSurface({
         />
       </div>
 
-      <div className="h-56 shrink-0 overflow-y-auto border-t border-zinc-800 bg-zinc-950 p-4 font-mono text-xs">
+      <div className="h-56 shrink-0 overflow-y-auto border-t border-line bg-base p-4 font-mono text-xs">
         {tab === "problem" ? (
           <div className="space-y-3 font-sans">
-            <h2 className="text-sm font-semibold text-zinc-100">
+            <h2 className="text-sm font-semibold text-primary">
               {problem.title}
             </h2>
-            <p className="leading-relaxed text-zinc-300">{problem.statement}</p>
-            <p className="text-zinc-400">
-              <span className="text-zinc-500">Example: </span>
+            <p className="leading-relaxed text-secondary">{problem.statement}</p>
+            <p className="text-secondary">
+              <span className="text-muted">Example: </span>
               {problem.example}
             </p>
-            <p className="text-zinc-500">
+            <p className="text-muted">
               Implement{" "}
-              <code className="rounded bg-zinc-900 px-1 font-mono text-emerald-400">
+              <code className="rounded-md bg-surface px-1 font-mono text-accent">
                 {problem.fn}
               </code>
             </p>
@@ -179,7 +179,7 @@ export default function CodeSurface({
         ) : run ? (
           <ConsoleOutput run={run} />
         ) : (
-          <p className="text-zinc-600">Run your code to see test results.</p>
+          <p className="text-muted">Run your code to see test results.</p>
         )}
       </div>
     </div>
@@ -190,8 +190,8 @@ function ConsoleOutput({ run }: { run: RunResult }) {
   if (run.compileError) {
     return (
       <div>
-        <p className="text-red-400">Your code did not run:</p>
-        <pre className="mt-2 whitespace-pre-wrap text-red-300/80">
+        <p className="text-error">Your code did not run:</p>
+        <pre className="mt-2 whitespace-pre-wrap text-error">
           {run.compileError}
         </pre>
       </div>
@@ -200,23 +200,23 @@ function ConsoleOutput({ run }: { run: RunResult }) {
   return (
     <div className="space-y-1.5">
       {run.stdout && (
-        <pre className="whitespace-pre-wrap text-zinc-500">{run.stdout}</pre>
+        <pre className="whitespace-pre-wrap text-muted">{run.stdout}</pre>
       )}
-      <p className="text-zinc-400">
+      <p className="text-secondary">
         Ran {run.total} test{run.total === 1 ? "" : "s"},{" "}
         <span
-          className={run.passed === run.total ? "text-emerald-400" : "text-amber-400"}
+          className={run.passed === run.total ? "text-accent" : "text-warn"}
         >
           {run.passed} passed
         </span>
       </p>
       {run.results.map((r) => (
         <div key={r.index} className="flex flex-wrap gap-2">
-          <span className={r.passed ? "text-emerald-400" : "text-red-400"}>
+          <span className={r.passed ? "text-accent" : "text-error"}>
             Test {r.index + 1}: {r.passed ? "PASSED" : "FAILED"}
           </span>
           {!r.passed && (
-            <span className="text-zinc-500">
+            <span className="text-muted">
               input ({r.input}) → expected {r.expected}, got {r.actual}
               {r.error ? ` · ${r.error}` : ""}
             </span>
