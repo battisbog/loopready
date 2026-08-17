@@ -45,13 +45,16 @@ export default function LoginPage() {
     if (!email) return setStatus("Enter your email first.");
     setBusy("magic");
     setStatus(null);
-    const supabase = createClient();
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: getAuthCallbackUrl("/dashboard") },
+    // Routed through our API so account creation can be rate limited by IP;
+    // the browser SDK would bypass our server entirely.
+    const res = await fetch("/api/auth/signup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, redirectTo: getAuthCallbackUrl("/dashboard") }),
     });
+    const data = await res.json().catch(() => ({}));
     setBusy(null);
-    setStatus(error ? error.message : "Check your email for a sign-in link.");
+    setStatus(data.error ?? data.message ?? "Check your email for a sign-in link.");
   }
 
   async function signInWithPassword() {

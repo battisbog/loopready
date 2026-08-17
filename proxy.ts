@@ -12,6 +12,8 @@ const PUBLIC_PATHS = [
   // Uptime monitors have no session. The route itself returns only a bare
   // status to anonymous callers and detail to signed-in ones.
   "/api/health",
+  // Signup must be reachable before a session exists.
+  "/api/auth/signup",
   "/terms",
   "/privacy",
 ];

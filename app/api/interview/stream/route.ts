@@ -8,7 +8,13 @@ import { planTurn, progressPayload, type TurnState } from "@/lib/interview/turn"
 import { startSession } from "@/lib/interview/start";
 import { isRoundType, ROUND_IMPLEMENTED } from "@/lib/interview/rounds";
 import { SentenceBuffer } from "@/lib/sentences";
-import { checkRateLimit } from "@/lib/rate-limit";
+import {
+  checkIpRateLimit,
+  checkRateLimit,
+  consumeGlobalBudget,
+  recordUsage,
+  serviceBusyResponse,
+} from "@/lib/rate-limit";
 
 export const maxDuration = 60;
 
@@ -21,8 +27,15 @@ export async function POST(request: Request) {
   } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  // Cheap gates first: nothing paid runs until all of these pass.
   const limited = await checkRateLimit("interview", user.id);
   if (!limited.ok) return limited.response!;
+
+  const ipLimited = await checkIpRateLimit("interview", request);
+  if (!ipLimited.ok) return ipLimited.response!;
+
+  const budget = await consumeGlobalBudget();
+  if (budget.exceeded) return serviceBusyResponse();
 
   const admin = createAdminClient();
   const body = await request.json().catch(() => ({}));
@@ -153,6 +166,9 @@ export async function POST(request: Request) {
           state = plan.onControl.state;
           text = (await runGeneration(plan.onControl.system, null)).text;
         }
+
+        // The model call succeeded; count it for abuse monitoring.
+        void recordUsage("interview", user.id, request);
 
         // Persist exactly as the non-streaming route does.
         await admin

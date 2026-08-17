@@ -3,7 +3,13 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getProblem } from "@/lib/coding/problems";
 import { runTests, type Language } from "@/lib/coding/runner";
-import { checkRateLimit } from "@/lib/rate-limit";
+import {
+  checkIpRateLimit,
+  checkRateLimit,
+  consumeGlobalBudget,
+  recordUsage,
+  serviceBusyResponse,
+} from "@/lib/rate-limit";
 
 export const maxDuration = 120;
 
@@ -14,8 +20,15 @@ export async function POST(request: Request) {
   } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  // Cheap gates first: nothing paid runs until all of these pass.
   const limited = await checkRateLimit("run", user.id);
   if (!limited.ok) return limited.response!;
+
+  const ipLimited = await checkIpRateLimit("run", request);
+  if (!ipLimited.ok) return ipLimited.response!;
+
+  const budget = await consumeGlobalBudget();
+  if (budget.exceeded) return serviceBusyResponse();
 
   const { sessionId, code, language } = await request.json().catch(() => ({}));
   if (!sessionId || typeof code !== "string") {
@@ -48,6 +61,7 @@ export async function POST(request: Request) {
   let result;
   try {
     result = await runTests(code, lang, problem);
+    void recordUsage("run", user.id, request);
   } catch (e) {
     console.error("sandbox run failed", e);
     return NextResponse.json(

@@ -9,8 +9,12 @@ import { getContext } from "@/lib/interview/companies";
 import { ROUND_IMPLEMENTED, isRoundType } from "@/lib/interview/rounds";
 import {
   checkDailySessionQuota,
+  checkIpRateLimit,
   checkRateLimit,
+  consumeGlobalBudget,
   dailyQuotaResponse,
+  recordUsage,
+  serviceBusyResponse,
 } from "@/lib/rate-limit";
 
 export const maxDuration = 60;
@@ -41,8 +45,18 @@ export async function POST(request: Request) {
   } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  // Gate order is deliberate and cost-driven: every cheap check runs to
+  // completion before a single paid API call is made, so a rejected request
+  // never spends money.
+  //   a. auth (above)  b. per-user  c. per-IP  d. global spend ceiling
   const limited = await checkRateLimit("interview", user.id);
   if (!limited.ok) return limited.response!;
+
+  const ipLimited = await checkIpRateLimit("interview", request);
+  if (!ipLimited.ok) return ipLimited.response!;
+
+  const budget = await consumeGlobalBudget();
+  if (budget.exceeded) return serviceBusyResponse();
 
   const admin = createAdminClient();
   const body: Body = await request.json().catch(() => ({}));
@@ -158,6 +172,9 @@ export async function POST(request: Request) {
   const followupCount = state.followupCount;
   const phase = state.phase;
   const done = state.done;
+
+  // The paid call has now succeeded; count it for abuse monitoring.
+  void recordUsage("interview", user.id, request);
 
   await admin
     .from("turns")
