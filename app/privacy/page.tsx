@@ -13,7 +13,13 @@ export default function PrivacyPage() {
           LoopReady provides AI mock interview practice. This policy explains
           what we collect, why we collect it, who processes it, and the control
           you have. Contact:{" "}
-          <span className="text-primary">privacy@loopready.app</span>.
+          <a
+            href="mailto:support@loopready.io"
+            className="text-primary underline underline-offset-2"
+          >
+            support@loopready.io
+          </a>
+          .
         </p>
       </Clause>
 

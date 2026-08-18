@@ -74,7 +74,7 @@ export default async function Landing() {
                   <span className="h-2.5 w-2.5 rounded-full bg-elevated" />
                   <span className="h-2.5 w-2.5 rounded-full bg-elevated" />
                   <span className="ml-3 truncate font-mono text-[11px] text-muted">
-                    loopready.app/session
+                    loopready.io/session
                   </span>
                 </div>
                 <Image
@@ -466,6 +466,7 @@ export default async function Landing() {
                 links={[
                   { href: "/terms", label: "Terms" },
                   { href: "/privacy", label: "Privacy" },
+                  { href: "mailto:support@loopready.io", label: "Contact" },
                 ]}
               />
             </div>
@@ -604,16 +605,25 @@ function FooterCol({
         {title}
       </p>
       <ul className="mt-3 space-y-2">
-        {links.map((l) => (
-          <li key={l.href + l.label}>
-            <Link
-              href={l.href}
-              className="text-sm text-secondary transition-colors hover:text-primary"
-            >
-              {l.label}
-            </Link>
-          </li>
-        ))}
+        {links.map((l) => {
+          const className =
+            "text-sm text-secondary transition-colors hover:text-primary";
+          // mailto and other non-route hrefs are plain anchors, not app routes.
+          const external = !l.href.startsWith("/") && !l.href.startsWith("#");
+          return (
+            <li key={l.href + l.label}>
+              {external ? (
+                <a href={l.href} className={className}>
+                  {l.label}
+                </a>
+              ) : (
+                <Link href={l.href} className={className}>
+                  {l.label}
+                </Link>
+              )}
+            </li>
+          );
+        })}
       </ul>
     </div>
   );

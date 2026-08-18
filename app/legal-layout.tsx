@@ -43,6 +43,12 @@ export default function LegalLayout({
         <Link href="/" className="text-secondary hover:text-primary">
           Home
         </Link>
+        <a
+          href="mailto:support@loopready.io"
+          className="text-secondary hover:text-primary"
+        >
+          Contact
+        </a>
       </footer>
     </main>
   );

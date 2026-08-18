@@ -118,7 +118,13 @@ export default function TermsPage() {
         <p>
           We may update these terms; material changes will be notified by email
           or in the app before they take effect. Questions go to{" "}
-          <span className="text-primary">support@loopready.app</span>.
+          <a
+            href="mailto:support@loopready.io"
+            className="text-primary underline underline-offset-2"
+          >
+            support@loopready.io
+          </a>
+          .
         </p>
       </Clause>
     </LegalLayout>
