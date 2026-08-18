@@ -33,3 +33,11 @@ export const TURN_DETECTION = {
   create_response: true,
   interrupt_response: true,
 };
+
+/**
+ * Verbose event logging for the realtime lifecycle. Off by default: the log is
+ * one line per event and would be noise in a normal session.
+ */
+export const REALTIME_DEBUG =
+  process.env.NEXT_PUBLIC_REALTIME_DEBUG === "true" ||
+  process.env.NODE_ENV === "development";

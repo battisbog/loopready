@@ -16,6 +16,8 @@
  */
 
 import { audioLevels } from "@/lib/audio-levels";
+import { rtLog } from "@/lib/realtime/log";
+import { REALTIME_DEBUG } from "@/lib/realtime/config";
 
 const CALLS_URL = "https://api.openai.com/v1/realtime/calls";
 
@@ -53,6 +55,8 @@ export class RealtimeSession {
     onInterviewerTurn: () => {},
   };
   private closed = false;
+  /** Whether the remote audio track has arrived. */
+  private audioReady = false;
 
   async start({
     clientSecret,
@@ -62,6 +66,8 @@ export class RealtimeSession {
     handlers,
   }: RealtimeStartOptions): Promise<void> {
     this.handlers = handlers;
+    rtLog.start(REALTIME_DEBUG);
+    rtLog.mark("start", `history=${history.length} turns`);
 
     this.stream = await navigator.mediaDevices.getUserMedia({
       audio: {
@@ -71,6 +77,8 @@ export class RealtimeSession {
       },
     });
 
+    rtLog.mark("mic.ready", `tracks=${this.stream.getAudioTracks().length}`);
+
     const pc = new RTCPeerConnection();
     this.pc = pc;
 
@@ -79,8 +87,16 @@ export class RealtimeSession {
     this.audioEl.autoplay = true;
     pc.ontrack = (e) => {
       if (this.audioEl) this.audioEl.srcObject = e.streams[0];
-      // The interviewer's voice drives the orb in live mode.
+      // The interviewer's voice drives the ring in live mode.
       audioLevels.attachStream("output", e.streams[0]);
+      // When this lands relative to the greeting is the whole question for the
+      // "interviewer never speaks" bug, so it is a first-class milestone.
+      this.audioReady = true;
+      rtLog.mark("audio.track", "remote interviewer audio attached");
+      this.audioEl
+        ?.play()
+        .then(() => rtLog.mark("audio.play.ok"))
+        .catch((err) => rtLog.mark("audio.play.blocked", String(err?.name ?? err)));
     };
 
     this.stream.getTracks().forEach((t) => pc.addTrack(t, this.stream!));
@@ -90,9 +106,13 @@ export class RealtimeSession {
     const dc = pc.createDataChannel("oai-events");
     this.dc = dc;
     dc.onmessage = (e) => this.handleEvent(JSON.parse(e.data));
-    dc.onopen = () => this.onChannelOpen(history, greeting);
+    dc.onopen = () => {
+      rtLog.mark("datachannel.open", `audioReady=${this.audioReady}`);
+      this.onChannelOpen(history, greeting);
+    };
 
     pc.onconnectionstatechange = () => {
+      rtLog.mark("pc.state", pc.connectionState);
       if (
         !this.closed &&
         (pc.connectionState === "failed" || pc.connectionState === "disconnected")
@@ -103,6 +123,7 @@ export class RealtimeSession {
 
     const offer = await pc.createOffer();
     await pc.setLocalDescription(offer);
+    rtLog.mark("sdp.offer.posted");
 
     const res = await fetch(`${CALLS_URL}?model=${encodeURIComponent(model)}`, {
       method: "POST",
@@ -116,6 +137,7 @@ export class RealtimeSession {
       throw new Error(`Realtime handshake failed (${res.status})`);
     }
     await pc.setRemoteDescription({ type: "answer", sdp: await res.text() });
+    rtLog.mark("sdp.answer.applied");
   }
 
   /** Seeds prior turns so a resumed round has its conversation history. */
@@ -137,15 +159,29 @@ export class RealtimeSession {
     // Only speak an opening when the round has not started yet; otherwise the
     // interviewer would re-greet a candidate mid-interview.
     if (history.length === 0) {
+      rtLog.mark(
+        "greeting.dispatch",
+        `audioReady=${this.audioReady} dc=${this.dc?.readyState}`
+      );
       this.send({
         type: "response.create",
         response: { instructions: greeting },
       });
+    } else {
+      rtLog.mark("greeting.skipped", `history=${history.length} turns`);
     }
   }
 
   private send(event: unknown) {
-    if (this.dc?.readyState === "open") this.dc.send(JSON.stringify(event));
+    const type = (event as { type?: string }).type ?? "unknown";
+    if (this.dc?.readyState !== "open") {
+      // Silently dropping an event here is exactly the kind of failure this
+      // log exists to surface.
+      rtLog.mark("send.dropped", `${type} (dc=${this.dc?.readyState})`);
+      return;
+    }
+    rtLog.sent(type, describeOutgoing(event));
+    this.dc.send(JSON.stringify(event));
   }
 
   /** Swaps in new instructions when our state machine advances the question. */
@@ -171,6 +207,8 @@ export class RealtimeSession {
   }
 
   private handleEvent(event: { type: string; [k: string]: unknown }) {
+    rtLog.recv(event.type, describeIncoming(event));
+
     switch (event.type) {
       // Candidate finished speaking and Whisper transcribed it.
       case "conversation.item.input_audio_transcription.completed": {
@@ -206,6 +244,13 @@ export class RealtimeSession {
       case "input_audio_buffer.speech_started":
         this.handlers.onBargeIn?.();
         break;
+      // Not acted on, but decisive for diagnosing who cancelled what.
+      case "response.done":
+      case "response.created":
+      case "session.created":
+      case "session.updated":
+      case "input_audio_buffer.speech_stopped":
+        break;
       case "response.function_call_arguments.done": {
         if (event.name === "advance_question") {
           let reason = "";
@@ -228,6 +273,7 @@ export class RealtimeSession {
   }
 
   stop() {
+    rtLog.mark("stop");
     this.closed = true;
     audioLevels.detachAll();
     try {
@@ -247,5 +293,57 @@ export class RealtimeSession {
     this.dc = null;
     this.stream = null;
     this.handlers.onClose?.();
+  }
+}
+
+/**
+ * One-line summaries for the log. Deliberately terse: the value of the timeline
+ * is in the ordering, and full payloads would bury it.
+ */
+function describeOutgoing(event: unknown): string | undefined {
+  const e = event as { type?: string; response?: { instructions?: string }; session?: { instructions?: string }; item?: { role?: string; type?: string } };
+  if (e.type === "response.create") {
+    const i = e.response?.instructions ?? "";
+    return i ? `instructions="${i.slice(0, 90)}${i.length > 90 ? "…" : ""}"` : "(no per-response instructions)";
+  }
+  if (e.type === "session.update") {
+    return `instructions ${e.session?.instructions?.length ?? 0} chars`;
+  }
+  if (e.type === "conversation.item.create") {
+    return `${e.item?.type} role=${e.item?.role ?? "-"}`;
+  }
+  return undefined;
+}
+
+function describeIncoming(event: { type: string; [k: string]: unknown }): string | undefined {
+  switch (event.type) {
+    case "response.created":
+      return `id=${(event.response as { id?: string })?.id}`;
+    case "response.done": {
+      const r = event.response as
+        | { id?: string; status?: string; status_details?: { reason?: string; error?: { message?: string } }; output?: { type?: string }[] }
+        | undefined;
+      const kinds = (r?.output ?? []).map((o) => o.type).join(",") || "empty";
+      const why = r?.status_details?.reason ?? r?.status_details?.error?.message ?? "";
+      return `id=${r?.id} status=${r?.status}${why ? ` reason=${why}` : ""} output=[${kinds}]`;
+    }
+    case "error": {
+      const err = event.error as { type?: string; code?: string; message?: string } | undefined;
+      return `${err?.type ?? ""}/${err?.code ?? ""}: ${err?.message ?? ""}`;
+    }
+    case "conversation.item.input_audio_transcription.completed":
+      return `"${String(event.transcript ?? "").slice(0, 80)}"`;
+    case "response.output_audio_transcript.done":
+      return `"${String(event.transcript ?? "").slice(0, 80)}"`;
+    case "response.function_call_arguments.done":
+      return `${event.name} ${String(event.arguments ?? "")}`;
+    case "session.created":
+    case "session.updated": {
+      const s = event.session as { audio?: { input?: { turn_detection?: Record<string, unknown> } } } | undefined;
+      const td = s?.audio?.input?.turn_detection;
+      return td ? `turn_detection=${JSON.stringify(td)}` : undefined;
+    }
+    default:
+      return undefined;
   }
 }
