@@ -11,9 +11,14 @@ import {
 import { startSession } from "@/lib/interview/start";
 import {
   checkDailySessionQuota,
+  checkIpRateLimit,
+  consumeGlobalBudget,
+  recordUsage,
+  serviceBusyResponse,
   checkRateLimit,
   dailyQuotaResponse,
 } from "@/lib/rate-limit";
+import { getUserTier } from "@/lib/tiers";
 
 // Creates a loop (company + level + chosen rounds) and starts its first round.
 export async function POST(request: Request) {
@@ -57,8 +62,17 @@ export async function POST(request: Request) {
 
   const admin = createAdminClient();
 
+  const ipLimited = await checkIpRateLimit("interview", request);
+  if (!ipLimited.ok) return ipLimited.response!;
+
   const quota = await checkDailySessionQuota(admin, user.id);
   if (quota.exceeded) return dailyQuotaResponse(quota);
+
+  // startSession generates a spoken opening, so creating a loop costs money.
+  const tier = await getUserTier(admin, user.id);
+  const budget = await consumeGlobalBudget("interview_turn", tier);
+  if (budget.exceeded) return serviceBusyResponse(tier);
+  void recordUsage("loop", user.id, request);
 
   const { data: loop, error } = await admin
     .from("loops")

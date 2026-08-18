@@ -2,6 +2,16 @@ import { NextResponse } from "next/server";
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import {
+  COST,
+  DAILY_CAP_MICRO,
+  DAILY_CAP_USD,
+  FREE_TIER_CEILING_MICRO,
+  USD,
+  usd,
+  type Operation,
+} from "@/lib/cost";
+import type { Tier } from "@/lib/tiers";
 
 /**
  * Per-user rate limiting for routes that cost money (LLM, STT, TTS, sandbox).
@@ -401,78 +411,175 @@ export async function checkIpRateLimit(
 // expensive endpoints degrade politely instead of continuing to spend.
 // ============================================================
 
-export const GLOBAL_DAILY_API_CAP = Number(
-  process.env.GLOBAL_DAILY_API_CAP ?? 5000
-);
+export const GLOBAL_DAILY_API_CAP = DAILY_CAP_USD;
 
 function todayKey(prefix: string): string {
   return `${prefix}:${new Date().toISOString().slice(0, 10)}`;
 }
 
 export interface GlobalBudget {
+  /** Microdollars spent today. */
   used: number;
+  /** Microdollars allowed today. */
   cap: number;
+  /** The ceiling that applied to THIS caller, given their tier. */
+  callerCeiling: number;
   exceeded: boolean;
   /** True when Redis is unavailable and the cap could not be enforced. */
   unknown: boolean;
 }
 
+/** Paid tiers keep spending after free traffic has been cut off. */
+const PAID_TIERS = new Set<Tier>(["voice", "premium", "unlimited"]);
+
+function ceilingFor(tier: Tier): number {
+  return PAID_TIERS.has(tier) ? DAILY_CAP_MICRO : FREE_TIER_CEILING_MICRO;
+}
+
 /**
- * Counts one paid call against today's ceiling.
+ * Charges one paid operation against today's ceiling, in microdollars.
  *
- * Increments first, then compares: a small overshoot under heavy concurrency
- * is acceptable for a spend backstop, and it avoids a check-then-set race that
+ * Increments first, then compares: a small overshoot under heavy concurrency is
+ * acceptable for a spend backstop, and it avoids a check-then-set race that
  * could let many parallel calls slip past the cap entirely.
+ *
+ * Free users are held to a fraction of the ceiling so that the remainder is
+ * reserved for paying customers. A spike in free traffic therefore degrades
+ * free users first and never takes the product away from someone who paid.
  */
-export async function consumeGlobalBudget(units = 1): Promise<GlobalBudget> {
+export async function consumeGlobalBudget(
+  operation: Operation,
+  tier: Tier = "free",
+  multiplier = 1
+): Promise<GlobalBudget> {
+  const units = Math.round(COST[operation] * multiplier);
+  const ceiling = ceilingFor(tier);
+
   if (!redis) {
     warnOnce();
-    return { used: 0, cap: GLOBAL_DAILY_API_CAP, exceeded: false, unknown: true };
+    return {
+      used: 0,
+      cap: DAILY_CAP_MICRO,
+      callerCeiling: ceiling,
+      exceeded: false,
+      unknown: true,
+    };
   }
   try {
     const key = todayKey("loopready:spend");
     const used = await redis.incrby(key, units);
     // First write of the day sets the expiry; 48h covers any timezone skew.
     if (used <= units) await redis.expire(key, 60 * 60 * 48);
+
+    // Per-operation breakdown, so the dashboard can show where money went.
+    const opKey = todayKey(`loopready:spend:op:${operation}`);
+    const opUsed = await redis.incrby(opKey, units);
+    if (opUsed <= units) await redis.expire(opKey, 60 * 60 * 48);
+
+    const exceeded = used > ceiling;
+    if (exceeded) {
+      console.warn(
+        `[budget] ${operation} refused for tier=${tier}: ${usd(used)} used of ${usd(ceiling)} allowed (hard cap ${usd(DAILY_CAP_MICRO)})`
+      );
+    } else if (used > ceiling * 0.8 && used - units <= ceiling * 0.8) {
+      // Fires once, on the request that crosses the line.
+      console.warn(
+        `[budget] 80% of the ${tier === "free" ? "free-tier" : "global"} ceiling reached: ${usd(used)} of ${usd(ceiling)}`
+      );
+    }
+
     return {
       used,
-      cap: GLOBAL_DAILY_API_CAP,
-      exceeded: used > GLOBAL_DAILY_API_CAP,
+      cap: DAILY_CAP_MICRO,
+      callerCeiling: ceiling,
+      exceeded,
       unknown: false,
     };
   } catch (e) {
     // A Redis outage must not take the product down; the per-user and per-IP
     // limits are still in force.
     console.error("[budget] global counter failed, allowing request:", e);
-    return { used: 0, cap: GLOBAL_DAILY_API_CAP, exceeded: false, unknown: true };
+    return {
+      used: 0,
+      cap: DAILY_CAP_MICRO,
+      callerCeiling: ceiling,
+      exceeded: false,
+      unknown: true,
+    };
   }
 }
 
-/** Read-only view of today's spend, for the health endpoint. */
-export async function peekGlobalBudget(): Promise<GlobalBudget> {
-  if (!redis) {
-    return { used: 0, cap: GLOBAL_DAILY_API_CAP, exceeded: false, unknown: true };
-  }
+/** Read-only view of today's spend, for the health and cost endpoints. */
+export async function peekGlobalBudget(): Promise<
+  GlobalBudget & { byOperation: Record<string, number> }
+> {
+  const empty = {
+    used: 0,
+    cap: DAILY_CAP_MICRO,
+    callerCeiling: DAILY_CAP_MICRO,
+    exceeded: false,
+    unknown: true,
+    byOperation: {} as Record<string, number>,
+  };
+  if (!redis) return empty;
   try {
     const used = Number((await redis.get(todayKey("loopready:spend"))) ?? 0);
+    const ops = Object.keys(COST) as Operation[];
+    const values = await Promise.all(
+      ops.map((o) => redis!.get(todayKey(`loopready:spend:op:${o}`)))
+    );
+    const byOperation: Record<string, number> = {};
+    ops.forEach((o, i) => {
+      const v = Number(values[i] ?? 0);
+      if (v > 0) byOperation[o] = v;
+    });
     return {
       used,
-      cap: GLOBAL_DAILY_API_CAP,
-      exceeded: used > GLOBAL_DAILY_API_CAP,
+      cap: DAILY_CAP_MICRO,
+      callerCeiling: DAILY_CAP_MICRO,
+      exceeded: used > DAILY_CAP_MICRO,
       unknown: false,
+      byOperation,
     };
   } catch {
-    return { used: 0, cap: GLOBAL_DAILY_API_CAP, exceeded: false, unknown: true };
+    return empty;
   }
 }
 
-/** 503 shown when the app-wide daily ceiling is reached. */
-export function serviceBusyResponse(): NextResponse {
+/** Today's per-endpoint request counts, for the cost dashboard. */
+export async function peekUsageCounts(): Promise<Record<string, number>> {
+  if (!redis) return {};
+  try {
+    const day = new Date().toISOString().slice(0, 10);
+    const keys = await redis.keys(`loopready:usage:endpoint:*:${day}`);
+    if (!keys.length) return {};
+    const values = await redis.mget<(string | number | null)[]>(...keys);
+    const out: Record<string, number> = {};
+    keys.forEach((k, i) => {
+      const name = k.replace("loopready:usage:endpoint:", "").replace(`:${day}`, "");
+      out[name] = Number(values[i] ?? 0);
+    });
+    return out;
+  } catch {
+    return {};
+  }
+}
+
+/**
+ * 503 shown when the daily ceiling is reached.
+ *
+ * Free users are told they can upgrade, because for them the wall is the
+ * reserved-for-paying-customers threshold rather than the hard cap.
+ */
+export function serviceBusyResponse(tier: Tier = "free"): NextResponse {
+  const paid = tier !== "free";
   return NextResponse.json(
     {
-      error:
-        "LoopReady is unusually busy right now and has paused new interviews for today. Please try again tomorrow.",
+      error: paid
+        ? "LoopReady has hit its daily capacity limit and has paused new interviews. This is a safety limit on our side, not your account. Please try again tomorrow."
+        : "Free practice is paused for today because of unusually high demand. Paid plans are unaffected, and free capacity resets at midnight UTC.",
       serviceBusy: true,
+      upgradeHelps: !paid,
     },
     { status: 503, headers: { "Retry-After": "3600" } }
   );

@@ -16,7 +16,14 @@ import { getContext } from "@/lib/interview/companies";
 import { getProblem } from "@/lib/coding/problems";
 import { getDesignPrompt } from "@/lib/design/prompts";
 import { describeDiagram } from "@/lib/design/prompt";
-import { checkRateLimit } from "@/lib/rate-limit";
+import {
+  checkIpRateLimit,
+  checkRateLimit,
+  consumeGlobalBudget,
+  recordUsage,
+  serviceBusyResponse,
+} from "@/lib/rate-limit";
+import { getUserTier } from "@/lib/tiers";
 
 export const maxDuration = 120;
 
@@ -30,12 +37,20 @@ export async function POST(request: Request) {
   const limited = await checkRateLimit("feedback", user.id);
   if (!limited.ok) return limited.response!;
 
+  const ipLimited = await checkIpRateLimit("interview", request);
+  if (!ipLimited.ok) return ipLimited.response!;
+
   const { sessionId } = await request.json().catch(() => ({}));
   if (!sessionId) {
     return NextResponse.json({ error: "sessionId required" }, { status: 400 });
   }
 
   const admin = createAdminClient();
+
+  const tier = await getUserTier(admin, user.id);
+  const budget = await consumeGlobalBudget("feedback", tier);
+  if (budget.exceeded) return serviceBusyResponse(tier);
+  void recordUsage("feedback", user.id, request);
   const { data: session } = await admin
     .from("sessions")
     .select()

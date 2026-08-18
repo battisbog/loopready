@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { speakStream } from "@/lib/audio";
 import {
   checkIpRateLimit,
@@ -8,6 +9,7 @@ import {
   recordUsage,
   serviceBusyResponse,
 } from "@/lib/rate-limit";
+import { getUserTier } from "@/lib/tiers";
 
 export const maxDuration = 60;
 
@@ -25,8 +27,11 @@ export async function POST(request: Request) {
   const ipLimited = await checkIpRateLimit("tts", request);
   if (!ipLimited.ok) return ipLimited.response!;
 
-  const budget = await consumeGlobalBudget();
-  if (budget.exceeded) return serviceBusyResponse();
+  // Tier decides which ceiling applies: free traffic is cut off first so the
+  // remaining headroom stays reserved for paying customers.
+  const tier = await getUserTier(createAdminClient(), user.id);
+  const budget = await consumeGlobalBudget("tts_sentence", tier);
+  if (budget.exceeded) return serviceBusyResponse(tier);
 
   const { text } = await request.json().catch(() => ({}));
   if (!text || typeof text !== "string") {

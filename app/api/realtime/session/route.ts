@@ -2,7 +2,14 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getContext } from "@/lib/interview/companies";
-import { checkRateLimit } from "@/lib/rate-limit";
+import {
+  checkIpRateLimit,
+  checkRateLimit,
+  consumeGlobalBudget,
+  recordUsage,
+  serviceBusyResponse,
+} from "@/lib/rate-limit";
+import { getUserTier } from "@/lib/tiers";
 import {
   REALTIME_MODEL,
   REALTIME_VOICE,
@@ -28,8 +35,21 @@ export async function POST(request: Request) {
   } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  const admin = createAdminClient();
+
   const limited = await checkRateLimit("interview", user.id);
   if (!limited.ok) return limited.response!;
+
+  const ipLimited = await checkIpRateLimit("interview", request);
+  if (!ipLimited.ok) return ipLimited.response!;
+
+  // A whole round is charged here, not per turn. Once the WebRTC connection is
+  // up it bills continuously without touching our server again, so refusing to
+  // mint the secret is the only control point we have over it.
+  const tier = await getUserTier(admin, user.id);
+  const budget = await consumeGlobalBudget("realtime_session", tier);
+  if (budget.exceeded) return serviceBusyResponse(tier);
+  void recordUsage("realtime_session", user.id, request);
 
   if (!process.env.OPENAI_API_KEY) {
     return NextResponse.json(
@@ -42,8 +62,6 @@ export async function POST(request: Request) {
   if (!sessionId) {
     return NextResponse.json({ error: "sessionId required" }, { status: 400 });
   }
-
-  const admin = createAdminClient();
   const { data: session } = await admin
     .from("sessions")
     .select()

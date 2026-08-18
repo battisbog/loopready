@@ -6,7 +6,7 @@ export default function robots(): MetadataRoute.Robots {
       userAgent: "*",
       allow: "/",
       // Authenticated surfaces have nothing useful to index.
-      disallow: ["/dashboard", "/session/", "/start", "/dev-chat", "/dev-ring", "/api/"],
+      disallow: ["/dashboard", "/session/", "/start", "/dev-chat", "/dev-ring", "/admin", "/api/"],
     },
     sitemap: "https://loopready-five.vercel.app/sitemap.xml",
   };

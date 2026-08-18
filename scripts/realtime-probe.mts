@@ -186,7 +186,15 @@ function record(e: Record<string, unknown>) {
         r?.status_details?.reason ??
         r?.status_details?.error?.message ??
         "";
-      detail = `status=${r?.status}${why ? ` reason=${why}` : ""} output=[${out}] audio_b64=${audioBytes}`;
+      const u = r?.usage;
+      const it = u?.input_token_details ?? {};
+      const ot = u?.output_token_details ?? {};
+      detail =
+        `status=${r?.status}${why ? ` reason=${why}` : ""} output=[${out}]` +
+        (u
+          ? `\n            USAGE in=${u.input_tokens} (text ${it.text_tokens ?? 0}, audio ${it.audio_tokens ?? 0}, cached ${u.input_token_details?.cached_tokens ?? 0})` +
+            ` out=${u.output_tokens} (text ${ot.text_tokens ?? 0}, audio ${ot.audio_tokens ?? 0})`
+          : "");
       audioBytes = 0;
       break;
     }

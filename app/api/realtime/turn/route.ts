@@ -10,7 +10,14 @@ import {
   buildInstructions,
   isSubstantiveAnswer,
 } from "@/lib/realtime/conversation";
-import { checkRateLimit } from "@/lib/rate-limit";
+import {
+  checkIpRateLimit,
+  checkRateLimit,
+  consumeGlobalBudget,
+  recordUsage,
+  serviceBusyResponse,
+} from "@/lib/rate-limit";
+import { getUserTier } from "@/lib/tiers";
 
 export const maxDuration = 30;
 
@@ -53,6 +60,9 @@ export async function POST(request: Request) {
   const limited = await checkRateLimit("interview", user.id);
   if (!limited.ok) return limited.response!;
 
+  const ipLimited = await checkIpRateLimit("interview", request);
+  if (!ipLimited.ok) return ipLimited.response!;
+
   const body: Body = await request.json().catch(() => ({}) as Body);
   if (!body.sessionId) {
     return NextResponse.json({ error: "sessionId required" }, { status: 400 });
@@ -65,6 +75,15 @@ export async function POST(request: Request) {
   }
 
   const admin = createAdminClient();
+
+  // Artifact pushes cost nothing on the model side, so they are not charged.
+  if (!body.artifactOnly) {
+    const tier = await getUserTier(admin, user.id);
+    const budget = await consumeGlobalBudget("realtime_turn", tier);
+    if (budget.exceeded) return serviceBusyResponse(tier);
+    void recordUsage("realtime_turn", user.id, request);
+  }
+
   const { data: session } = await admin
     .from("sessions")
     .select()

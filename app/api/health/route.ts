@@ -5,6 +5,7 @@ import {
   peekGlobalBudget,
   rateLimitHealth,
 } from "@/lib/rate-limit";
+import { DAILY_CAP_USD, USD } from "@/lib/cost";
 import { PRICING, assertPricingMatchesPayPal } from "@/lib/pricing";
 
 export const dynamic = "force-dynamic";
@@ -57,8 +58,9 @@ export async function GET() {
       ...(limits.error ? { error: limits.error } : {}),
     },
     dailySpend: {
-      used: budget.used,
-      cap: budget.cap,
+      // Dollars, not call counts: the ceiling is a spend backstop.
+      usedUsd: Number((budget.used / USD).toFixed(4)),
+      capUsd: DAILY_CAP_USD,
       exceeded: budget.exceeded,
       tracked: !budget.unknown,
     },

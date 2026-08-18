@@ -10,7 +10,14 @@ import {
   loopSummarySchema,
   loopSummaryUserPrompt,
 } from "@/lib/feedback/loop-summary";
-import { checkRateLimit } from "@/lib/rate-limit";
+import {
+  checkIpRateLimit,
+  checkRateLimit,
+  consumeGlobalBudget,
+  recordUsage,
+  serviceBusyResponse,
+} from "@/lib/rate-limit";
+import { getUserTier } from "@/lib/tiers";
 
 export const maxDuration = 120;
 
@@ -25,12 +32,20 @@ export async function POST(request: Request) {
   const limited = await checkRateLimit("feedback", user.id);
   if (!limited.ok) return limited.response!;
 
+  const ipLimited = await checkIpRateLimit("interview", request);
+  if (!ipLimited.ok) return ipLimited.response!;
+
   const { loopId } = await request.json().catch(() => ({}));
   if (!loopId) {
     return NextResponse.json({ error: "loopId required" }, { status: 400 });
   }
 
   const admin = createAdminClient();
+
+  const tier = await getUserTier(admin, user.id);
+  const budget = await consumeGlobalBudget("loop_summary", tier);
+  if (budget.exceeded) return serviceBusyResponse(tier);
+  void recordUsage("loop_summary", user.id, request);
   const { data: loop } = await admin
     .from("loops")
     .select("id, company, level, rounds, summary, overall_signal")

@@ -10,6 +10,7 @@ import {
   recordUsage,
   serviceBusyResponse,
 } from "@/lib/rate-limit";
+import { getUserTier } from "@/lib/tiers";
 
 export const maxDuration = 120;
 
@@ -27,8 +28,11 @@ export async function POST(request: Request) {
   const ipLimited = await checkIpRateLimit("run", request);
   if (!ipLimited.ok) return ipLimited.response!;
 
-  const budget = await consumeGlobalBudget();
-  if (budget.exceeded) return serviceBusyResponse();
+  // Tier decides which ceiling applies: free traffic is cut off first so the
+  // remaining headroom stays reserved for paying customers.
+  const tier = await getUserTier(createAdminClient(), user.id);
+  const budget = await consumeGlobalBudget("code_run", tier);
+  if (budget.exceeded) return serviceBusyResponse(tier);
 
   const { sessionId, code, language } = await request.json().catch(() => ({}));
   if (!sessionId || typeof code !== "string") {
