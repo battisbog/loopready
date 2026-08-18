@@ -52,6 +52,18 @@ export function useRealtimeTurn({
   const sessionRef = useRef<RealtimeSession | null>(null);
   const aliveRef = useRef(true);
   const startedRef = useRef(false);
+  /** Set once the server says the interview is over; consumed by teardown. */
+  const finishRef = useRef<{
+    nextSessionId: string | null;
+    loopId: string | null;
+  } | null>(null);
+  const finishTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Held in a ref so teardown never needs to be rebuilt when the callback
+  // identity changes. Committed in an effect rather than during render.
+  const onDoneRef = useRef(onDone);
+  useEffect(() => {
+    onDoneRef.current = onDone;
+  }, [onDone]);
 
   useEffect(() => {
     const startedAt = Date.now();
@@ -71,6 +83,19 @@ export function useRealtimeTurn({
     },
     [sessionId]
   );
+
+  /** Ends the round exactly once, whichever signal gets here first. */
+  const teardown = useCallback(() => {
+    const finish = finishRef.current;
+    if (!finish) return;
+    finishRef.current = null;
+    if (finishTimerRef.current) {
+      clearTimeout(finishTimerRef.current);
+      finishTimerRef.current = null;
+    }
+    sessionRef.current?.stop();
+    onDoneRef.current(finish.nextSessionId, finish.loopId);
+  }, []);
 
   /** Applies whatever the server decided after a turn or an advance request. */
   const applyServerDecision = useCallback(
@@ -95,14 +120,20 @@ export function useRealtimeTurn({
 
       if (data.done) {
         setStatus("done");
-        // Let the closing line finish before tearing the connection down.
-        setTimeout(() => {
-          sessionRef.current?.stop();
-          onDone(data.nextRound?.sessionId ?? null, data.loopComplete ?? null);
-        }, 8000);
+        // Wait for the closing line to actually finish rather than padding a
+        // fixed delay. This is end-of-interview teardown only and never sits in
+        // the per-turn response path, but a flat timeout meant every candidate
+        // stared at a finished interview for the remainder of it.
+        finishRef.current = {
+          nextSessionId: data.nextRound?.sessionId ?? null,
+          loopId: data.loopComplete ?? null,
+        };
+        // Backstop: if the closing never plays (audio blocked, connection
+        // dropped) the round must still end.
+        finishTimerRef.current = setTimeout(teardown, 12_000);
       }
     },
-    [onDone, onProgress]
+    [onProgress, teardown]
   );
 
   useEffect(() => {
@@ -154,14 +185,21 @@ export function useRealtimeTurn({
                   ? { role, text: p.text + delta }
                   : { role, text: delta }
               ),
-            onSpeakingChange: (speaking) =>
+            onSpeakingChange: (speaking) => {
+              // The closing line has finished playing: end the round now
+              // instead of waiting out the backstop timer.
+              if (!speaking && finishRef.current) {
+                // A short grace so the last syllable is not clipped.
+                setTimeout(teardown, 900);
+              }
               setStatus((s) =>
                 s === "done" || s === "failed"
                   ? s
                   : speaking
                     ? "speaking"
                     : "listening"
-              ),
+              );
+            },
             onBargeIn: () => setPartial(null),
             onAdvanceRequested: (callId) => {
               // The server decides whether the request is allowed.
@@ -188,6 +226,7 @@ export function useRealtimeTurn({
 
     return () => {
       aliveRef.current = false;
+      if (finishTimerRef.current) clearTimeout(finishTimerRef.current);
       sessionRef.current?.stop();
       sessionRef.current = null;
     };

@@ -22,14 +22,39 @@ export const REALTIME_ENABLED =
   process.env.NEXT_PUBLIC_REALTIME_VOICE === "true";
 
 /**
+ * How quickly the model decides the candidate has finished.
+ *
+ * "high" shortens the pause before the interviewer replies. It is a judgement
+ * about meaning, not a silence timer, so a shorter gap does not mean cutting
+ * people off mid-sentence the way lowering a server_vad threshold would.
+ *
+ * Configurable so the feel can be A/B'd without a deploy:
+ *   low    most patient, longest gap
+ *   auto   the API default
+ *   high   snappiest, still waits for a complete thought
+ */
+export type Eagerness = "low" | "auto" | "high";
+
+const EAGERNESS = (process.env.REALTIME_EAGERNESS ?? "high") as Eagerness;
+
+export const REALTIME_EAGERNESS: Eagerness = ["low", "auto", "high"].includes(
+  EAGERNESS
+)
+  ? EAGERNESS
+  : "high";
+
+/**
  * Semantic VAD lets the model judge whether the candidate has actually
  * finished a thought rather than firing on a fixed silence threshold, which
  * matters when someone pauses mid-story. `interrupt_response` is what gives
  * us barge-in for free.
+ *
+ * Deliberately NOT server_vad: that fires on a silence duration alone, so
+ * closing the gap would mean talking over anyone who pauses to think.
  */
 export const TURN_DETECTION = {
   type: "semantic_vad" as const,
-  eagerness: "auto" as const,
+  eagerness: REALTIME_EAGERNESS,
   create_response: true,
   interrupt_response: true,
 };
