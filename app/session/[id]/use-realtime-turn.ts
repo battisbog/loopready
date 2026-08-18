@@ -76,7 +76,6 @@ export function useRealtimeTurn({
   const applyServerDecision = useCallback(
     (data: {
       instructions?: string | null;
-      sayNext?: string | null;
       done?: boolean;
       questionIndex?: number;
       nextRound?: { sessionId: string } | null;
@@ -88,8 +87,11 @@ export function useRealtimeTurn({
       if (typeof data.questionIndex === "number") {
         onProgress?.({ questionIndex: data.questionIndex });
       }
+      // Instructions only. Nothing is ever spoken in reaction to a turn: the
+      // model's own reply is already in flight by the time this returns, so a
+      // second response.create would be rejected and dropped. The instructions
+      // tell the model what to do on its NEXT reply instead.
       if (data.instructions && live) live.updateInstructions(data.instructions);
-      if (data.sayNext && live) live.speak(data.sayNext);
 
       if (data.done) {
         setStatus("done");
@@ -97,7 +99,7 @@ export function useRealtimeTurn({
         setTimeout(() => {
           sessionRef.current?.stop();
           onDone(data.nextRound?.sessionId ?? null, data.loopComplete ?? null);
-        }, 6000);
+        }, 8000);
       }
     },
     [onDone, onProgress]
@@ -126,6 +128,7 @@ export function useRealtimeTurn({
           clientSecret: cfg.clientSecret,
           model: cfg.model,
           greeting: cfg.greeting,
+          shouldGreet: cfg.shouldGreet === true,
           history: cfg.history ?? [],
           handlers: {
             onCandidateTurn: (text) => {

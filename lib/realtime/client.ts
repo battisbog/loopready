@@ -41,6 +41,12 @@ export interface RealtimeStartOptions {
   clientSecret: string;
   model: string;
   greeting: string;
+  /**
+   * Decided by the server from whether the CANDIDATE has ever spoken. Never
+   * inferred from history length here: startSession writes an opening line into
+   * `turns` before the round loads, so a fresh session always has history.
+   */
+  shouldGreet: boolean;
   history: { role: string; text: string }[];
   handlers: RealtimeHandlers;
 }
@@ -57,11 +63,15 @@ export class RealtimeSession {
   private closed = false;
   /** Whether the remote audio track has arrived. */
   private audioReady = false;
+  /** True between response.created and response.done. */
+  private responseActive = false;
+  private pendingSpeak: string | null = null;
 
   async start({
     clientSecret,
     model,
     greeting,
+    shouldGreet,
     history,
     handlers,
   }: RealtimeStartOptions): Promise<void> {
@@ -108,7 +118,7 @@ export class RealtimeSession {
     dc.onmessage = (e) => this.handleEvent(JSON.parse(e.data));
     dc.onopen = () => {
       rtLog.mark("datachannel.open", `audioReady=${this.audioReady}`);
-      this.onChannelOpen(history, greeting);
+      this.onChannelOpen(history, greeting, shouldGreet);
     };
 
     pc.onconnectionstatechange = () => {
@@ -141,7 +151,11 @@ export class RealtimeSession {
   }
 
   /** Seeds prior turns so a resumed round has its conversation history. */
-  private onChannelOpen(history: { role: string; text: string }[], greeting: string) {
+  private onChannelOpen(
+    history: { role: string; text: string }[],
+    greeting: string,
+    shouldGreet: boolean
+  ) {
     for (const t of history) {
       this.send({
         type: "conversation.item.create",
@@ -156,19 +170,16 @@ export class RealtimeSession {
         },
       });
     }
-    // Only speak an opening when the round has not started yet; otherwise the
-    // interviewer would re-greet a candidate mid-interview.
-    if (history.length === 0) {
+    // Speak the opening unless the candidate has already talked, in which case
+    // this is a resume and re-greeting would be wrong.
+    if (shouldGreet) {
       rtLog.mark(
         "greeting.dispatch",
         `audioReady=${this.audioReady} dc=${this.dc?.readyState}`
       );
-      this.send({
-        type: "response.create",
-        response: { instructions: greeting },
-      });
+      this.speak(greeting);
     } else {
-      rtLog.mark("greeting.skipped", `history=${history.length} turns`);
+      rtLog.mark("greeting.skipped", "candidate has already spoken; resuming");
     }
   }
 
@@ -189,9 +200,31 @@ export class RealtimeSession {
     this.send({ type: "session.update", session: { type: "realtime", instructions } });
   }
 
-  /** Tells the interviewer what to say next (transition or closing line). */
+  /**
+   * Asks the interviewer to say something specific.
+   *
+   * Queued rather than sent when a response is already in flight. The API
+   * rejects a concurrent response.create with
+   * `conversation_already_has_active_response`, and that rejection used to
+   * discard the request silently AND surface the raw error in the UI.
+   */
   speak(instructions: string) {
+    if (this.responseActive) {
+      rtLog.mark("speak.queued", "a response is already in flight");
+      this.pendingSpeak = instructions;
+      return;
+    }
+    this.responseActive = true;
     this.send({ type: "response.create", response: { instructions } });
+  }
+
+  private flushPendingSpeak() {
+    const next = this.pendingSpeak;
+    if (!next) return;
+    this.pendingSpeak = null;
+    rtLog.mark("speak.flushed", "in-flight response finished");
+    this.responseActive = true;
+    this.send({ type: "response.create", response: { instructions: next } });
   }
 
   /** Answers the advance_question tool call so the model can continue. */
@@ -204,6 +237,14 @@ export class RealtimeSession {
         output: JSON.stringify({ accepted }),
       },
     });
+    // A tool result on its own produces no speech. The model needs a response
+    // to continue, and by now the response carrying the tool call has finished,
+    // so this one is legal.
+    this.speak(
+      accepted
+        ? "Continue the interview following your updated instructions."
+        : "That question is not finished yet. Keep probing it."
+    );
   }
 
   private handleEvent(event: { type: string; [k: string]: unknown }) {
@@ -244,9 +285,14 @@ export class RealtimeSession {
       case "input_audio_buffer.speech_started":
         this.handlers.onBargeIn?.();
         break;
-      // Not acted on, but decisive for diagnosing who cancelled what.
-      case "response.done":
       case "response.created":
+        this.responseActive = true;
+        break;
+      case "response.done":
+        this.responseActive = false;
+        this.flushPendingSpeak();
+        break;
+      // Not acted on, but decisive for diagnosing who cancelled what.
       case "session.created":
       case "session.updated":
       case "input_audio_buffer.speech_stopped":
@@ -263,18 +309,29 @@ export class RealtimeSession {
         }
         break;
       }
-      case "error":
+      case "error": {
+        const err = event.error as { code?: string } | undefined;
+        // Now handled by queueing, so it should never reach the user. If it
+        // somehow does, it is a bug in our sequencing, not something the
+        // candidate can act on.
+        if (err?.code === "conversation_already_has_active_response") {
+          rtLog.mark("error.suppressed", "concurrent response.create");
+          break;
+        }
         this.handlers.onError?.(
           (event.error as { message?: string } | undefined)?.message ??
             "Realtime error"
         );
         break;
+      }
     }
   }
 
   stop() {
     rtLog.mark("stop");
     this.closed = true;
+    this.pendingSpeak = null;
+    this.responseActive = false;
     audioLevels.detachAll();
     try {
       this.dc?.close();

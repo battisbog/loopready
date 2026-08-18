@@ -2,10 +2,14 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getContext } from "@/lib/interview/companies";
-import { MAX_FOLLOWUPS, QUESTIONS, type Question } from "@/lib/interview/questions";
-import { MAX_CODING_TURNS, MAX_DESIGN_TURNS, startSession } from "@/lib/interview/start";
+import { QUESTIONS, type Question } from "@/lib/interview/questions";
+import { startSession } from "@/lib/interview/start";
 import { ROUND_IMPLEMENTED, isRoundType } from "@/lib/interview/rounds";
-import { buildRealtimeInstructions } from "@/lib/realtime/instructions";
+import {
+  advanceState,
+  buildInstructions,
+  isSubstantiveAnswer,
+} from "@/lib/realtime/conversation";
 import { checkRateLimit } from "@/lib/rate-limit";
 
 export const maxDuration = 30;
@@ -111,7 +115,16 @@ export async function POST(request: Request) {
       ok: true,
       done: false,
       instructions: artifactDrivenRound
-        ? buildRealtimeInstructions(session, ctx)
+        ? buildInstructions(
+            session,
+            {
+              questionIndex: session.question_index,
+              followupCount: session.followup_count,
+              phase: (session.phase ?? "questions") as never,
+              done: false,
+            },
+            ctx
+          )
         : null,
     });
   }
@@ -124,34 +137,35 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true, done: false });
   }
 
-  let questionIndex: number = session.question_index;
-  let followupCount: number = session.followup_count;
-  let done = false;
-  let advanced = false;
+  // Conversational scaffolding ("Hello?", "sorry, can you repeat that") must
+  // not spend the follow-up budget. The probe caught two such lines pushing the
+  // interview to the next question.
+  const substantive = body.advanceOnly
+    ? false
+    : isSubstantiveAnswer(body.text ?? "");
 
-  if (session.round_type === "behavioral") {
-    const questions: Question[] = session.questions ?? QUESTIONS;
-    if (!body.advanceOnly) followupCount += 1;
-    // The model may ask to move on early, but never past the hard cap.
-    const shouldAdvance = body.advanceOnly || followupCount > MAX_FOLLOWUPS;
-    if (shouldAdvance) {
-      questionIndex += 1;
-      followupCount = 0;
-      advanced = true;
-      done = questionIndex >= questions.length;
-    }
-  } else {
-    const cap =
-      session.round_type === "coding" ? MAX_CODING_TURNS : MAX_DESIGN_TURNS;
-    if (!body.advanceOnly) questionIndex += 1;
-    done = body.advanceOnly === true || questionIndex >= cap;
-  }
+  const state = advanceState(session, {
+    substantive,
+    modelRequestedAdvance: body.advanceOnly === true,
+  });
+  const questionIndex = state.questionIndex;
+  const followupCount = state.followupCount;
+  const done = state.done;
+  const advanced = questionIndex !== session.question_index;
+
+  console.log(
+    `[realtime] turn session=${session.id} round=${session.round_type} ` +
+      `substantive=${substantive} advanceReq=${body.advanceOnly === true} ` +
+      `q=${session.question_index}->${questionIndex} fc=${session.followup_count}->${followupCount} ` +
+      `phase=${session.phase}->${state.phase} done=${done}`
+  );
 
   await admin
     .from("sessions")
     .update({
       question_index: questionIndex,
       followup_count: followupCount,
+      phase: state.phase,
       ...(done
         ? { status: "completed", ended_at: new Date().toISOString() }
         : {}),
@@ -184,34 +198,13 @@ export async function POST(request: Request) {
     }
   }
 
-  // When the question changed, hand the model refreshed instructions naming
-  // the new question and the follow-up budget.
-  let instructions: string | null = null;
-  let sayNext: string | null = null;
-
-  // Coding/design: refresh every turn so the interviewer sees the latest code
-  // or diagram, matching what push-to-talk rebuilds on each request.
-  if (artifactDrivenRound && !done) {
-    instructions = buildRealtimeInstructions(
-      { ...session, question_index: questionIndex, followup_count: followupCount },
-      ctx
-    );
-  }
-
-  if (advanced && !done) {
-    const refreshed = {
-      ...session,
-      question_index: questionIndex,
-      followup_count: followupCount,
-    };
-    instructions = buildRealtimeInstructions(refreshed, ctx);
-    const questions: Question[] = session.questions ?? QUESTIONS;
-    sayNext = `Briefly acknowledge their answer in a few neutral words, then ask exactly this question: "${questions[questionIndex].text}"`;
-  }
-  if (done) {
-    sayNext =
-      "Thank the candidate warmly but briefly for their time. Do not give any feedback or evaluation. One or two sentences, then stop.";
-  }
+  // Forward-looking instructions, always. Never a reactive response.create:
+  // turn detection has already created the model's reply by the time we get
+  // here, so a second one is rejected with
+  // `conversation_already_has_active_response` and silently dropped. Pushing
+  // instructions instead means the model performs the acknowledgement and the
+  // transition itself, in one natural utterance, on its next reply.
+  const instructions = buildInstructions(session, state, ctx);
 
   return NextResponse.json({
     ok: true,
@@ -220,7 +213,6 @@ export async function POST(request: Request) {
     questionIndex,
     followupCount,
     instructions,
-    sayNext,
     nextRound,
     loopComplete,
   });

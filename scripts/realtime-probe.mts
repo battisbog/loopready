@@ -29,8 +29,12 @@ if (!KEY) throw new Error("OPENAI_API_KEY missing");
 const { REALTIME_MODEL, REALTIME_VOICE, TURN_DETECTION } = await import(
   "../lib/realtime/config.ts"
 );
-const { buildRealtimeInstructions, buildRealtimeGreeting, ADVANCE_TOOL } =
-  await import("../lib/realtime/instructions.ts");
+const {
+  buildInstructions,
+  buildGreeting,
+  shouldGreet,
+  ADVANCE_TOOL,
+} = await import("../lib/realtime/conversation.ts");
 const { pickSessionQuestions } = await import("../lib/interview/questions.ts");
 const { getContext } = await import("../lib/interview/companies.ts");
 
@@ -50,7 +54,9 @@ const scenario = (process.argv[3] ?? "quiet") as
   /** Byte-for-byte what the browser does today, seeded history included. */
   | "production"
   /** The advance path: our server's sayNext racing the VAD auto-response. */
-  | "advance";
+  | "advance"
+  /** The fixed transition: forward-looking instructions via session.update. */
+  | "transition";
 
 // Mirrors what startSession writes for a fresh round.
 const session = {
@@ -67,8 +73,19 @@ const session = {
 };
 const ctx = getContext("Google", "L4");
 
-const instructions = buildRealtimeInstructions(session, ctx);
-const greeting = buildRealtimeGreeting(session, ctx?.profile.displayName);
+const openingState = {
+  questionIndex: session.question_index,
+  followupCount: session.followup_count,
+  phase: "questions" as const,
+  done: false,
+};
+const instructions = buildInstructions(session, openingState, ctx);
+const greeting = buildGreeting(session, ctx);
+
+// Exactly what the server now computes: a fresh session has one seeded
+// interviewer row and no candidate rows, so it must still be greeted.
+const SEEDED_TURNS = [{ role: "interviewer", text: "" }];
+const serverSaysGreet = shouldGreet(SEEDED_TURNS);
 
 // ------------------------------------------------------------------ timeline
 
@@ -93,6 +110,7 @@ function log(dir: string, type: string, detail = "") {
 }
 
 let firedSayNext = false;
+let secondTurnDone = false;
 
 function record(e: Record<string, unknown>) {
   const type = String(e.type);
@@ -102,6 +120,25 @@ function record(e: Record<string, unknown>) {
   // /api/realtime/turn, and when the server says the question advanced the
   // client immediately calls live.speak(sayNext). The auto-response from VAD
   // is already in flight by then.
+  // The FIXED path: the server pushes forward-looking instructions instead of
+  // trying to speak. session.update never competes with an in-flight response.
+  if (
+    scenario === "transition" &&
+    type === "conversation.item.input_audio_transcription.completed" &&
+    !firedSayNext
+  ) {
+    firedSayNext = true;
+    setTimeout(() => {
+      send(
+        {
+          type: "session.update",
+          session: { type: "realtime", instructions: MOVE_ON_INSTRUCTIONS },
+        },
+        "forward-looking MOVE ON instructions"
+      );
+    }, 180);
+  }
+
   if (
     scenario === "advance" &&
     type === "conversation.item.input_audio_transcription.completed" &&
@@ -268,6 +305,14 @@ const SEEDED_OPENING =
 const SAY_NEXT =
   'Briefly acknowledge their answer in a few neutral words, then ask exactly this question: "Tell me about a time you had to influence a team without authority."';
 
+/** What buildInstructions emits once the follow-up budget is spent. */
+const MOVE_ON_INSTRUCTIONS =
+  buildInstructions(
+    { ...session, question_index: 0, followup_count: 2, phase: "questions" },
+    { questionIndex: 0, followupCount: 2, phase: "questions", done: false },
+    ctx
+  );
+
 const ANSWER =
   "Sure. I owned the checkout service, and during Black Friday our p99 latency jumped from 200 milliseconds to about 4 seconds. I found an N plus one query against inventory, added a batch endpoint, and brought it back down to 180.";
 
@@ -307,8 +352,10 @@ ws.on("open", () => {
   // RealtimeSession.onChannelOpen. In production the server always returns at
   // least one turn, because startSession writes the opening line into `turns`
   // before the round ever loads.
+  // The server now suppresses the seeded opening when it is about to greet,
+  // because that line was never actually spoken aloud.
   const history =
-    scenario === "production"
+    scenario === "production" && !serverSaysGreet
       ? [{ role: "interviewer", text: SEEDED_OPENING }]
       : [];
 
@@ -326,7 +373,15 @@ ws.on("open", () => {
     );
   }
 
-  if (history.length === 0) {
+  if (scenario === "production") {
+    log(
+      " * ",
+      "greeting.decision",
+      `seeded turns=1, candidate turns=0 -> shouldGreet=${serverSaysGreet}`
+    );
+  }
+
+  if (serverSaysGreet || history.length === 0) {
     send(
       { type: "response.create", response: { instructions: greeting } },
       "THE GREETING"
@@ -359,7 +414,7 @@ ws.on("message", async (raw) => {
   const e = JSON.parse(raw.toString());
   record(e);
 
-  if (e.type === "response.done" && phase === "greeting" && scenario !== "production") {
+  if (e.type === "response.done" && phase === "greeting") {
     greetingResponses++;
     const r = e.response;
     const spoke = (r?.output ?? []).length > 0;
@@ -388,6 +443,15 @@ ws.on("message", async (raw) => {
     await holdOpen(25);
     // Deliberately NOT committing the buffer: semantic VAD should end the turn
     // on its own, which is what production relies on.
+  } else if (e.type === "response.done" && phase === "candidate" && scenario === "transition" && !secondTurnDone) {
+    secondTurnDone = true;
+    console.log("\n--- (c) NEXT TURN: does it acknowledge AND move on? ---");
+    sawResponse = false;
+    const pcm = await candidateAudio(
+      "Right, and after that I wrote a postmortem and added alerting on the p99 so we would catch it earlier next time."
+    );
+    await streamPcm(pcm, "second candidate answer");
+    await holdOpen(25);
   } else if (e.type === "response.done" && phase === "candidate") {
     phase = "done";
     setTimeout(() => {

@@ -10,9 +10,10 @@ import {
 } from "@/lib/realtime/config";
 import {
   ADVANCE_TOOL,
-  buildRealtimeGreeting,
-  buildRealtimeInstructions,
-} from "@/lib/realtime/instructions";
+  buildGreeting,
+  buildInstructions,
+  shouldGreet,
+} from "@/lib/realtime/conversation";
 
 export const maxDuration = 30;
 
@@ -66,9 +67,21 @@ export async function POST(request: Request) {
     if (loop) ctx = getContext(loop.company, loop.level);
   }
 
+  // Opening state: nothing has advanced yet, so the state is the row itself.
+  const state = {
+    questionIndex: session.question_index,
+    followupCount: session.followup_count,
+    phase: (session.phase ?? "questions") as
+      | "greeting"
+      | "format"
+      | "questions"
+      | "closing",
+    done: false,
+  };
+
   let instructions: string;
   try {
-    instructions = buildRealtimeInstructions(session, ctx);
+    instructions = buildInstructions(session, state, ctx);
   } catch (e) {
     return NextResponse.json(
       { error: e instanceof Error ? e.message : "Cannot start round" },
@@ -83,6 +96,18 @@ export async function POST(request: Request) {
     .select("role, text")
     .eq("session_id", sessionId)
     .order("created_at", { ascending: true });
+
+  const rows = turns ?? [];
+  // The interviewer owes an opening until the candidate has actually spoken.
+  const greet = shouldGreet(rows);
+  // When we are about to greet, the stored opening line was never delivered
+  // aloud, so replaying it would make the model believe it had already spoken
+  // and it would wait in silence. That was the silent-greeting bug.
+  const history = greet ? [] : rows.map((t) => ({ role: t.role, text: t.text }));
+
+  console.log(
+    `[realtime] session=${sessionId} round=${session.round_type} turns=${rows.length} greet=${greet} history=${history.length}`
+  );
 
   const res = await fetch("https://api.openai.com/v1/realtime/client_secrets", {
     method: "POST",
@@ -122,8 +147,9 @@ export async function POST(request: Request) {
     expiresAt: data.expires_at,
     model: REALTIME_MODEL,
     voice: REALTIME_VOICE,
-    greeting: buildRealtimeGreeting(session, ctx?.profile.displayName),
-    history: (turns ?? []).map((t) => ({ role: t.role, text: t.text })),
+    greeting: buildGreeting(session, ctx),
+    shouldGreet: greet,
+    history,
     state: {
       roundType: session.round_type,
       questionIndex: session.question_index,
