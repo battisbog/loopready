@@ -96,4 +96,75 @@ export const LINKED_LIST: Problem[] = [
     strongAnswerCovers:
       "The one-pass answer is two pointers held n apart. Removing the head is the edge case that breaks most attempts; a dummy head fixes it.",
   },
+  {
+    id: "merge-k-sorted-lists",
+    pattern: "linked-list",
+    tiers: ["senior"],
+    title: "Merge K Sorted Lists",
+    fn: "merge_k",
+    companies: ["Amazon", "Google", "Meta", "Uber"],
+    statement:
+      "You are given several sorted linked lists, each as an array of its values. Return one sorted array containing every value from all of them.",
+    example: "[[1,4,5],[1,3,4],[2,6]] -> [1,1,2,3,4,4,5,6]",
+    signatures: {
+      python: "def merge_k(lists):\\n    # your code here\\n    pass\\n",
+      javascript: "function merge_k(lists) {\\n  // your code here\\n}\\n",
+    },
+    tests: [
+      { args: [[[1, 4, 5], [1, 3, 4], [2, 6]]], expected: [1, 1, 2, 3, 4, 4, 5, 6] },
+      { args: [[]], expected: [] },
+      { args: [[[]]], expected: [] },
+      { args: [[[1]]], expected: [1] },
+      { args: [[[], [1], []]], expected: [1] },
+    ],
+    strongAnswerCovers:
+      "Concatenating and sorting is O(N log N) and usually the first answer. The interview is the k-way merge with a heap, O(N log k), or divide-and-conquer pairwise merging. Empty lists in the input are the common crash.",
+  },
+  {
+    id: "reorder-list",
+    pattern: "linked-list",
+    tiers: ["mid", "senior"],
+    title: "Reorder a List",
+    fn: "reorder",
+    companies: ["Meta", "Amazon"],
+    statement:
+      "A linked list is given as an array of its values. Reorder it by interleaving the first half with the reversed second half: first element, last element, second element, second-to-last, and so on. Return the resulting array.",
+    example: "[1,2,3,4,5] -> [1,5,2,4,3]",
+    signatures: {
+      python: "def reorder(values):\\n    # your code here\\n    pass\\n",
+      javascript: "function reorder(values) {\\n  // your code here\\n}\\n",
+    },
+    tests: [
+      { args: [[1, 2, 3, 4]], expected: [1, 4, 2, 3] },
+      { args: [[1, 2, 3, 4, 5]], expected: [1, 5, 2, 4, 3] },
+      { args: [[]], expected: [] },
+      { args: [[1]], expected: [1] },
+      { args: [[1, 2]], expected: [1, 2] },
+    ],
+    strongAnswerCovers:
+      "The array form is two pointers. On real nodes it is three steps: find the middle with fast/slow, reverse the second half, then weave. Ask them to walk that through and handle the odd-length middle.",
+  },
+  {
+    id: "lru-cache",
+    pattern: "linked-list",
+    tiers: ["senior"],
+    title: "LRU Cache Behaviour",
+    fn: "lru_results",
+    companies: ["Amazon", "Meta", "Google", "Microsoft"],
+    statement:
+      "You are given a capacity and a list of operations, each either [\"put\", key, value] or [\"get\", key]. Apply them to a cache that evicts the least recently used entry once it is over capacity. Both get and put count as a use. Return the list of results from the get operations, using -1 for a miss.",
+    example: "capacity 2, [[\"put\",1,1],[\"put\",2,2],[\"get\",1],[\"put\",3,3],[\"get\",2]] -> [1,-1]",
+    signatures: {
+      python: "def lru_results(capacity, ops):\\n    # your code here\\n    pass\\n",
+      javascript: "function lru_results(capacity, ops) {\\n  // your code here\\n}\\n",
+    },
+    tests: [
+      { args: [2, [["put", 1, 1], ["put", 2, 2], ["get", 1], ["put", 3, 3], ["get", 2]]], expected: [1, -1] },
+      { args: [1, [["put", 1, 1], ["put", 2, 2], ["get", 1], ["get", 2]]], expected: [-1, 2] },
+      { args: [2, [["get", 1]]], expected: [-1] },
+      { args: [2, [["put", 1, 1], ["put", 1, 2], ["get", 1]]], expected: [2] },
+    ],
+    strongAnswerCovers:
+      "The canonical answer is a hash map plus a doubly linked list giving O(1) get and put. Ask them why a plain list or array makes eviction O(n), and confirm that a get counts as a use.",
+  },
 ];

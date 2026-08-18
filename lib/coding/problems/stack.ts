@@ -102,4 +102,26 @@ export const STACK: Problem[] = [
     strongAnswerCovers:
       "A genuinely hard monotonic stack problem. Look for the insight that a bar's rectangle extends back to where it could have started. Many candidates only reach O(n^2).",
   },
+  {
+    id: "min-stack-ops",
+    pattern: "stack",
+    tiers: ["mid"],
+    title: "Stack With Constant-Time Minimum",
+    fn: "min_stack_results",
+    companies: ["Amazon", "Google", "Bloomberg"],
+    statement:
+      "You are given a list of operations, each one of [\"push\", value], [\"pop\"], [\"top\"] or [\"min\"]. Apply them to a stack and return the results of the top and min operations in order. Every operation must run in constant time.",
+    example: "[[\"push\",-2],[\"push\",0],[\"push\",-3],[\"min\"],[\"pop\"],[\"top\"],[\"min\"]] -> [-3,0,-2]",
+    signatures: {
+      python: "def min_stack_results(ops):\\n    # your code here\\n    pass\\n",
+      javascript: "function min_stack_results(ops) {\\n  // your code here\\n}\\n",
+    },
+    tests: [
+      { args: [[["push", -2], ["push", 0], ["push", -3], ["min"], ["pop"], ["top"], ["min"]]], expected: [-3, 0, -2] },
+      { args: [[["push", 1], ["min"], ["push", 2], ["min"], ["pop"], ["min"]]], expected: [1, 1, 1] },
+      { args: [[["push", 5], ["top"]]], expected: [5] },
+    ],
+    strongAnswerCovers:
+      "Keeping a parallel stack of running minimums is the standard answer. Scanning for the min on each query is O(n) and fails the constant-time requirement. Ask what happens with duplicate minimums on pop.",
+  },
 ];

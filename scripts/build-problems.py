@@ -1404,6 +1404,140 @@ def can_complete_circuit(gas, cost):
     covers="Two insights: the loop is possible only if total gas covers total cost, and any prefix that runs dry rules out every start inside it. Together they give one pass.",
 )
 
+problem(
+    id="merge-k-sorted-lists", pattern="linked-list", tiers=["senior"], title="Merge K Sorted Lists",
+    fn="merge_k", companies=["Amazon", "Google", "Meta", "Uber"],
+    statement="You are given several sorted linked lists, each as an array of its values. Return one sorted array containing every value from all of them.",
+    example="[[1,4,5],[1,3,4],[2,6]] -> [1,1,2,3,4,4,5,6]",
+    params="lists",
+    tests=[[[[1,4,5],[1,3,4],[2,6]]],[[]],[[[]]],[[[1]]],[[[],[1],[]]]],
+    solution="""
+def merge_k(lists):
+    import heapq
+    h = []
+    for i, lst in enumerate(lists):
+        if lst:
+            heapq.heappush(h, (lst[0], i, 0))
+    out = []
+    while h:
+        v, i, j = heapq.heappop(h)
+        out.append(v)
+        if j + 1 < len(lists[i]):
+            heapq.heappush(h, (lists[i][j + 1], i, j + 1))
+    return out
+""",
+    covers="Concatenating and sorting is O(N log N) and usually the first answer. The interview is the k-way merge with a heap, O(N log k), or divide-and-conquer pairwise merging. Empty lists in the input are the common crash.",
+)
+problem(
+    id="reorder-list", pattern="linked-list", tiers=["mid", "senior"], title="Reorder a List",
+    fn="reorder", companies=["Meta", "Amazon"],
+    statement="A linked list is given as an array of its values. Reorder it by interleaving the first half with the reversed second half: first element, last element, second element, second-to-last, and so on. Return the resulting array.",
+    example="[1,2,3,4,5] -> [1,5,2,4,3]",
+    params="values",
+    tests=[[[1,2,3,4]],[[1,2,3,4,5]],[[]],[[1]],[[1,2]]],
+    solution="""
+def reorder(values):
+    out = []
+    i, j = 0, len(values) - 1
+    while i <= j:
+        out.append(values[i])
+        if i != j:
+            out.append(values[j])
+        i += 1
+        j -= 1
+    return out
+""",
+    covers="The array form is two pointers. On real nodes it is three steps: find the middle with fast/slow, reverse the second half, then weave. Ask them to walk that through and handle the odd-length middle.",
+)
+problem(
+    id="lru-cache", pattern="linked-list", tiers=["senior"], title="LRU Cache Behaviour",
+    fn="lru_results", companies=["Amazon", "Meta", "Google", "Microsoft"],
+    statement='You are given a capacity and a list of operations, each either ["put", key, value] or ["get", key]. Apply them to a cache that evicts the least recently used entry once it is over capacity. Both get and put count as a use. Return the list of results from the get operations, using -1 for a miss.',
+    example='capacity 2, [["put",1,1],["put",2,2],["get",1],["put",3,3],["get",2]] -> [1,-1]',
+    params="capacity, ops",
+    tests=[
+        [2,[["put",1,1],["put",2,2],["get",1],["put",3,3],["get",2]]],
+        [1,[["put",1,1],["put",2,2],["get",1],["get",2]]],
+        [2,[["get",1]]],
+        [2,[["put",1,1],["put",1,2],["get",1]]],
+    ],
+    solution="""
+def lru_results(capacity, ops):
+    from collections import OrderedDict
+    cache = OrderedDict()
+    out = []
+    for op in ops:
+        if op[0] == "put":
+            _, k, v = op
+            if k in cache:
+                cache.move_to_end(k)
+            cache[k] = v
+            if len(cache) > capacity:
+                cache.popitem(last=False)
+        else:
+            k = op[1]
+            if k in cache:
+                cache.move_to_end(k)
+                out.append(cache[k])
+            else:
+                out.append(-1)
+    return out
+""",
+    covers="The canonical answer is a hash map plus a doubly linked list giving O(1) get and put. Ask them why a plain list or array makes eviction O(n), and confirm that a get counts as a use.",
+)
+problem(
+    id="partition-labels", pattern="greedy", tiers=["mid"], title="Partition a String Into Distinct Blocks",
+    fn="partition_labels", companies=["Amazon", "Meta"],
+    statement="Given a string, split it into the largest possible number of contiguous pieces so that no letter appears in more than one piece. Return the length of each piece in order.",
+    example='"ababcbacadefegde" -> [9, 7]',
+    params="s",
+    tests=[["ababcbacadefegdehijhklij"],["ababcbacadefegde"],["a"],[""],["abc"]],
+    solution="""
+def partition_labels(s):
+    last = {c: i for i, c in enumerate(s)}
+    out = []
+    start = end = 0
+    for i, c in enumerate(s):
+        end = max(end, last[c])
+        if i == end:
+            out.append(end - start + 1)
+            start = i + 1
+    return out
+""",
+    covers="Precomputing each letter's last index, then extending the current window to the furthest last-index seen. The greedy cut when the scan index reaches the window end is the insight.",
+)
+problem(
+    id="min-stack-ops", pattern="stack", tiers=["mid"], title="Stack With Constant-Time Minimum",
+    fn="min_stack_results", companies=["Amazon", "Google", "Bloomberg"],
+    statement='You are given a list of operations, each one of ["push", value], ["pop"], ["top"] or ["min"]. Apply them to a stack and return the results of the top and min operations in order. Every operation must run in constant time.',
+    example='[["push",-2],["push",0],["push",-3],["min"],["pop"],["top"],["min"]] -> [-3,0,-2]',
+    params="ops",
+    tests=[
+        [[["push",-2],["push",0],["push",-3],["min"],["pop"],["top"],["min"]]],
+        [[["push",1],["min"],["push",2],["min"],["pop"],["min"]]],
+        [[["push",5],["top"]]],
+    ],
+    solution="""
+def min_stack_results(ops):
+    st = []
+    mins = []
+    out = []
+    for op in ops:
+        if op[0] == "push":
+            v = op[1]
+            st.append(v)
+            mins.append(v if not mins else min(v, mins[-1]))
+        elif op[0] == "pop":
+            st.pop(); mins.pop()
+        elif op[0] == "top":
+            out.append(st[-1])
+        else:
+            out.append(mins[-1])
+    return out
+""",
+    covers="Keeping a parallel stack of running minimums is the standard answer. Scanning for the min on each query is O(n) and fails the constant-time requirement. Ask what happens with duplicate minimums on pop.",
+)
+
 
 # ───────────────────────────────────────────────────────── verification
 def verify():

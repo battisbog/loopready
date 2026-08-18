@@ -73,4 +73,28 @@ export const GREEDY: Problem[] = [
     strongAnswerCovers:
       "Two insights: the loop is possible only if total gas covers total cost, and any prefix that runs dry rules out every start inside it. Together they give one pass.",
   },
+  {
+    id: "partition-labels",
+    pattern: "greedy",
+    tiers: ["mid"],
+    title: "Partition a String Into Distinct Blocks",
+    fn: "partition_labels",
+    companies: ["Amazon", "Meta"],
+    statement:
+      "Given a string, split it into the largest possible number of contiguous pieces so that no letter appears in more than one piece. Return the length of each piece in order.",
+    example: "\"ababcbacadefegde\" -> [9, 7]",
+    signatures: {
+      python: "def partition_labels(s):\\n    # your code here\\n    pass\\n",
+      javascript: "function partition_labels(s) {\\n  // your code here\\n}\\n",
+    },
+    tests: [
+      { args: ["ababcbacadefegdehijhklij"], expected: [9, 7, 8] },
+      { args: ["ababcbacadefegde"], expected: [9, 7] },
+      { args: ["a"], expected: [1] },
+      { args: [""], expected: [] },
+      { args: ["abc"], expected: [1, 1, 1] },
+    ],
+    strongAnswerCovers:
+      "Precomputing each letter's last index, then extending the current window to the furthest last-index seen. The greedy cut when the scan index reaches the window end is the insight.",
+  },
 ];
