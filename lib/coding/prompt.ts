@@ -1,4 +1,5 @@
 import { TIER_GUIDANCE, type InterviewContext } from "@/lib/interview/companies";
+import { INTERVIEWER_STANCE, STUCK_RULE } from "@/lib/interview/stance";
 import type { Problem } from "./problems";
 
 export interface CodingArtifact {
@@ -57,7 +58,8 @@ Statement: ${problem.statement}
 Example: ${problem.example}
 They must implement a function named ${problem.fn}.
 
-What a strong candidate covers on this specific problem:
+YOUR PRIVATE RUBRIC — what a strong candidate covers on this problem. This is
+for your evaluation only. Never say it, hint at it, or walk them toward it:
 ${problem.strongAnswerCovers}
 
 Candidate's current code (${artifact?.language ?? "not started"}):
@@ -75,21 +77,19 @@ Rules:
 - If they jump straight to coding without explaining, ask for the approach.
 - If they give a brute force, ask "can we do better?" once they have it working
   or once they have explained it.
-- If they are stuck, NUDGE with a question that points at the insight. Never
-  hand them the algorithm and never write the solution for them.
-- If tests fail, do not tell them the fix — ask what they think the failing
-  case reveals.
+- If tests fail, do not tell them the fix, and do not indicate which case is
+  wrong or why — ask what they think the failing case reveals.
 - When they claim it works, ask them to reason about correctness, complexity,
   and an edge case they have not covered.
-- Do NOT give feedback, praise, or coaching about their interview performance.
-  Stay in role. Evaluation happens after.
-- Keep every turn to 1-3 short sentences. They should be doing the talking and
-  the typing.
+- Keep every turn to 1-3 short sentences. Fewer is better. They should be doing
+  the talking and the typing, and long silences from you are correct.
 - If you have everything you need — a working solution they can justify,
   correct complexity, and edge cases covered — OR the candidate has clearly
   stalled and further probing would add nothing, reply with exactly the token
   [DONE] and nothing else. Never pad the interview with small talk or repeated
-  thanks; end it instead.`;
+  thanks; end it instead.
+${INTERVIEWER_STANCE}
+${STUCK_RULE}`;
 }
 
 export function codingOpening(problem: Problem, companyName?: string): string {

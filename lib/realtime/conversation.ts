@@ -68,11 +68,16 @@ const ACKNOWLEDGE_RULE = `
 
 HOW TO REACT TO WHAT THEY JUST SAID
 Never open a reply with a bare question. Every single time, first react to the
-substance of what they actually said in a few words: name the specific thing
-they described, or reflect the tradeoff they made. Then ask your question in
-the same breath, as one natural utterance. If their answer was thin or evasive,
-say what is missing before you probe. If they asked you a question, answer it
-first.`;
+substance of what they actually said in a few words: name back the specific
+thing they described, or restate the tradeoff they made. Then ask your question
+in the same breath, as one natural utterance.
+
+Acknowledging is NOT approving and NOT helping. Reflect only what they actually
+said, neutrally. Do not evaluate it, do not say whether it was good, and do not
+add anything they did not say. If their answer was thin, probe the gap with a
+question rather than naming what was missing, since naming it tells them the
+answer. If they asked you a direct question about the format or the problem
+statement, answer that; if they asked for the solution, put it back on them.`;
 
 export const ADVANCE_TOOL = {
   type: "function" as const,

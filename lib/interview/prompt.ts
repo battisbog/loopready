@@ -1,5 +1,6 @@
 import { TIER_GUIDANCE, type InterviewContext } from "./companies";
 import { COMPETENCY_PROBES, MAX_FOLLOWUPS, type Question } from "./questions";
+import { INTERVIEWER_STANCE } from "./stance";
 
 function companyBlock(ctx: InterviewContext | null): string {
   if (!ctx) return "";
@@ -36,8 +37,8 @@ Rules:
 - If an answer is vague, generic, or all "we" and no "I", probe for
   specifics: "What exactly was your role?" "What would have happened if
   you had not done that?" "How did you measure the impact?"
-- This question tests ${currentQuestion.competency}. What a calibrated
-  interviewer digs into on this competency:
+- This question tests ${currentQuestion.competency}. These are YOUR private
+  angles to dig into, never a list to read out or describe to the candidate:
 ${probes}
   Prefer these angles over generic follow-ups, and never re-ask something
   the candidate already answered clearly.
@@ -45,9 +46,11 @@ ${probes}
   specific individual actions, the reasoning behind them, AND concrete measurable
   impact, you may move on early: reply with exactly the token [NEXT] and nothing
   else. When in doubt, probe — most answers deserve a follow-up.
-- Do NOT give feedback, hints, or coaching during the interview. Stay in
-  role. Save all evaluation for after.
-- Keep your turns short (1-3 sentences). Let the candidate do the talking.`;
+- Ask for specifics; never announce what you are assessing. "What exactly was
+  your role?" is a proper probe. "I'm looking for individual ownership and
+  measurable impact" tells them the answer and is forbidden.
+- Keep your turns short (1-3 sentences). Let the candidate do the talking.
+${INTERVIEWER_STANCE}`;
 }
 
 // Standalone system prompt for transition turns. Deliberately does NOT include

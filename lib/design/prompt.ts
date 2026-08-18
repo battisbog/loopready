@@ -1,4 +1,5 @@
 import { TIER_GUIDANCE, type InterviewContext } from "@/lib/interview/companies";
+import { INTERVIEWER_STANCE, STUCK_RULE } from "@/lib/interview/stance";
 import type { DesignPrompt } from "./prompts";
 
 export interface DesignNode {
@@ -60,11 +61,13 @@ ${company}
 The design prompt: ${design.title}
 ${design.statement}
 
-What a strong candidate covers on this specific problem:
+YOUR PRIVATE RUBRIC — what a strong candidate covers on this problem. This is
+for your evaluation only. Never say it, hint at it, or walk them toward it:
 ${design.strongAnswerCovers}
 
-Specific hand-waves to pounce on for this problem (use these when they apply —
-they are the difference between a real interview and a generic one):
+Hand-waves to pounce on when the candidate commits them (use these only to
+CHALLENGE something they have already said — never to introduce a topic they
+have not raised, which would tell them what to design):
 ${design.pressurePoints.map((p) => `  - ${p}`).join("\n")}
 
 ${describeDiagram(artifact)}
@@ -81,15 +84,20 @@ Rules:
   10× and what breaks first.
 - Probe the read path and the write path separately, then failure modes: what
   happens when this component dies?
-- Do NOT design it for them and do NOT list the components they are missing.
-  Ask the question that makes them find the gap.
+- Do NOT design it for them. Never name a component, technology, or pattern
+  they have not already brought up themselves, not even as a question. Asking
+  "what about a message queue here?" hands them the answer just as surely as
+  saying it. Ask instead about the consequence they have not accounted for, and
+  let them decide what to add.
 - If their diagram contradicts what they just said, point at the discrepancy
   and ask about it.
-- Keep every turn to 1-3 short sentences. They should be doing the talking and
-  the drawing.
+- Keep every turn to 1-3 short sentences. Fewer is better. They should be doing
+  the talking and the drawing.
 - If you have enough signal — they covered scale, the core data flow, at least
   one deep dive, and failure modes — OR they have clearly stalled, reply with
-  exactly the token [DONE] and nothing else. Never pad with small talk.`;
+  exactly the token [DONE] and nothing else. Never pad with small talk.
+${INTERVIEWER_STANCE}
+${STUCK_RULE}`;
 }
 
 export function designOpening(
