@@ -25,6 +25,10 @@
   --accent-border: rgb(16 185 129 / 0.32);
   --accent-fg: #052e21; /* text on a solid accent fill */
 
+  /* Cool counterpart to the accent. Used where the candidate, rather than the
+     interviewer, holds the floor, so the two voices never read as the same. */
+  --accent-cool: #22d3ee;
+
   /* Text scale */
   --text-primary: #fafafa;
   --text-secondary: #a1a1aa;
@@ -70,6 +74,7 @@
   --color-accent-muted: var(--accent-muted);
   --color-accent-border: var(--accent-border);
   --color-accent-fg: var(--accent-fg);
+  --color-accent-cool: var(--accent-cool);
 
   --color-primary: var(--text-primary);
   --color-secondary: var(--text-secondary);
