@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "verify:problems": "python3 scripts/build-problems.py --check",
+    "bank:coverage": "tsx scripts/bank-coverage.mts",
+    "bank:build": "python3 scripts/build-problems.py"
   },
   "dependencies": {
     "@ai-sdk/openai": "^4.0.40",

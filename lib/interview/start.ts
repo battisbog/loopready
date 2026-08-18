@@ -76,7 +76,9 @@ export async function startSession({
     const design = pickDesignPrompt(ctx?.tier ?? "mid");
     row.artifact = { promptId: design.id, nodes: [], edges: [] };
   } else if (roundType === "coding") {
-    const problem = pickProblem(ctx?.tier ?? "mid");
+    const problem = pickProblem(ctx?.tier ?? "mid", {
+      company: ctx?.profile.displayName,
+    });
     const language = "python";
     row.artifact = {
       problemId: problem.id,
@@ -84,7 +86,11 @@ export async function startSession({
       code: problem.signatures[language],
     };
   } else {
-    const questions = pickSessionQuestions(3, ctx?.profile.competencyEmphasis ?? []);
+    const questions = pickSessionQuestions(
+      3,
+      ctx?.profile.competencyEmphasis ?? [],
+      { tier: ctx?.tier }
+    );
     row.questions = questions;
     questionCount = questions.length;
   }

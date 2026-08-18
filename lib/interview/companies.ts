@@ -53,7 +53,7 @@ export const COMPANY_PROFILES: Record<string, CompanyProfile> = {
       "Have Backbone; Disagree and Commit",
       "Deliver Results",
     ],
-    competencyEmphasis: ["ownership", "failure", "conflict"],
+    competencyEmphasis: ["ownership", "failure", "conflict", "delivery"],
   },
   google: {
     displayName: "Google",
@@ -75,7 +75,7 @@ export const COMPANY_PROFILES: Record<string, CompanyProfile> = {
       "Intellectual honesty",
       "Bias to help others succeed",
     ],
-    competencyEmphasis: ["ambiguity", "conflict", "influence"],
+    competencyEmphasis: ["ambiguity", "conflict", "influence", "leadership"],
   },
   meta: {
     displayName: "Meta",
@@ -98,7 +98,7 @@ export const COMPANY_PROFILES: Record<string, CompanyProfile> = {
       "Meta, Metamates, Me",
       "Live in the Future",
     ],
-    competencyEmphasis: ["pressure", "ownership", "conflict"],
+    competencyEmphasis: ["delivery", "pressure", "ownership", "conflict"],
   },
   microsoft: {
     displayName: "Microsoft",
@@ -120,7 +120,7 @@ export const COMPANY_PROFILES: Record<string, CompanyProfile> = {
       "One Microsoft (collaboration)",
       "Making a Difference",
     ],
-    competencyEmphasis: ["failure", "influence", "ambiguity"],
+    competencyEmphasis: ["failure", "influence", "ambiguity", "leadership"],
   },
   apple: {
     displayName: "Apple",
@@ -142,7 +142,7 @@ export const COMPANY_PROFILES: Record<string, CompanyProfile> = {
       "Direct debate, then commitment",
       "User experience above all",
     ],
-    competencyEmphasis: ["ownership", "conflict", "pressure"],
+    competencyEmphasis: ["ownership", "conflict", "pressure", "delivery"],
   },
   netflix: {
     displayName: "Netflix",
@@ -164,7 +164,7 @@ export const COMPANY_PROFILES: Record<string, CompanyProfile> = {
       "High performance (adequate performance gets a severance)",
       "Sunshining mistakes",
     ],
-    competencyEmphasis: ["conflict", "failure", "ambiguity"],
+    competencyEmphasis: ["conflict", "failure", "ambiguity", "leadership"],
   },
   generic: {
     displayName: "Generic FAANG",
@@ -186,7 +186,7 @@ export const COMPANY_PROFILES: Record<string, CompanyProfile> = {
       "Dealing with ambiguity",
       "Raising the bar",
     ],
-    competencyEmphasis: ["ownership", "conflict", "failure"],
+    competencyEmphasis: ["ownership", "conflict", "failure", "delivery"],
   },
 };
 
