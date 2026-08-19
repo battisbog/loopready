@@ -32,6 +32,7 @@ const LANGUAGES = [
 export default function CodeSurface({
   sessionId,
   problem,
+  problemRevealed = true,
   code,
   language,
   signatures,
@@ -42,6 +43,12 @@ export default function CodeSurface({
 }: {
   sessionId: string;
   problem: { title: string; statement: string; example: string; fn: string };
+  /**
+   * False until the interviewer has actually presented the problem out loud.
+   * A real coding interview does not hand you the spec before anyone speaks;
+   * you are told it, and you ask about what you missed.
+   */
+  problemRevealed?: boolean;
   code: string;
   language: string;
   signatures: Record<string, string>;
@@ -160,6 +167,15 @@ export default function CodeSurface({
 
       <div className="h-56 shrink-0 overflow-y-auto border-t border-line bg-base p-4 font-mono text-xs">
         {tab === "problem" ? (
+          !problemRevealed ? (
+            <div className="flex h-full items-center justify-center px-6 font-sans">
+              <p className="max-w-sm text-center text-sm text-muted">
+                Your interviewer will describe the problem out loud. Listen, ask
+                anything you need, and it will appear here once they have set it
+                up.
+              </p>
+            </div>
+          ) : (
           <div className="space-y-3 font-sans">
             <h2 className="text-sm font-semibold text-primary">
               {problem.title}
@@ -176,6 +192,7 @@ export default function CodeSurface({
               </code>
             </p>
           </div>
+          )
         ) : run ? (
           <ConsoleOutput run={run} />
         ) : (

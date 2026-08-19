@@ -14,6 +14,7 @@ export default function CodingInterview({
   initialTurns,
   header,
   problem,
+  problemRevealed,
   initialCode,
   initialLanguage,
   signatures,
@@ -22,6 +23,7 @@ export default function CodingInterview({
   initialTurns: Turn[];
   header?: string;
   problem: { title: string; statement: string; example: string; fn: string };
+  problemRevealed?: boolean;
   initialCode: string;
   initialLanguage: string;
   signatures: Record<string, string>;
@@ -49,6 +51,7 @@ export default function CodingInterview({
         <CodeSurface
           sessionId={sessionId}
           problem={problem}
+          problemRevealed={problemRevealed}
           code={code}
           language={language}
           signatures={signatures}

@@ -81,6 +81,11 @@ export default async function SessionPage({
           sessionId={id}
           initialTurns={turns ?? []}
           header={header}
+          // Revealed only once the interviewer has moved past the opening
+          // arc, which is exactly when they present the problem aloud.
+          problemRevealed={
+            session.phase !== "greeting" && session.phase !== "format"
+          }
           problem={{
             title: problem.title,
             statement: problem.statement,
