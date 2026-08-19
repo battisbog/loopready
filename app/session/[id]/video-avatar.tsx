@@ -44,6 +44,19 @@ export default function VideoAvatar({
     let alive = true;
     const audioTrack = micStream.getAudioTracks()[0];
 
+    // Daily THROWS on a second instance ("Duplicate DailyIframe instances are
+    // not allowed"), and React strict mode mounts every effect twice in dev.
+    // The first mount's async destroy has not finished when the second runs, so
+    // reuse whatever instance already exists instead of constructing one.
+    const existing = DailyIframe.getCallInstance();
+    if (existing) {
+      try {
+        existing.destroy();
+      } catch {
+        /* already torn down */
+      }
+    }
+
     const call = DailyIframe.createCallObject({
       // The mic gate owns permission; Daily reuses that track.
       audioSource: audioTrack ?? true,
@@ -86,6 +99,8 @@ export default function VideoAvatar({
         onError?.(e?.errorMsg ?? "Video connection failed");
       });
 
+    // Any failure here is contained: the shell keeps the transcript, timer and
+    // End button, so the candidate is never dropped on an error page.
     call.join({ url: conversationUrl }).catch((e: Error) => {
       if (!alive) return;
       setState("failed");
@@ -101,7 +116,11 @@ export default function VideoAvatar({
         .leave()
         .catch(() => {})
         .finally(() => {
-          call.destroy().catch(() => {});
+          try {
+            call.destroy();
+          } catch {
+            /* a strict-mode remount may already have destroyed it */
+          }
         });
       callRef.current = null;
     };
