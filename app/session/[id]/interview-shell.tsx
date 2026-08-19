@@ -34,6 +34,17 @@ export interface ShellProps {
 
   /** Live mode */
   live?: boolean;
+  /**
+   * Video mode. When present the avatar replaces the ring in the presence
+   * slot; everything else about the shell is unchanged.
+   */
+  video?: {
+    conversationUrl: string;
+    micStream: MediaStream;
+    onJoined?: (call: import("@daily-co/daily-js").DailyCall) => void;
+    onAppMessage?: (data: unknown) => void;
+    onError?: (message: string) => void;
+  } | null;
   /** Push-to-talk mode controls */
   recording?: boolean;
   busy?: boolean;
@@ -61,6 +72,7 @@ export default function InterviewShell({
   onToggleRecording,
   serverAudio,
   surface,
+  video = null,
 }: ShellProps) {
   const progress = questionCount ? Math.min(questionIndex + 1, questionCount) : 0;
   const compact = Boolean(surface);
@@ -133,7 +145,8 @@ export default function InterviewShell({
           <aside className="flex min-h-0 flex-col border-b border-line lg:border-b-0 lg:border-r">
             <div className="flex flex-col items-center gap-4 border-b border-line px-4 py-6">
               <InterviewerPresence
-                mode="orb"
+                mode={video ? "video" : "orb"}
+                video={video}
                 status={orbStatus as never}
                 variant="compact"
               />
@@ -150,7 +163,8 @@ export default function InterviewShell({
         <>
           <section className="flex min-h-0 flex-1 items-center justify-center overflow-y-auto px-6 py-8">
             <InterviewerPresence
-              mode="orb"
+              mode={video ? "video" : "orb"}
+              video={video}
               status={orbStatus as never}
               variant="hero"
             />

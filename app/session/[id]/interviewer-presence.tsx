@@ -30,7 +30,13 @@ export default function InterviewerPresence({
   /** Accepts both push-to-talk and live statuses. */
   status: Status | RingState;
   /** Video mode only: the Tavus room and the already-granted mic. */
-  video?: { conversationUrl: string; micStream: MediaStream } | null;
+  video?: {
+    conversationUrl: string;
+    micStream: MediaStream;
+    onJoined?: (call: import("@daily-co/daily-js").DailyCall) => void;
+    onAppMessage?: (data: unknown) => void;
+    onError?: (message: string) => void;
+  } | null;
   /** Only used by the portrait mode; the ring is deliberately caption-free. */
   line?: string;
   variant?: "hero" | "compact";
@@ -67,6 +73,9 @@ export default function InterviewerPresence({
         <VideoAvatar
           conversationUrl={video.conversationUrl}
           micStream={video.micStream}
+          onJoined={video.onJoined}
+          onAppMessage={video.onAppMessage}
+          onError={video.onError}
           size={hero ? 320 : 140}
         />
       </div>

@@ -6,6 +6,8 @@ import InterviewShell from "./interview-shell";
 import { useRealtimeTurn } from "./use-realtime-turn";
 import { useVoiceTurn, type Turn } from "./use-voice-turn";
 import { REALTIME_ENABLED } from "@/lib/realtime/config";
+import { VIDEO_ENABLED_CLIENT } from "@/lib/video/config";
+import { useVideoTurn } from "./use-video-turn";
 import MicGate from "./mic-gate";
 
 export interface RoundShellProps {
@@ -37,6 +39,13 @@ export interface RoundShellProps {
  */
 export default function RoundShell(props: RoundShellProps) {
   const [stream, setStream] = useState<MediaStream | null>(null);
+  // Read from the URL rather than state: a reload must land in the same mode,
+  // otherwise a refresh would silently start a second billable session.
+  const [wantsVideo] = useState(
+    () =>
+      typeof window !== "undefined" &&
+      new URLSearchParams(window.location.search).get("mode") === "video"
+  );
 
   // The round owns the stream once the gate hands it over, so releasing it is
   // this component's job. Without this the mic indicator stays lit after the
@@ -49,6 +58,12 @@ export default function RoundShell(props: RoundShellProps) {
 
   if (!stream) {
     return <MicGate onReady={setStream} roundLabel={props.header} />;
+  }
+
+  // Video is opt-in per session via ?mode=video, and only when the flag is on.
+  // Anything else falls through to the existing voice paths untouched.
+  if (wantsVideo && VIDEO_ENABLED_CLIENT) {
+    return <VideoRound {...props} stream={stream} />;
   }
 
   return REALTIME_ENABLED ? (
@@ -183,6 +198,73 @@ function PushToTalkRound({
           }).catch(() => {});
         },
       })}
+    />
+  );
+}
+
+/**
+ * Video-avatar round. Same shell, same transcript, same controls; the presence
+ * slot holds the avatar instead of the ring, and Tavus rather than OpenAI
+ * carries the conversation.
+ */
+function VideoRound({
+  sessionId,
+  initialTurns,
+  header,
+  questionIndex = 0,
+  questionCount = 0,
+  renderSurface,
+  stream,
+}: RoundProps) {
+  const onDone = useDoneRouting(sessionId);
+  const {
+    turns,
+    status,
+    error,
+    elapsed,
+    room,
+    endEarly,
+    onAppMessage,
+    onJoined,
+    onVideoError,
+  } = useVideoTurn({ sessionId, initialTurns, onDone });
+
+  return (
+    <InterviewShell
+      live
+      header={header}
+      elapsed={elapsed}
+      turns={turns}
+      orbStatus={status === "speaking" ? "speaking" : status === "failed" ? "failed" : "listening"}
+      statusLabel={
+        status === "starting"
+          ? "Starting your video interview…"
+          : status === "connecting"
+            ? "Connecting to your interviewer…"
+            : status === "speaking"
+              ? "Interviewer is speaking. You can cut in any time"
+              : status === "done"
+                ? "Interview complete"
+                : status === "failed"
+                  ? "Video failed"
+                  : "Listening. Just talk, and pause when you're finished"
+      }
+      error={error}
+      onEnd={endEarly}
+      questionIndex={questionIndex}
+      questionCount={questionCount}
+      video={
+        room
+          ? {
+              conversationUrl: room.conversationUrl,
+              micStream: stream,
+              onJoined,
+              onAppMessage,
+              onError: onVideoError,
+            }
+          : null
+      }
+      surface={renderSurface?.({ pushArtifact: () => {} })}
     />
   );
 }
