@@ -40,6 +40,11 @@ export interface RealtimeHandlers {
 export interface RealtimeStartOptions {
   clientSecret: string;
   model: string;
+  /**
+   * Already-granted microphone stream. Acquired by the pre-interview gate, so
+   * the permission prompt can never appear once the interviewer is talking.
+   */
+  stream: MediaStream;
   greeting: string;
   /**
    * Decided by the server from whether the CANDIDATE has ever spoken. Never
@@ -73,21 +78,17 @@ export class RealtimeSession {
     greeting,
     shouldGreet,
     history,
+    stream,
     handlers,
   }: RealtimeStartOptions): Promise<void> {
     this.handlers = handlers;
     rtLog.start(REALTIME_DEBUG);
     rtLog.mark("start", `history=${history.length} turns`);
 
-    this.stream = await navigator.mediaDevices.getUserMedia({
-      audio: {
-        echoCancellation: true,
-        noiseSuppression: true,
-        autoGainControl: true,
-      },
-    });
+    // The stream is handed in already granted; this class never prompts.
+    this.stream = stream;
 
-    rtLog.mark("mic.ready", `tracks=${this.stream.getAudioTracks().length}`);
+    rtLog.mark("mic.ready", `tracks=${this.stream.getAudioTracks().length} (pre-granted)`);
 
     const pc = new RTCPeerConnection();
     this.pc = pc;

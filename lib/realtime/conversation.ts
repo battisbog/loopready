@@ -1,8 +1,15 @@
 import type { InterviewContext } from "@/lib/interview/companies";
-import { MAX_FOLLOWUPS, QUESTIONS, type Question } from "@/lib/interview/questions";
-import { MAX_CODING_TURNS, MAX_DESIGN_TURNS } from "@/lib/interview/start";
+import { QUESTIONS, type Question } from "@/lib/interview/questions";
+import {
+  MAX_FOLLOWUPS,
+  PACING_RULES,
+  TARGET_MINUTES,
+} from "@/lib/interview/length";
+import { MAX_CODING_TURNS, MAX_DESIGN_TURNS } from "@/lib/interview/length";
 import {
   closingPrompt,
+  firstQuestionPrompt,
+  formatPrompt,
   interviewerSystemPrompt,
   type Phase,
 } from "@/lib/interview/prompt";
@@ -159,15 +166,19 @@ export function advanceState(
 
   const questions: Question[] = session.questions ?? QUESTIONS;
 
-  // The opening arc: the first substantive thing they say is their intro, not
-  // an answer to a question, so it must not spend the follow-up budget.
-  if (phase === "greeting" || phase === "format") {
-    return {
-      questionIndex,
-      followupCount: 0,
-      phase: "questions",
-      done: false,
-    };
+  // The opening arc, walked one step per candidate turn exactly as the text
+  // path does. Collapsing it meant the candidate was never asked to introduce
+  // themselves, which is the first thing a real interview does.
+  //
+  // Deliberately NOT gated on `substantive`: "yeah, sounds good" is a complete
+  // and correct answer to "are you ready?", and must still advance the arc.
+  if (phase === "greeting") {
+    // They have just introduced themselves.
+    return { questionIndex, followupCount: 0, phase: "format", done: false };
+  }
+  if (phase === "format") {
+    // They have just confirmed they are ready.
+    return { questionIndex, followupCount: 0, phase: "questions", done: false };
   }
 
   if (opts.substantive) followupCount += 1;
@@ -234,6 +245,55 @@ evaluation of any kind, and then stop talking.` +
     );
   }
 
+  // ─── the opening arc ───────────────────────────────────────────────────
+  //
+  // These are shifted one step, and that is not a mistake. Instructions here
+  // are FORWARD-LOOKING: turn detection creates the model's reply before our
+  // update can land, so what we install during phase P is what the model says
+  // AFTER the candidate's phase-P turn.
+  //
+  //   installed during   the model's next reply does
+  //   greeting           react to their intro, explain the format, ask if ready
+  //   format             ask the first question / present the problem
+  //   questions          probe
+  //
+  // Getting this off by one is what would make it ask question one straight
+  // after their introduction, which is the bug being fixed.
+
+  if (state.phase === "greeting") {
+    return (
+      formatPrompt(session.round_type, ctx) +
+      `
+
+Do NOT ask an interview question and do NOT present the problem in this reply.
+Finish by handing back to them, then stop and listen.` +
+      SPOKEN_RULES
+    );
+  }
+
+  if (state.phase === "format") {
+    if (session.round_type === "behavioral") {
+      const qs: Question[] = session.questions ?? QUESTIONS;
+      return (
+        firstQuestionPrompt(qs[Math.min(state.questionIndex, qs.length - 1)], ctx) +
+        PACING_RULES +
+        SPOKEN_RULES
+      );
+    }
+    // Working rounds present the problem here rather than asking a question.
+    return (
+      roundPrompt(session, state, ctx) +
+      `
+
+They have just confirmed they are ready. In this reply, present the problem
+conversationally in your own words and ask how they want to approach it. Do not
+read it out verbatim and do not start critiquing anything yet.` +
+      ACKNOWLEDGE_RULE +
+      PACING_RULES +
+      SPOKEN_RULES
+    );
+  }
+
   const base = roundPrompt(session, state, ctx);
 
   if (session.round_type !== "behavioral") {
@@ -246,6 +306,7 @@ When the problem has been genuinely worked through, call the advance_question
 tool rather than wrapping up by yourself. The system decides when the round
 ends.` +
       ACKNOWLEDGE_RULE +
+      PACING_RULES +
       SPOKEN_RULES
     );
   }
@@ -282,7 +343,7 @@ You are on question ${index + 1} of ${questions.length}, with ${remaining} follo
 Keep probing this question. When it is genuinely exhausted before your budget
 runs out, call the advance_question tool rather than moving on by yourself.`;
 
-  return base + directive + ACKNOWLEDGE_RULE + SPOKEN_RULES;
+  return base + directive + ACKNOWLEDGE_RULE + PACING_RULES + SPOKEN_RULES;
 }
 
 /**
@@ -298,22 +359,34 @@ export function buildGreeting(
 ): string {
   const name = ctx?.profile.displayName;
   const where = name && name !== "Generic FAANG" ? ` at ${name}` : "";
+  const level = ctx?.levelLabel ? ` for a ${ctx.levelLabel} role` : "";
 
-  if (session.round_type === "coding") {
-    const artifact = (session.artifact ?? {}) as CodingArtifact;
-    const problem = getProblem(artifact.problemId);
-    return `Open the interview out loud. Introduce yourself as a senior engineer${where} and greet the candidate warmly. Say you'll be running their coding round. Tell them they can think out loud and that you care more about their reasoning than perfect syntax. Then state this problem in your own words, conversationally, without reading it verbatim: "${problem?.title ?? "the problem on screen"} — ${problem?.statement ?? ""}". Finish by asking how they want to approach it. Keep the whole thing to about four sentences, then stop and let them talk.`;
-  }
+  const round =
+    session.round_type === "coding"
+      ? "coding round"
+      : session.round_type === "system_design"
+        ? "system design round"
+        : "behavioral round";
 
-  if (session.round_type === "system_design") {
-    const artifact = (session.artifact ?? {}) as DesignArtifact;
-    const design = getDesignPrompt(artifact.promptId);
-    return `Open the interview out loud. Introduce yourself as a senior engineer${where} and greet the candidate warmly. Say you'll be running their system design round. Tell them to start wherever they like and to think out loud. Then present this prompt in your own words, conversationally: "${design?.title ?? "the prompt on screen"} — ${design?.statement ?? ""}". Finish by asking what questions they have about the requirements before they start. Keep the whole thing to about four sentences, then stop and let them talk.`;
-  }
+  // Mirrors greetingPrompt in the text path: introduce yourself, say what the
+  // session is, then hand the floor over. Crucially it does NOT ask an
+  // interview question or present the problem yet, because a real interview
+  // starts by hearing who the candidate is.
+  return `Open the interview out loud, speaking naturally.
 
-  const questions: Question[] = session.questions ?? QUESTIONS;
-  const first = questions[Math.min(session.question_index, questions.length - 1)];
-  return `Open the interview out loud. Introduce yourself as a senior engineer${where} and greet the candidate warmly. Say you'll be running their behavioral round. Tell them it's about three questions and that you'll dig into their answers. Then ask exactly this question, word for word: "${first.text}". Keep the whole thing to about three sentences, then stop and let them talk.`;
+Do all of this in three or four sentences, in one flow:
+- Say hello, give yourself a first name and a team, and say you are a senior
+  engineer${where} (for example "Hi, I'm Priya, I'm a senior engineer on the
+  payments team"). Pick a name and stay consistent with it for the whole
+  interview.
+- Say in one line that this is their ${round}${level} and that it will take
+  about ${TARGET_MINUTES} minutes.
+- Then hand over: ask them to tell you a bit about themselves and what they
+  have been working on recently.
+
+Do NOT ask an interview question yet. Do NOT present the problem yet. Do NOT
+explain the format yet. Do NOT list anything. End by giving them the floor, then
+stop talking and listen.`;
 }
 
 /**

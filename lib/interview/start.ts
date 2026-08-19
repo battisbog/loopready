@@ -4,6 +4,7 @@ import { interviewModel } from "@/lib/ai";
 import { greetingPrompt } from "./prompt";
 import { getContext } from "./companies";
 import { pickSessionQuestions, type Question } from "./questions";
+import { BEHAVIORAL_QUESTIONS } from "./length";
 import type { RoundType } from "./rounds";
 import { pickProblem } from "@/lib/coding/problems";
 import { codingOpening } from "@/lib/coding/prompt";
@@ -20,7 +21,7 @@ interface StartArgs {
   level?: string | null;
 }
 
-export const MAX_CODING_TURNS = 14;
+export { MAX_CODING_TURNS } from "./length";
 
 /**
  * The opening is generated rather than templated: a fixed string is exactly the
@@ -87,7 +88,7 @@ export async function startSession({
     };
   } else {
     const questions = pickSessionQuestions(
-      3,
+      BEHAVIORAL_QUESTIONS,
       ctx?.profile.competencyEmphasis ?? [],
       { tier: ctx?.tier }
     );
@@ -117,4 +118,4 @@ export async function startSession({
     questionCount,
   };
 }
-export const MAX_DESIGN_TURNS = 16;
+export { MAX_DESIGN_TURNS } from "./length";

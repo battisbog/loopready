@@ -296,7 +296,8 @@ export const COMPETENCY_PROBES: Record<Competency, string[]> = {
   ],
 };
 
-export const MAX_FOLLOWUPS = 2;
+// Length now lives in one place; re-exported so existing importers keep working.
+export { MAX_FOLLOWUPS, BEHAVIORAL_QUESTIONS } from "./length";
 
 // Kept for sessions created before per-session question sets existed.
 export const QUESTIONS: Question[] = [

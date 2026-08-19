@@ -61,9 +61,33 @@ for (const round of ["behavioral", "coding", "system_design"] as const) {
   };
   const g = buildGreeting(session, ctx);
   check(
-    `${round}: greeting is spoken-opening instructions`,
-    g.length > 120 && /Introduce yourself/.test(g),
+    `${round}: opening asks for THEIR intro, not a question`,
+    /tell you a bit about themselves/i.test(g) &&
+      /Do NOT ask an interview question yet/i.test(g) &&
+      /Do NOT present the problem yet/i.test(g),
     `${g.length} chars`
+  );
+}
+
+console.log("\nOpening arc walks greeting -> format -> questions");
+{
+  const base = {
+    round_type: "behavioral",
+    question_index: 0,
+    followup_count: 0,
+    questions,
+    artifact: {},
+  };
+  const a = advanceState({ ...base, phase: "greeting" }, { substantive: true, modelRequestedAdvance: false });
+  check("greeting advances to format", a.phase === "format", `-> ${a.phase}`);
+  const b = advanceState({ ...base, phase: "format" }, { substantive: false, modelRequestedAdvance: false });
+  check("format advances even on a short 'ready'", b.phase === "questions", `-> ${b.phase}`);
+  check("the intro never spends a follow-up", a.followupCount === 0 && b.followupCount === 0);
+  const fmt = buildInstructions({ ...base, phase: "greeting" }, { ...a, phase: "greeting" }, ctx);
+  check(
+    "during greeting, the next reply explains the format",
+    /React to something specific they actually said/i.test(fmt) &&
+      /Do NOT ask an interview question/i.test(fmt)
   );
 }
 

@@ -24,6 +24,8 @@ const STATUS_LABEL: Record<LiveStatus, string> = {
 interface Options {
   sessionId: string;
   initialTurns: Turn[];
+  /** Granted before the round mounts; see mic-gate.tsx. */
+  stream: MediaStream;
   getArtifactPatch?: () => object | undefined;
   onProgress?: (data: { questionIndex: number }) => void;
   onDone: (nextSessionId: string | null, loopId?: string | null) => void;
@@ -37,6 +39,7 @@ interface Options {
 export function useRealtimeTurn({
   sessionId,
   initialTurns,
+  stream,
   getArtifactPatch,
   onProgress,
   onDone,
@@ -161,6 +164,7 @@ export function useRealtimeTurn({
           greeting: cfg.greeting,
           shouldGreet: cfg.shouldGreet === true,
           history: cfg.history ?? [],
+          stream,
           handlers: {
             onCandidateTurn: (text) => {
               if (!aliveRef.current) return;

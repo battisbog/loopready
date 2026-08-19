@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import InterviewShell from "./interview-shell";
 import { useRealtimeTurn } from "./use-realtime-turn";
 import { useVoiceTurn, type Turn } from "./use-voice-turn";
 import { REALTIME_ENABLED } from "@/lib/realtime/config";
+import MicGate from "./mic-gate";
 
 export interface RoundShellProps {
   sessionId: string;
@@ -28,10 +29,36 @@ export interface RoundShellProps {
  * React forbids calling hooks conditionally, so the live and push-to-talk
  * paths are separate COMPONENTS and the branch happens here. That is what lets
  * all three rounds share one voice experience without duplicating it.
+ *
+ * The microphone gate sits in front of BOTH paths, which is the whole reason it
+ * lives at this level: behavioral, coding and system design all mount through
+ * here, so permission is asked exactly once, before anything starts, and never
+ * again mid-interview.
  */
 export default function RoundShell(props: RoundShellProps) {
-  return REALTIME_ENABLED ? <LiveRound {...props} /> : <PushToTalkRound {...props} />;
+  const [stream, setStream] = useState<MediaStream | null>(null);
+
+  // The round owns the stream once the gate hands it over, so releasing it is
+  // this component's job. Without this the mic indicator stays lit after the
+  // candidate navigates away. Keyed on the stream itself, so the cleanup always
+  // closes over the one it was given.
+  useEffect(() => {
+    if (!stream) return;
+    return () => stream.getTracks().forEach((t) => t.stop());
+  }, [stream]);
+
+  if (!stream) {
+    return <MicGate onReady={setStream} roundLabel={props.header} />;
+  }
+
+  return REALTIME_ENABLED ? (
+    <LiveRound {...props} stream={stream} />
+  ) : (
+    <PushToTalkRound {...props} stream={stream} />
+  );
 }
+
+type RoundProps = RoundShellProps & { stream: MediaStream };
 
 function useDoneRouting(sessionId: string) {
   const router = useRouter();
@@ -53,7 +80,8 @@ function LiveRound({
   questionCount = 0,
   getArtifactPatch,
   renderSurface,
-}: RoundShellProps) {
+  stream,
+}: RoundProps) {
   const onDone = useDoneRouting(sessionId);
   const [qIndex, setQIndex] = useState(questionIndex);
 
@@ -69,6 +97,7 @@ function LiveRound({
   } = useRealtimeTurn({
     sessionId,
     initialTurns,
+    stream,
     getArtifactPatch,
     onProgress: ({ questionIndex: i }) => setQIndex(i),
     onDone,
@@ -99,7 +128,8 @@ function PushToTalkRound({
   questionCount = 0,
   getArtifactPatch,
   renderSurface,
-}: RoundShellProps) {
+  stream,
+}: RoundProps) {
   const onDone = useDoneRouting(sessionId);
   const [qIndex, setQIndex] = useState(questionIndex);
 
@@ -118,6 +148,7 @@ function PushToTalkRound({
   } = useVoiceTurn({
     sessionId,
     initialTurns,
+    stream,
     getArtifactPatch,
     onProgress: ({ questionIndex: i }) => setQIndex(i),
     onDone,

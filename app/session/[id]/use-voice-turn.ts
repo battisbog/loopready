@@ -109,6 +109,8 @@ function getSpeechRecognition(): SpeechRecognitionLike | null {
 
 interface Options {
   sessionId: string;
+  /** Granted before the round mounts; see mic-gate.tsx. */
+  stream: MediaStream;
   initialTurns: Turn[];
   // Extra artifact state (code, diagram) sent with each answer.
   getArtifactPatch?: () => object | undefined;
@@ -119,6 +121,7 @@ interface Options {
 // Shared push-to-talk pipeline: record → transcribe → interview → speak.
 export function useVoiceTurn({
   sessionId,
+  stream,
   initialTurns,
   getArtifactPatch,
   onProgress,
@@ -314,7 +317,8 @@ export function useVoiceTurn({
 
   async function startMediaRecorder() {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      // The stream is granted by the pre-interview gate and lives for the whole
+      // round, so a permission prompt can never appear mid-interview.
       const mime = MediaRecorder.isTypeSupported("audio/webm")
         ? "audio/webm"
         : "audio/mp4";
@@ -325,8 +329,10 @@ export function useVoiceTurn({
       recorder.ondataavailable = (e) =>
         e.data.size > 0 && chunksRef.current.push(e.data);
       recorder.onstop = () => {
+        // Deliberately NOT stopping the tracks: the stream is owned by the
+        // round, not by this recording, and stopping it would force a fresh
+        // permission prompt on the next turn.
         audioLevels.detach("input");
-        stream.getTracks().forEach((t) => t.stop());
         transcribeAndAnswer(new Blob(chunksRef.current, { type: mime }), mime);
       };
       recorderRef.current = recorder;
