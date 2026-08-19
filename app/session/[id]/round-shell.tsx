@@ -1,6 +1,11 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import {
+  useEffect,
+  useState,
+  useSyncExternalStore,
+  type ReactNode,
+} from "react";
 import { useRouter } from "next/navigation";
 import InterviewShell from "./interview-shell";
 import { useRealtimeTurn } from "./use-realtime-turn";
@@ -39,12 +44,21 @@ export interface RoundShellProps {
  */
 export default function RoundShell(props: RoundShellProps) {
   const [stream, setStream] = useState<MediaStream | null>(null);
-  // Read from the URL rather than state: a reload must land in the same mode,
-  // otherwise a refresh would silently start a second billable session.
-  const [wantsVideo] = useState(
-    () =>
-      typeof window !== "undefined" &&
-      new URLSearchParams(window.location.search).get("mode") === "video"
+  // Read from the URL rather than state, so a reload lands in the same mode.
+  //
+  // This MUST be an effect, not a useState initializer: the initializer also
+  // runs during SSR, where window is undefined, and hydration then keeps that
+  // false forever. That is exactly how ?mode=video silently did nothing and
+  // every session fell through to the voice path.
+  //
+  // Running after mount is safe because nothing branches on it until the
+  // candidate has finished the mic check, which is many frames later.
+  // useSyncExternalStore reads the URL on the client and returns false during
+  // SSR, without the cascading-render warning a setState-in-effect produces.
+  const wantsVideo = useSyncExternalStore(
+    () => () => {},
+    () => new URLSearchParams(window.location.search).get("mode") === "video",
+    () => false
   );
 
   // The round owns the stream once the gate hands it over, so releasing it is
@@ -57,7 +71,16 @@ export default function RoundShell(props: RoundShellProps) {
   }, [stream]);
 
   if (!stream) {
-    return <MicGate onReady={setStream} roundLabel={props.header} />;
+    return (
+      <MicGate
+        onReady={setStream}
+        roundLabel={
+          wantsVideo && VIDEO_ENABLED_CLIENT
+            ? `${props.header ?? "Interview"} · video mode`
+            : props.header
+        }
+      />
+    );
   }
 
   // Video is opt-in per session via ?mode=video, and only when the flag is on.
