@@ -1,6 +1,8 @@
 "use client";
 
 import VoiceRing, { type RingState } from "./voice-ring";
+import VideoAvatar from "./video-avatar";
+import { VIDEO_ENABLED_CLIENT } from "@/lib/video/config";
 import InterviewerStage from "./interviewer-stage";
 import type { Status } from "./use-voice-turn";
 
@@ -22,10 +24,13 @@ export default function InterviewerPresence({
   status,
   line,
   variant = "hero",
+  video = null,
 }: {
   mode?: PresenceMode;
   /** Accepts both push-to-talk and live statuses. */
   status: Status | RingState;
+  /** Video mode only: the Tavus room and the already-granted mic. */
+  video?: { conversationUrl: string; micStream: MediaStream } | null;
   /** Only used by the portrait mode; the ring is deliberately caption-free. */
   line?: string;
   variant?: "hero" | "compact";
@@ -42,16 +47,29 @@ export default function InterviewerPresence({
     );
   }
 
-  // Reserved for the video avatar. Until that ships, fall back to the orb so
-  // the surface is never blank.
+  // The avatar occupies exactly the slot the ring does, so every round gets it
+  // without knowing anything about video. Falls back to the ring whenever the
+  // flag is off or the room is missing, so a half-configured deploy degrades to
+  // the working experience rather than a blank frame.
   if (mode === "video") {
+    if (!VIDEO_ENABLED_CLIENT || !video) {
+      return (
+        <InterviewerPresence
+          mode="orb"
+          status={status}
+          line={line}
+          variant={variant}
+        />
+      );
+    }
     return (
-      <InterviewerPresence
-        mode="orb"
-        status={status}
-        line={line}
-        variant={variant}
-      />
+      <div className={`flex flex-col items-center ${hero ? "gap-6" : "gap-3"}`}>
+        <VideoAvatar
+          conversationUrl={video.conversationUrl}
+          micStream={video.micStream}
+          size={hero ? 320 : 140}
+        />
+      </div>
     );
   }
 
