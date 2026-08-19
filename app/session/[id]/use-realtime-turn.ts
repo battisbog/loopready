@@ -140,9 +140,13 @@ export function useRealtimeTurn({
   );
 
   useEffect(() => {
+    // Restored BEFORE the guard. React strict mode mounts, cleans up, and
+    // remounts in dev; if this sat after the guard the remount would leave
+    // aliveRef false forever and silently swallow every state update,
+    // including the error that explains why nothing started.
+    aliveRef.current = true;
     if (startedRef.current) return;
     startedRef.current = true;
-    aliveRef.current = true;
 
     (async () => {
       try {

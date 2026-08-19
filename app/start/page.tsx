@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { VIDEO_ENABLED_CLIENT } from "@/lib/video/config";
 import Link from "next/link";
 import { COMPANY_PROFILES } from "@/lib/interview/companies";
 import { ROUND_IMPLEMENTED, ROUND_LABEL, ROUND_TYPES, type RoundType } from "@/lib/interview/rounds";
@@ -21,6 +22,8 @@ export default function StartPage() {
   const [company, setCompany] = useState("amazon");
   const [level, setLevel] = useState("sde2");
   const [rounds, setRounds] = useState<RoundType[]>(["behavioral"]);
+  // Voice unless the candidate opts into video, and only when video is on.
+  const [mode, setMode] = useState<"voice" | "video">("voice");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -58,7 +61,9 @@ export default function StartPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? `Failed (${res.status})`);
-      router.push(`/session/${data.sessionId}`);
+      router.push(
+        `/session/${data.sessionId}${mode === "video" ? "?mode=video" : ""}`
+      );
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong");
       setBusy(false);
@@ -152,6 +157,32 @@ export default function StartPage() {
           Select full loop (all available rounds)
         </button>
       </Section>
+
+      {VIDEO_ENABLED_CLIENT && (
+        <Section title="Interviewer">
+          <div className="grid grid-cols-2 gap-2">
+            {(["voice", "video"] as const).map((m) => (
+              <button
+                key={m}
+                type="button"
+                onClick={() => setMode(m)}
+                className={`rounded-md border px-3 py-2 text-sm transition-colors ${
+                  mode === m
+                    ? "border-accent-border bg-accent-muted text-accent"
+                    : "border-line text-secondary hover:border-line-strong"
+                }`}
+              >
+                {m === "voice" ? "Voice" : "Video avatar"}
+              </button>
+            ))}
+          </div>
+          <p className="mt-2 text-xs text-muted">
+            {mode === "video"
+              ? "Uses one video credit, charged only after five minutes."
+              : "Unlimited on your plan."}
+          </p>
+        </Section>
+      )}
 
       <div className="mt-10">
         {error && <p className="mb-3 text-sm text-error">{error}</p>}
