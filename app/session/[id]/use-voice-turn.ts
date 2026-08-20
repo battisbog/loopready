@@ -116,6 +116,8 @@ interface Options {
   getArtifactPatch?: () => object | undefined;
   onProgress?: (data: { questionIndex: number; questionCount: number }) => void;
   onDone: (nextSessionId: string | null, loopId?: string | null) => void;
+  /** Called when the candidate ends the whole interview. */
+  onLeave?: () => void;
 }
 
 // Shared push-to-talk pipeline: record → transcribe → interview → speak.
@@ -126,6 +128,7 @@ export function useVoiceTurn({
   getArtifactPatch,
   onProgress,
   onDone,
+  onLeave,
 }: Options) {
   const [turns, setTurns] = useState<Turn[]>(initialTurns);
   const [status, setStatus] = useState<Status>("idle");
@@ -513,12 +516,13 @@ export function useVoiceTurn({
     const res = await fetch("/api/interview/end", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ sessionId }),
+      body: JSON.stringify({ sessionId, abandonLoop: true }),
     });
     // Ending a round inside a loop moves on to the next round rather than
     // abandoning the remaining ones.
     const data = await res.json().catch(() => ({}));
-    onDone(data.nextRound?.sessionId ?? null, data.loopComplete ?? null);
+    if (onLeave) onLeave();
+    else onDone(null, null);
   }
 
   return {

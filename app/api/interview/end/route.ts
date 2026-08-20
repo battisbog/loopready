@@ -11,7 +11,7 @@ export async function POST(request: Request) {
   } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { sessionId } = await request.json().catch(() => ({}));
+  const { sessionId, abandonLoop } = await request.json().catch(() => ({}));
   if (!sessionId) {
     return NextResponse.json({ error: "sessionId required" }, { status: 400 });
   }
@@ -25,6 +25,31 @@ export async function POST(request: Request) {
     .single();
   if (!session) {
     return NextResponse.json({ error: "Session not found" }, { status: 404 });
+  }
+
+  // When the candidate ends the interview, they mean the whole thing, not just
+  // this round. Advancing the loop here would create (and pay to generate an
+  // opening for) a round they just said they were done with.
+  if (abandonLoop) {
+    const now = new Date().toISOString();
+    await admin
+      .from("sessions")
+      .update({ status: "completed", ended_at: now })
+      .eq("id", sessionId);
+
+    if (session.loop_id) {
+      // Close every sibling round, including ones never started.
+      await admin
+        .from("sessions")
+        .update({ status: "completed", ended_at: now })
+        .eq("loop_id", session.loop_id)
+        .eq("status", "active");
+      await admin
+        .from("loops")
+        .update({ status: "completed" })
+        .eq("id", session.loop_id);
+    }
+    return NextResponse.json({ ok: true, nextRound: null, loopComplete: null, abandoned: true });
   }
 
   if (session.status === "active") {

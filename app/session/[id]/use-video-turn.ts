@@ -29,10 +29,13 @@ export function useVideoTurn({
   sessionId,
   initialTurns,
   onDone,
+  onLeave,
 }: {
   sessionId: string;
   initialTurns: Turn[];
   onDone: (nextSessionId: string | null, loopId?: string | null) => void;
+  /** Called when the candidate ends the whole interview. */
+  onLeave: () => void;
 }) {
   const [turns, setTurns] = useState<Turn[]>(initialTurns);
   const [status, setStatus] = useState<VideoStatus>("starting");
@@ -191,7 +194,7 @@ export function useVideoTurn({
       const res = await fetch("/api/interview/end", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sessionId }),
+        body: JSON.stringify({ sessionId, abandonLoop: true }),
         keepalive: true,
       });
       data = await res.json().catch(() => ({}));
@@ -199,7 +202,9 @@ export function useVideoTurn({
     } catch (e) {
       console.error("[interview] end threw:", e);
     }
-    onDone(data.nextRound?.sessionId ?? null, data.loopComplete ?? null);
+    // Ending means leaving. Never route into the next round: the candidate
+    // just said they were done with the whole interview.
+    onLeave();
   }, [sessionId, onDone, settle]);
 
   return {

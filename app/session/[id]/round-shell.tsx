@@ -98,6 +98,12 @@ export default function RoundShell(props: RoundShellProps) {
 
 type RoundProps = RoundShellProps & { stream: MediaStream };
 
+/** Ending the interview returns to the dashboard, not into another round. */
+function useLeaveToDashboard() {
+  const router = useRouter();
+  return () => router.push("/dashboard");
+}
+
 function useDoneRouting(sessionId: string) {
   const router = useRouter();
   return (next: string | null, loopId?: string | null) =>
@@ -121,6 +127,7 @@ function LiveRound({
   stream,
 }: RoundProps) {
   const onDone = useDoneRouting(sessionId);
+  const onLeave = useLeaveToDashboard();
   const [qIndex, setQIndex] = useState(questionIndex);
 
   const {
@@ -139,6 +146,7 @@ function LiveRound({
     getArtifactPatch,
     onProgress: ({ questionIndex: i }) => setQIndex(i),
     onDone,
+    onLeave,
   });
 
   return (
@@ -169,6 +177,7 @@ function PushToTalkRound({
   stream,
 }: RoundProps) {
   const onDone = useDoneRouting(sessionId);
+  const onLeave = useLeaveToDashboard();
   const [qIndex, setQIndex] = useState(questionIndex);
 
   const {
@@ -190,6 +199,7 @@ function PushToTalkRound({
     getArtifactPatch,
     onProgress: ({ questionIndex: i }) => setQIndex(i),
     onDone,
+    onLeave,
   });
 
   return (
@@ -240,6 +250,7 @@ function VideoRound({
   stream,
 }: RoundProps) {
   const onDone = useDoneRouting(sessionId);
+  const onLeave = useLeaveToDashboard();
   const {
     turns,
     status,
@@ -250,7 +261,7 @@ function VideoRound({
     onAppMessage,
     onJoined,
     onVideoError,
-  } = useVideoTurn({ sessionId, initialTurns, onDone });
+  } = useVideoTurn({ sessionId, initialTurns, onDone, onLeave });
 
   return (
     <InterviewShell
