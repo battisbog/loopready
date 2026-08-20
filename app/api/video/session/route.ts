@@ -17,8 +17,8 @@ import {
   releaseVideoCredit,
 } from "@/lib/tiers";
 import {
-  buildGreeting,
   buildInstructions,
+  buildSpokenGreeting,
   shouldGreet,
 } from "@/lib/realtime/conversation";
 import {
@@ -169,7 +169,9 @@ thread, thank them, and stop. Never leave them mid-answer with no ending.`;
   try {
     conversation = await createConversation({
       instructions,
-      greeting: greet ? buildGreeting(session, ctx) : undefined,
+      // The SPOKEN form. custom_greeting is read out verbatim, so it must be
+      // the actual words, never our instruction text.
+      greeting: greet ? buildSpokenGreeting(session, ctx) : undefined,
       sessionId,
       maxMinutes: VIDEO_SESSION_MAX_MINUTES,
       callbackUrl: `${getSiteUrl()}/api/video/callback`,

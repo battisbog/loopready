@@ -390,6 +390,41 @@ stop talking and listen.`;
 }
 
 /**
+ * The greeting as WORDS, not as instructions.
+ *
+ * buildGreeting returns a directive ("Open the interview out loud. Say hello,
+ * give yourself a first name...") because the voice path hands it to
+ * response.create, where the model follows it. Tavus's custom_greeting is the
+ * opposite: it is the literal script the avatar speaks. Passing the directive
+ * there made the interviewer read our prompt aloud, word for word.
+ *
+ * Same arc as the voice greeting: introduce, say what the session is, then hand
+ * over. Deliberately no interview question and no problem statement.
+ */
+export function buildSpokenGreeting(
+  session: RealtimeSessionRow,
+  ctx: InterviewContext | null,
+  interviewerName = "Sam"
+): string {
+  const company = ctx?.profile.displayName;
+  const where = company && company !== "Generic FAANG" ? ` here at ${company}` : "";
+  const level = ctx?.levelLabel ? ` for the ${ctx.levelLabel} role` : "";
+
+  const round =
+    session.round_type === "coding"
+      ? "coding round"
+      : session.round_type === "system_design"
+        ? "system design round"
+        : "behavioral round";
+
+  return (
+    `Hi, I'm ${interviewerName}, I'm a senior engineer${where}. ` +
+    `I'll be running your ${round}${level} today, and we'll take about 40 minutes. ` +
+    `Before we get into it, tell me a bit about yourself and what you've been working on recently.`
+  );
+}
+
+/**
  * Whether the interviewer still owes the candidate an opening.
  *
  * NOT `history.length === 0`. startSession writes a generated opening line into
