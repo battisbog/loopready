@@ -69,14 +69,26 @@ export default function InterviewerPresence({
       );
     }
     return (
-      <div className={`flex flex-col items-center ${hero ? "gap-6" : "gap-3"}`}>
+      <div
+        className={
+          hero
+            ? "flex w-full flex-1 items-center justify-center"
+            : "flex w-full flex-col items-center"
+        }
+      >
         <VideoAvatar
           conversationUrl={video.conversationUrl}
           micStream={video.micStream}
           onJoined={video.onJoined}
           onAppMessage={video.onAppMessage}
           onError={video.onError}
-          size={hero ? 320 : 140}
+          className={
+            hero
+              ? // Grows with the window but stays a sensible interview size
+                // rather than a wall-sized face.
+                "aspect-video w-full max-w-3xl"
+              : "aspect-video w-full"
+          }
         />
       </div>
     );

@@ -2,6 +2,7 @@
 
 import { useState, type ReactNode } from "react";
 import InterviewerPresence from "./interviewer-presence";
+import SplitPane from "./split-pane";
 import LiveIndicator, { type LiveStatusLike } from "./live-indicator";
 import MicControl from "./mic-control";
 import TranscriptPanel from "./transcript-panel";
@@ -169,8 +170,9 @@ export default function InterviewShell({
 
       {compact ? (
         // Working rounds: interviewer rail beside the surface.
-        <div className="grid min-h-0 flex-1 lg:grid-cols-[minmax(0,20rem)_1fr]">
-          <aside className="flex min-h-0 flex-col border-b border-line lg:border-b-0 lg:border-r">
+        <SplitPane
+          left={
+            <aside className="flex h-full min-h-0 flex-col border-b border-line lg:border-b-0">
             <div className="flex flex-col items-center gap-4 border-b border-line px-4 py-6">
               <InterviewerPresence
                 mode={video ? "video" : "orb"}
@@ -182,10 +184,11 @@ export default function InterviewShell({
             <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
               <TranscriptPanel turns={turns} className="text-center" />
             </div>
-            <div className="border-t border-line p-4">{voiceControl}</div>
-          </aside>
-          <section className="min-h-0">{surface}</section>
-        </div>
+              <div className="border-t border-line p-4">{voiceControl}</div>
+            </aside>
+          }
+          right={<section className="h-full min-h-0">{surface}</section>}
+        />
       ) : (
         // Conversation-only rounds: the interviewer is the screen.
         <>

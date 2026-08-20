@@ -21,7 +21,7 @@ import { audioLevels } from "@/lib/audio-levels";
 export default function VideoAvatar({
   conversationUrl,
   micStream,
-  size = 300,
+  className = "",
   onJoined,
   onLeft,
   onError,
@@ -30,7 +30,8 @@ export default function VideoAvatar({
   conversationUrl: string;
   /** Granted upstream by MicGate; Daily must not acquire its own. */
   micStream: MediaStream;
-  size?: number;
+  /** Sized by the parent, so the layout decides how much room the avatar gets. */
+  className?: string;
   onJoined?: (call: DailyCall) => void;
   onLeft?: () => void;
   onError?: (message: string) => void;
@@ -136,8 +137,7 @@ export default function VideoAvatar({
 
   return (
     <div
-      className="relative overflow-hidden rounded-lg border border-line bg-surface"
-      style={{ width: size, height: size }}
+      className={`relative overflow-hidden rounded-lg border border-line bg-surface ${className}`}
     >
       <video
         ref={videoRef}
