@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import InterviewerPresence from "./interviewer-presence";
 import LiveIndicator, { type LiveStatusLike } from "./live-indicator";
 import MicControl from "./mic-control";
@@ -74,6 +74,9 @@ export default function InterviewShell({
   surface,
   video = null,
 }: ShellProps) {
+  // Ending is irreversible and generates feedback, so it takes two clicks.
+  const [confirmEnd, setConfirmEnd] = useState(false);
+  const [ending, setEnding] = useState(false);
   const progress = questionCount ? Math.min(questionIndex + 1, questionCount) : 0;
   const compact = Boolean(surface);
 
@@ -118,12 +121,37 @@ export default function InterviewShell({
             serverAudio && <AudioSourceBadge serverAudio={serverAudio} />
           )}
         </div>
-        <button
-          onClick={onEnd}
-          className="rounded-md border border-line px-3 py-1.5 text-sm text-muted transition-colors hover:border-line-strong hover:text-secondary"
-        >
-          End interview
-        </button>
+        {confirmEnd ? (
+          // Inline rather than a modal: the interviewer is still talking, and
+          // throwing a dialog over a live round is worse than a two-step click.
+          <span className="flex items-center gap-2">
+            <span className="text-sm text-secondary">End for good?</span>
+            <button
+              onClick={() => {
+                setConfirmEnd(false);
+                setEnding(true);
+                onEnd();
+              }}
+              disabled={ending}
+              className="rounded-md bg-error px-3 py-1.5 text-sm font-medium text-base transition-opacity hover:opacity-90 disabled:opacity-50"
+            >
+              {ending ? "Ending…" : "Yes, end it"}
+            </button>
+            <button
+              onClick={() => setConfirmEnd(false)}
+              className="rounded-md border border-line px-3 py-1.5 text-sm text-muted transition-colors hover:border-line-strong hover:text-secondary"
+            >
+              Keep going
+            </button>
+          </span>
+        ) : (
+          <button
+            onClick={() => setConfirmEnd(true)}
+            className="rounded-md border border-line px-3 py-1.5 text-sm text-muted transition-colors hover:border-line-strong hover:text-secondary"
+          >
+            End interview
+          </button>
+        )}
       </header>
 
       {questionCount > 1 && (

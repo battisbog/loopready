@@ -178,13 +178,27 @@ export function useVideoTurn({
 
   const endEarly = useCallback(async () => {
     aliveRef.current = false;
-    await settle("user_ended");
-    const res = await fetch("/api/interview/end", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ sessionId }),
-    });
-    const data = await res.json().catch(() => ({}));
+    // Marking the session complete is the part that must not be skipped, so it
+    // runs even when the transport cleanup below throws. Leaving a row "active"
+    // is what kept finished interviews showing as in progress.
+    try {
+      await settle("user_ended");
+    } catch {
+      /* transport teardown is best effort */
+    }
+    let data: { nextRound?: { sessionId: string }; loopComplete?: string } = {};
+    try {
+      const res = await fetch("/api/interview/end", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId }),
+        keepalive: true,
+      });
+      data = await res.json().catch(() => ({}));
+      if (!res.ok) console.error("[interview] end failed:", res.status, data);
+    } catch (e) {
+      console.error("[interview] end threw:", e);
+    }
     onDone(data.nextRound?.sessionId ?? null, data.loopComplete ?? null);
   }, [sessionId, onDone, settle]);
 
