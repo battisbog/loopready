@@ -42,87 +42,93 @@ export default function VideoAvatar({
 
   useEffect(() => {
     let alive = true;
+    let call: DailyCall | null = null;
     const audioTrack = micStream.getAudioTracks()[0];
 
-    // Daily THROWS on a second instance ("Duplicate DailyIframe instances are
-    // not allowed"), and React strict mode mounts every effect twice in dev.
-    // The first mount's async destroy has not finished when the second runs, so
-    // reuse whatever instance already exists instead of constructing one.
-    const existing = DailyIframe.getCallInstance();
-    if (existing) {
+    // Serialised and awaited, because destroy() is ASYNC. The previous version
+    // called destroy() and constructed immediately, so in React strict mode the
+    // remount still collided with a teardown that had not finished and Daily
+    // threw "Duplicate DailyIframe instances are not allowed" straight through
+    // to the error boundary.
+    (async () => {
       try {
-        existing.destroy();
-      } catch {
-        /* already torn down */
-      }
-    }
-
-    const call = DailyIframe.createCallObject({
-      // The mic gate owns permission; Daily reuses that track.
-      audioSource: audioTrack ?? true,
-      videoSource: false, // the candidate is not on camera in v1
-      subscribeToTracksAutomatically: true,
-    });
-    callRef.current = call;
-
-    /** Attaches the avatar's tracks once the replica publishes them. */
-    function attach(p: DailyEventObjectParticipant["participant"] | undefined) {
-      if (!p || p.local || !videoRef.current) return;
-      const video = p.tracks?.video?.persistentTrack;
-      const audio = p.tracks?.audio?.persistentTrack;
-      const stream = new MediaStream();
-      if (video) stream.addTrack(video);
-      if (audio) stream.addTrack(audio);
-      if (!stream.getTracks().length) return;
-      videoRef.current.srcObject = stream;
-      void videoRef.current.play().catch(() => {
-        /* autoplay is unlocked by the mic gate's click; ignore races */
-      });
-      // Drive the same amplitude bus the ring uses, so any shared UI that
-      // reacts to "the interviewer is talking" keeps working unchanged.
-      if (audio) audioLevels.attachStream("output", new MediaStream([audio]));
-    }
-
-    call
-      .on("joined-meeting", () => {
+        const previous = DailyIframe.getCallInstance();
+        if (previous) {
+          try {
+            await previous.destroy();
+          } catch {
+            /* already gone */
+          }
+        }
         if (!alive) return;
-        setState("live");
-        onJoined?.(call);
-      })
-      .on("participant-joined", (e) => attach(e?.participant))
-      .on("participant-updated", (e) => attach(e?.participant))
-      .on("app-message", (e) => onAppMessage?.(e?.data))
-      .on("left-meeting", () => alive && onLeft?.())
-      .on("error", (e) => {
+
+        call = DailyIframe.createCallObject({
+          // The mic gate owns permission; Daily reuses that track.
+          audioSource: audioTrack ?? true,
+          videoSource: false, // the candidate is not on camera in v1
+          subscribeToTracksAutomatically: true,
+        });
+        callRef.current = call;
+
+        /** Attaches the avatar's tracks once the replica publishes them. */
+        const attach = (
+          p: DailyEventObjectParticipant["participant"] | undefined
+        ) => {
+          if (!p || p.local || !videoRef.current) return;
+          const video = p.tracks?.video?.persistentTrack;
+          const audio = p.tracks?.audio?.persistentTrack;
+          const stream = new MediaStream();
+          if (video) stream.addTrack(video);
+          if (audio) stream.addTrack(audio);
+          if (!stream.getTracks().length) return;
+          videoRef.current.srcObject = stream;
+          void videoRef.current.play().catch(() => {
+            /* autoplay is unlocked by the mic gate's click */
+          });
+          // Same amplitude bus the ring uses, so shared UI keeps working.
+          if (audio) audioLevels.attachStream("output", new MediaStream([audio]));
+        };
+
+        call
+          .on("joined-meeting", () => {
+            if (!alive) return;
+            setState("live");
+            onJoined?.(call!);
+          })
+          .on("participant-joined", (e) => attach(e?.participant))
+          .on("participant-updated", (e) => attach(e?.participant))
+          .on("app-message", (e) => onAppMessage?.(e?.data))
+          .on("left-meeting", () => alive && onLeft?.())
+          .on("error", (e) => {
+            if (!alive) return;
+            setState("failed");
+            onError?.(e?.errorMsg ?? "Video connection failed");
+          });
+
+        await call.join({ url: conversationUrl });
+      } catch (e) {
+        // Report rather than throw. A failure here must show a message inside
+        // the round, not replace the whole page with an error boundary.
         if (!alive) return;
         setState("failed");
-        onError?.(e?.errorMsg ?? "Video connection failed");
-      });
-
-    // Any failure here is contained: the shell keeps the transcript, timer and
-    // End button, so the candidate is never dropped on an error page.
-    call.join({ url: conversationUrl }).catch((e: Error) => {
-      if (!alive) return;
-      setState("failed");
-      onError?.(e.message);
-    });
+        onError?.(e instanceof Error ? e.message : "Could not join the video room");
+      }
+    })();
 
     return () => {
       alive = false;
       audioLevels.detach("output");
-      // Leave before destroy, or Daily can leave the room occupied, which
-      // keeps the Tavus meter running.
-      void call
+      const c = call;
+      callRef.current = null;
+      if (!c) return;
+      // Leave before destroy, or Daily can leave the room occupied and the
+      // Tavus meter keeps running.
+      void c
         .leave()
         .catch(() => {})
         .finally(() => {
-          try {
-            call.destroy();
-          } catch {
-            /* a strict-mode remount may already have destroyed it */
-          }
+          c.destroy().catch(() => {});
         });
-      callRef.current = null;
     };
     // Joining twice would create a second billable participant.
     // eslint-disable-next-line react-hooks/exhaustive-deps
