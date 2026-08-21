@@ -59,8 +59,8 @@ const TIERS: Tier[] = [
     note: "Video avatar is still in development. You'll be first in line.",
     features: [
       { label: "Everything in Voice" },
-      { label: "2 video-avatar mock interviews / month", soon: true },
-      { label: "Face-to-face interview presence practice", soon: true },
+      { label: "2 video-avatar mock interviews / month" },
+      { label: "Face-to-face interview presence practice" },
       { label: "Priority access to new rounds" },
     ],
   },
@@ -151,14 +151,7 @@ export default function Pricing() {
                     >
                       ✓
                     </span>
-                    <span className={f.soon ? "text-muted" : undefined}>
-                      {f.label}
-                      {f.soon && (
-                        <span className="ml-2 rounded-md bg-elevated px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-warn">
-                          Coming soon
-                        </span>
-                      )}
-                    </span>
+                    <span>{f.label}</span>
                   </li>
                 ))}
               </ul>
@@ -224,8 +217,8 @@ export default function Pricing() {
             a="Free uses your browser's built-in speech, which sounds robotic and breaks the illusion. Paid plans use a studio-quality voice and Whisper transcription, which is what makes it feel like a real conversation."
           />
           <PriceFaq
-            q="When does the video avatar arrive?"
-            a="It's in development and not available yet. Premium is priced for it, so we list it as coming soon rather than pretending it's live. If you subscribe now, you get everything in Voice plus first access the moment avatars ship."
+            q="How do video interviews work?"
+            a="Premium includes video rounds with an on-screen interviewer who sees your code and your diagram and talks with you in real time. Each video round uses one credit, and voice rounds stay unlimited, so you can save video for the practice that matters most."
           />
           <PriceFaq
             q="Do you offer student or bulk pricing?"
