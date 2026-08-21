@@ -12,6 +12,8 @@ import { planCost, type PlannedRound } from "@/lib/interview/loop-plan";
 // "generic" leads and is the default: most people practising are not targeting
 // one named company, and burying the company-agnostic option last implied you
 // had to pick a FAANG to get started.
+const DEFAULT_COMPANY = "generic";
+
 const COMPANY_KEYS = [
   "generic",
   "amazon",
@@ -24,8 +26,13 @@ const COMPANY_KEYS = [
 
 export default function StartPage() {
   const router = useRouter();
-  const [company, setCompany] = useState("generic");
-  const [level, setLevel] = useState("sde2");
+  const [company, setCompany] = useState(DEFAULT_COMPANY);
+  // Derived from the default company, never hardcoded. Pinning a literal level
+  // key here is how changing the default company to "generic" started
+  // prerendering /start against a level that company does not have.
+  const [level, setLevel] = useState(
+    () => Object.keys(COMPANY_PROFILES[DEFAULT_COMPANY].levels)[0]
+  );
   const [plan, setPlan] = useState<PlannedRound[]>([
     { roundType: "behavioral", mode: "voice" },
   ]);
@@ -153,7 +160,7 @@ export default function StartPage() {
         >
           {busy
             ? "Starting…"
-            : `Start ${profile.displayName} ${profile.levels[level].label} interview`}
+            : `Start ${profile.displayName} ${profile.levels[level]?.label ?? ""} interview`.replace(/\s+/g, " ")}
         </button>
       </div>
     </main>
