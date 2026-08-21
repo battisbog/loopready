@@ -39,11 +39,14 @@ export default function VideoAvatar({
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const callRef = useRef<DailyCall | null>(null);
+  /** Track ids currently attached, so we never reattach the same pair. */
+  const attachedRef = useRef<string>("");
   const [state, setState] = useState<"joining" | "live" | "failed">("joining");
 
   useEffect(() => {
     let alive = true;
     let call: DailyCall | null = null;
+    attachedRef.current = "";
     const audioTrack = micStream.getAudioTracks()[0];
 
     // Serialised and awaited, because destroy() is ASYNC. The previous version
@@ -71,22 +74,38 @@ export default function VideoAvatar({
         });
         callRef.current = call;
 
-        /** Attaches the avatar's tracks once the replica publishes them. */
+        /**
+         * Attaches the avatar's tracks once the replica publishes them.
+         *
+         * Daily fires participant-updated constantly (speaking changes, track
+         * state, network events). Rebuilding the MediaStream and reassigning
+         * srcObject on each one restarts playback, and audio and video then
+         * resume from slightly different points, which is what makes the mouth
+         * drift out of step with the words. So the tracks are compared by id and
+         * only reattached when they genuinely change.
+         */
         const attach = (
           p: DailyEventObjectParticipant["participant"] | undefined
         ) => {
           if (!p || p.local || !videoRef.current) return;
           const video = p.tracks?.video?.persistentTrack;
           const audio = p.tracks?.audio?.persistentTrack;
+          if (!video && !audio) return;
+
+          const signature = `${video?.id ?? "-"}|${audio?.id ?? "-"}`;
+          if (signature === attachedRef.current) return;
+          attachedRef.current = signature;
+
           const stream = new MediaStream();
           if (video) stream.addTrack(video);
           if (audio) stream.addTrack(audio);
-          if (!stream.getTracks().length) return;
           videoRef.current.srcObject = stream;
           void videoRef.current.play().catch(() => {
             /* autoplay is unlocked by the mic gate's click */
           });
-          // Same amplitude bus the ring uses, so shared UI keeps working.
+
+          // Same amplitude bus the ring uses, so shared UI keeps working. This
+          // is a read-only tap and never carries the audio that is played.
           if (audio) audioLevels.attachStream("output", new MediaStream([audio]));
         };
 
