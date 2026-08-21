@@ -226,6 +226,15 @@ export default function Pricing() {
           />
         </div>
       </div>
+          <p className="mt-10 text-center text-sm text-muted">
+        Question we have not answered?{" "}
+        <a
+          href="mailto:support@loopready.io"
+          className="text-secondary underline underline-offset-2 hover:text-primary"
+        >
+          support@loopready.io
+        </a>
+      </p>
     </section>
   );
 }

@@ -33,6 +33,15 @@ export default async function SettingsPage() {
           email={user.email ?? ""}
           emailNotifications={profile?.email_notifications ?? true}
         />
+        <p className="mt-10 text-xs text-muted">
+          Need help with your account or billing?{" "}
+          <a
+            href="mailto:support@loopready.io"
+            className="underline underline-offset-2 hover:text-secondary"
+          >
+            support@loopready.io
+          </a>
+        </p>
       </PageShell>
     </>
   );
