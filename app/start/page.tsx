@@ -1,11 +1,13 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { VIDEO_ENABLED_CLIENT } from "@/lib/video/config";
 import Link from "next/link";
 import { COMPANY_PROFILES } from "@/lib/interview/companies";
-import { ROUND_IMPLEMENTED, ROUND_LABEL, ROUND_TYPES, type RoundType } from "@/lib/interview/rounds";
+import LoopBuilder from "./loop-builder";
+import { planCost, type PlannedRound } from "@/lib/interview/loop-plan";
 
 const COMPANY_KEYS = [
   "amazon",
@@ -21,9 +23,10 @@ export default function StartPage() {
   const router = useRouter();
   const [company, setCompany] = useState("amazon");
   const [level, setLevel] = useState("sde2");
-  const [rounds, setRounds] = useState<RoundType[]>(["behavioral"]);
-  // Voice unless the candidate opts into video, and only when video is on.
-  const [mode, setMode] = useState<"voice" | "video">("voice");
+  const [plan, setPlan] = useState<PlannedRound[]>([
+    { roundType: "behavioral", mode: "voice" },
+  ]);
+  const [credits, setCredits] = useState(0);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -35,18 +38,21 @@ export default function StartPage() {
     setLevel(Object.keys(COMPANY_PROFILES[key].levels)[0]);
   }
 
-  function toggleRound(r: RoundType) {
-    setRounds((cur) =>
-      cur.includes(r) ? cur.filter((x) => x !== r) : [...cur, r]
-    );
-  }
 
-  function selectFullLoop() {
-    setRounds(ROUND_TYPES.filter((r) => ROUND_IMPLEMENTED[r]));
-  }
+
+  // Credits drive the "you have M" line and the block; the server re-checks.
+  useEffect(() => {
+    if (!VIDEO_ENABLED_CLIENT) return;
+    fetch("/api/account/entitlements")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => d && setCredits(Number(d.videoCreditsRemaining ?? 0)))
+      .catch(() => {});
+  }, []);
+
+  const cost = planCost(plan);
 
   async function start() {
-    if (rounds.length === 0) return setError("Pick at least one round.");
+    if (plan.length === 0) return setError("Pick at least one round.");
     setBusy(true);
     setError(null);
     try {
@@ -56,13 +62,13 @@ export default function StartPage() {
         body: JSON.stringify({
           company,
           level,
-          rounds: ROUND_TYPES.filter((r) => rounds.includes(r)), // canonical order
+          rounds: plan, // order and per-round mode as configured
         }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? `Failed (${res.status})`);
       router.push(
-        `/session/${data.sessionId}${mode === "video" ? "?mode=video" : ""}`
+        `/session/${data.sessionId}${data.mode === "video" ? "?mode=video" : ""}`
       );
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong");
@@ -127,68 +133,19 @@ export default function StartPage() {
       </Section>
 
       <Section title="Rounds">
-        <div className="space-y-2">
-          {ROUND_TYPES.map((r) => {
-            const available = ROUND_IMPLEMENTED[r];
-            const selected = rounds.includes(r);
-            return (
-              <button
-                key={r}
-                disabled={!available}
-                onClick={() => toggleRound(r)}
-                className={`flex w-full items-center justify-between rounded-lg border px-4 py-3 text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
-                  selected
-                    ? "border-accent bg-accent-muted text-accent"
-                    : "border-line text-secondary hover:border-line-strong"
-                }`}
-              >
-                <span className="font-medium">{ROUND_LABEL[r]}</span>
-                <span className="text-xs text-muted">
-                  {available ? (selected ? "Selected" : "Add") : "Coming soon"}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-        <button
-          onClick={selectFullLoop}
-          className="mt-3 text-xs text-muted underline-offset-2 hover:text-secondary hover:underline"
-        >
-          Select full loop (all available rounds)
-        </button>
+        <LoopBuilder
+          plan={plan}
+          setPlan={setPlan}
+          videoEnabled={VIDEO_ENABLED_CLIENT}
+          credits={credits}
+        />
       </Section>
-
-      {VIDEO_ENABLED_CLIENT && (
-        <Section title="Interviewer">
-          <div className="grid grid-cols-2 gap-2">
-            {(["voice", "video"] as const).map((m) => (
-              <button
-                key={m}
-                type="button"
-                onClick={() => setMode(m)}
-                className={`rounded-md border px-3 py-2 text-sm transition-colors ${
-                  mode === m
-                    ? "border-accent-border bg-accent-muted text-accent"
-                    : "border-line text-secondary hover:border-line-strong"
-                }`}
-              >
-                {m === "voice" ? "Voice" : "Video avatar"}
-              </button>
-            ))}
-          </div>
-          <p className="mt-2 text-xs text-muted">
-            {mode === "video"
-              ? "Uses one video credit, charged only after five minutes."
-              : "Unlimited on your plan."}
-          </p>
-        </Section>
-      )}
 
       <div className="mt-10">
         {error && <p className="mb-3 text-sm text-error">{error}</p>}
         <button
           onClick={start}
-          disabled={busy}
+          disabled={busy || plan.length === 0 || cost.creditsNeeded > credits}
           className="w-full rounded-lg bg-accent px-5 py-3 text-sm font-semibold text-accent-fg hover:bg-accent-hover disabled:opacity-50"
         >
           {busy

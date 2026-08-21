@@ -8,6 +8,9 @@ import {
   isRoundType,
   type RoundType,
 } from "@/lib/interview/rounds";
+import { validatePlan } from "@/lib/interview/loop-plan";
+import { getEntitlements } from "@/lib/tiers";
+import { VIDEO_ENABLED_SERVER } from "@/lib/video/config";
 import { startSession } from "@/lib/interview/start";
 import {
   checkDailySessionQuota,
@@ -46,21 +49,43 @@ export async function POST(request: Request) {
   if (!Array.isArray(rounds) || rounds.length === 0) {
     return NextResponse.json({ error: "Pick at least one round" }, { status: 400 });
   }
-  const requested = rounds.filter(isRoundType) as RoundType[];
-  if (requested.length !== rounds.length) {
-    return NextResponse.json({ error: "Unknown round type" }, { status: 400 });
-  }
-  // A loop always runs in canonical order regardless of what the client sent.
-  const roundList = ROUND_TYPES.filter((r) => requested.includes(r));
-  const unavailable = roundList.filter((r) => !ROUND_IMPLEMENTED[r]);
-  if (unavailable.length) {
+  const admin = createAdminClient();
+
+  // The plan is a list of {roundType, mode}. Older clients send bare strings,
+  // which are treated as voice.
+  const plannedInput = (rounds as unknown[]).map((r) =>
+    typeof r === "string" ? { roundType: r, mode: "voice" } : r
+  );
+
+  // Credits are read BEFORE validating, because the credit ceiling is part of
+  // what makes a plan valid. Everything the client showed is re-checked here;
+  // the client display is never trusted.
+  const ent = await getEntitlements(admin, user.id);
+  const validated = validatePlan(plannedInput, {
+    videoEnabled: VIDEO_ENABLED_SERVER && ent.canUseVideo,
+    creditsAvailable: ent.videoCreditsRemaining,
+  });
+  if (!validated.ok) {
     return NextResponse.json(
-      { error: `Not available yet: ${unavailable.join(", ")}` },
-      { status: 501 }
+      {
+        error: validated.problem.message,
+        problem: validated.problem.code,
+        ...(validated.problem.code === "not_enough_credits"
+          ? {
+              creditsNeeded: validated.problem.creditsNeeded,
+              creditsAvailable: validated.problem.creditsAvailable,
+              buyMoreUrl: "/checkout?product=video-pack",
+            }
+          : {}),
+      },
+      { status: validated.problem.code === "not_enough_credits" ? 402 : 400 }
     );
   }
 
-  const admin = createAdminClient();
+  // Order is preserved as configured, so "coding, coding, behavioral" runs that
+  // way rather than being silently reshuffled into canonical order.
+  const plan = validated.plan;
+  const roundList = plan.map((p) => p.roundType);
 
   const ipLimited = await checkIpRateLimit("interview", request);
   if (!ipLimited.ok) return ipLimited.response!;
@@ -76,7 +101,15 @@ export async function POST(request: Request) {
 
   const { data: loop, error } = await admin
     .from("loops")
-    .insert({ user_id: user.id, company, level, rounds: roundList })
+    .insert({
+      user_id: user.id,
+      company,
+      level,
+      rounds: roundList,
+      // Persisted so each round starts in the mode that was paid for, and so a
+      // reload cannot silently change it.
+      round_modes: plan.map((p) => p.mode),
+    })
     .select()
     .single();
   if (error || !loop) {
@@ -93,5 +126,10 @@ export async function POST(request: Request) {
     level,
   });
 
-  return NextResponse.json({ loopId: loop.id, ...first });
+  return NextResponse.json({
+    loopId: loop.id,
+    ...first,
+    mode: plan[0].mode,
+    cost: validated.cost,
+  });
 }
