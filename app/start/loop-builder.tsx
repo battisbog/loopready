@@ -4,11 +4,15 @@ import { Card } from "@/components/ui";
 import {
   MAX_PER_ROUND_TYPE,
   MAX_ROUNDS_PER_LOOP,
-  PRESETS,
   planCost,
   type PlannedRound,
+  type RoundMode,
 } from "@/lib/interview/loop-plan";
-import { ROUND_IMPLEMENTED, ROUND_TYPES, type RoundType } from "@/lib/interview/rounds";
+import {
+  ROUND_IMPLEMENTED,
+  ROUND_TYPES,
+  type RoundType,
+} from "@/lib/interview/rounds";
 
 const LABEL: Record<string, string> = {
   behavioral: "Behavioral",
@@ -16,12 +20,23 @@ const LABEL: Record<string, string> = {
   system_design: "System design",
 };
 
+const BLURB: Record<string, string> = {
+  behavioral: "Past situations, your specific actions and impact.",
+  coding: "One problem, live, with the interviewer probing as you work.",
+  system_design: "An open-ended design, whiteboarded on the canvas.",
+};
+
 /**
  * Loop builder.
  *
- * Presets carry the common case: one click and start. The per-round controls
- * only appear under "Custom", because forcing a configuration screen on someone
- * who just wants to practise is how a practice tool stops getting used.
+ * One row per round type: choose how many, and how each type is delivered.
+ * There is no preset step, because "how many of each" IS the question a
+ * candidate is actually asking, and routing that through named bundles only
+ * adds a layer to click past.
+ *
+ * Mode is per round TYPE rather than per individual round. Wanting a video
+ * behavioral and a voice coding round is a real preference; wanting your second
+ * coding round to differ from your first is not.
  */
 export default function LoopBuilder({
   plan,
@@ -36,144 +51,152 @@ export default function LoopBuilder({
 }) {
   const cost = planCost(plan);
   const overBudget = cost.creditsNeeded > credits;
+  const types = ROUND_TYPES.filter((t) => ROUND_IMPLEMENTED[t]);
 
-  const activePreset = PRESETS.find(
-    (p) =>
-      p.rounds.length === plan.length &&
-      p.rounds.every((r, i) => plan[i]?.roundType === r) &&
-      plan.every((r) => r.mode === "voice")
-  );
+  const countOf = (t: RoundType) => plan.filter((r) => r.roundType === t).length;
+  const modeOf = (t: RoundType): RoundMode =>
+    plan.find((r) => r.roundType === t)?.mode ?? "voice";
 
-  function countOf(t: RoundType) {
-    return plan.filter((r) => r.roundType === t).length;
+  /** Rebuilds in a stable type order so rows never jump as counts change. */
+  function rebuild(counts: Map<RoundType, number>, modes: Map<RoundType, RoundMode>) {
+    const next: PlannedRound[] = [];
+    for (const t of types) {
+      const n = counts.get(t) ?? 0;
+      for (let i = 0; i < n; i++) {
+        next.push({ roundType: t, mode: modes.get(t) ?? "voice" });
+      }
+    }
+    setPlan(next.slice(0, MAX_ROUNDS_PER_LOOP));
+  }
+
+  function snapshot() {
+    const counts = new Map<RoundType, number>();
+    const modes = new Map<RoundType, RoundMode>();
+    for (const t of types) {
+      counts.set(t, countOf(t));
+      modes.set(t, modeOf(t));
+    }
+    return { counts, modes };
   }
 
   function setCount(t: RoundType, next: number) {
-    const others = plan.filter((r) => r.roundType !== t);
-    const mine = plan.filter((r) => r.roundType === t).slice(0, next);
-    while (mine.length < next) mine.push({ roundType: t, mode: "voice" });
-    // Rebuild in a stable order so the list does not jump around as counts change.
-    const rebuilt: PlannedRound[] = [];
-    for (const rt of ROUND_TYPES) {
-      rebuilt.push(...(rt === t ? mine : others.filter((o) => o.roundType === rt)));
-    }
-    setPlan(rebuilt.slice(0, MAX_ROUNDS_PER_LOOP));
+    const { counts, modes } = snapshot();
+    const others = types
+      .filter((x) => x !== t)
+      .reduce((sum, x) => sum + (counts.get(x) ?? 0), 0);
+    // Clamped against the loop cap, so the total can never exceed it.
+    counts.set(t, Math.max(0, Math.min(next, MAX_PER_ROUND_TYPE, MAX_ROUNDS_PER_LOOP - others)));
+    rebuild(counts, modes);
   }
 
-  function setMode(index: number, mode: "voice" | "video") {
-    setPlan(plan.map((r, i) => (i === index ? { ...r, mode } : r)));
+  function setMode(t: RoundType, mode: RoundMode) {
+    const { counts, modes } = snapshot();
+    modes.set(t, mode);
+    // Choosing video for a type nobody selected is meaningless, so it also
+    // adds a round rather than silently doing nothing.
+    if ((counts.get(t) ?? 0) === 0) counts.set(t, 1);
+    rebuild(counts, modes);
   }
 
   return (
-    <div className="space-y-4">
-      <div className="grid gap-2 sm:grid-cols-2">
-        {PRESETS.map((p) => (
-          <button
-            key={p.id}
-            type="button"
-            onClick={() => setPlan(p.rounds.map((r) => ({ roundType: r, mode: "voice" })))}
-            className={`rounded-md border px-3 py-2.5 text-left transition-colors ${
-              activePreset?.id === p.id
-                ? "border-accent-border bg-accent-muted"
-                : "border-line hover:border-line-strong"
-            }`}
-          >
-            <span className="block text-sm font-medium text-primary">{p.label}</span>
-            <span className="mt-0.5 block text-xs text-muted">{p.description}</span>
-          </button>
-        ))}
-        <button
-          type="button"
-          onClick={() => setPlan(plan.length ? plan : [{ roundType: "behavioral", mode: "voice" }])}
-          className={`rounded-md border px-3 py-2.5 text-left transition-colors ${
-            !activePreset ? "border-accent-border bg-accent-muted" : "border-line hover:border-line-strong"
-          }`}
-        >
-          <span className="block text-sm font-medium text-primary">Custom</span>
-          <span className="mt-0.5 block text-xs text-muted">
-            Choose how many of each, and voice or video per round.
-          </span>
-        </button>
-      </div>
+    <div className="space-y-3">
+      {types.map((t) => {
+        const n = countOf(t);
+        const mode = modeOf(t);
+        const atCap =
+          plan.length >= MAX_ROUNDS_PER_LOOP || n >= MAX_PER_ROUND_TYPE;
 
-      {!activePreset && (
-        <Card compact>
-          <div className="space-y-3">
-            {ROUND_TYPES.filter((t) => ROUND_IMPLEMENTED[t]).map((t) => (
-              <div key={t} className="flex items-center justify-between">
-                <span className="text-sm text-secondary">{LABEL[t] ?? t}</span>
-                <div className="flex items-center gap-1">
-                  {[0, 1, 2, 3].slice(0, MAX_PER_ROUND_TYPE + 1).map((n) => (
+        return (
+          <Card key={t} compact tone={n > 0 ? "accent" : "default"}>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-primary">{LABEL[t] ?? t}</p>
+                <p className="mt-0.5 text-xs text-muted">{BLURB[t]}</p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  aria-label={`One fewer ${LABEL[t]} round`}
+                  onClick={() => setCount(t, n - 1)}
+                  disabled={n === 0}
+                  className="h-8 w-8 rounded-md border border-line text-secondary transition-colors hover:border-line-strong hover:text-primary disabled:opacity-30"
+                >
+                  &minus;
+                </button>
+                <span
+                  className={`w-6 text-center font-mono text-sm ${
+                    n > 0 ? "text-primary" : "text-muted"
+                  }`}
+                >
+                  {n}
+                </span>
+                <button
+                  type="button"
+                  aria-label={`One more ${LABEL[t]} round`}
+                  onClick={() => setCount(t, n + 1)}
+                  disabled={atCap}
+                  className="h-8 w-8 rounded-md border border-line text-secondary transition-colors hover:border-line-strong hover:text-primary disabled:opacity-30"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+
+            {videoEnabled && n > 0 && (
+              <div className="mt-3 flex items-center justify-between border-t border-line pt-3">
+                <span className="text-xs text-muted">
+                  {mode === "video"
+                    ? `${n} credit${n === 1 ? "" : "s"}`
+                    : "No credits used"}
+                </span>
+                <div className="flex gap-1">
+                  {(["voice", "video"] as const).map((m) => (
                     <button
-                      key={n}
+                      key={m}
                       type="button"
-                      onClick={() => setCount(t, n)}
-                      className={`h-8 w-8 rounded-md border text-sm transition-colors ${
-                        countOf(t) === n
+                      onClick={() => setMode(t, m)}
+                      className={`rounded-md border px-2.5 py-1 text-xs transition-colors ${
+                        mode === m
                           ? "border-accent-border bg-accent-muted text-accent"
                           : "border-line text-secondary hover:border-line-strong"
                       }`}
                     >
-                      {n}
+                      {m === "voice" ? "Voice" : "Video"}
                     </button>
                   ))}
                 </div>
               </div>
-            ))}
-          </div>
-
-          {videoEnabled && plan.length > 0 && (
-            <div className="mt-4 border-t border-line pt-4">
-              <p className="mb-2 text-xs text-muted">
-                Every round is voice unless you choose video.
-              </p>
-              <div className="space-y-2">
-                {plan.map((r, i) => (
-                  <div key={`${r.roundType}-${i}`} className="flex items-center justify-between gap-3">
-                    <span className="text-sm text-secondary">
-                      {i + 1}. {LABEL[r.roundType] ?? r.roundType}
-                    </span>
-                    <div className="flex gap-1">
-                      {(["voice", "video"] as const).map((m) => (
-                        <button
-                          key={m}
-                          type="button"
-                          onClick={() => setMode(i, m)}
-                          className={`rounded-md border px-2.5 py-1 text-xs transition-colors ${
-                            r.mode === m
-                              ? "border-accent-border bg-accent-muted text-accent"
-                              : "border-line text-secondary hover:border-line-strong"
-                          }`}
-                        >
-                          {m === "voice" ? "Voice" : "Video"}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </Card>
-      )}
-
-      {videoEnabled && (
-        <Card compact tone={overBudget ? "error" : cost.creditsNeeded > 0 ? "accent" : "default"}>
-          <p className="text-sm text-secondary">
-            {cost.creditsNeeded === 0 ? (
-              <>
-                All {cost.totalRounds || 0} round{cost.totalRounds === 1 ? "" : "s"} are voice.{" "}
-                <span className="text-muted">No credits used.</span>
-              </>
-            ) : (
-              <>
-                This loop will use{" "}
-                <span className="font-medium text-primary">
-                  {cost.creditsNeeded} video credit{cost.creditsNeeded === 1 ? "" : "s"}
-                </span>{" "}
-                <span className="text-muted">(you have {credits})</span>
-              </>
             )}
+          </Card>
+        );
+      })}
+
+      <div className="flex items-center justify-between px-1">
+        <p className="text-xs text-muted">
+          {plan.length === 0
+            ? "Add at least one round."
+            : `${plan.length} round${plan.length === 1 ? "" : "s"}, up to ${MAX_ROUNDS_PER_LOOP}.`}
+        </p>
+        <button
+          type="button"
+          onClick={() =>
+            setPlan(types.map((t) => ({ roundType: t, mode: "voice" as RoundMode })))
+          }
+          className="text-xs text-muted underline-offset-2 hover:text-secondary hover:underline"
+        >
+          Full loop
+        </button>
+      </div>
+
+      {videoEnabled && cost.creditsNeeded > 0 && (
+        <Card compact tone={overBudget ? "error" : "accent"}>
+          <p className="text-sm text-secondary">
+            This loop will use{" "}
+            <span className="font-medium text-primary">
+              {cost.creditsNeeded} video credit{cost.creditsNeeded === 1 ? "" : "s"}
+            </span>{" "}
+            <span className="text-muted">(you have {credits})</span>
           </p>
           {overBudget && (
             <p className="mt-2 text-sm text-error">
