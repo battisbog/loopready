@@ -20,7 +20,9 @@ export default async function Landing() {
   // reachable at /pricing.
   if (user) redirect("/dashboard");
 
-  const ctaHref = "/login";
+  // Points at plans rather than straight to sign-up: someone landing cold gets
+  // to see what is free and what is paid before being asked for an account.
+  const ctaHref = "/pricing";
   const ctaLabel = "Start a free mock interview";
 
   return (
