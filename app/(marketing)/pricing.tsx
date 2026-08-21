@@ -12,7 +12,7 @@ interface Tier {
   href: string;
   featured?: boolean;
   note?: string;
-  features: { label: string; soon?: boolean }[];
+  features: { label: string }[];
 }
 
 const TIERS: Tier[] = [
@@ -80,7 +80,7 @@ const COMPARISON: {
   { label: "Interviewer voice quality", free: "Browser", voice: "Studio", premium: "Studio" },
   { label: "Written debrief", free: true, voice: true, premium: true },
   { label: "Session history", free: "Last session", voice: true, premium: true },
-  { label: "Video-avatar interviews", free: false, voice: false, premium: "2 / month (soon)" },
+  { label: "Video-avatar interviews", free: false, voice: false, premium: "2 / month" },
 ];
 
 export default function Pricing() {
@@ -146,7 +146,7 @@ export default function Pricing() {
                   >
                     <span
                       className={`mt-0.5 shrink-0 ${
-                        f.soon ? "text-muted" : "text-accent"
+                        "text-accent"
                       }`}
                     >
                       ✓
