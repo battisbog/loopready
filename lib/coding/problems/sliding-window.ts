@@ -13,8 +13,8 @@ export const SLIDING_WINDOW: Problem[] = [
       "You are given daily prices for one stock. Choose one day to buy and a later day to sell to make the largest profit. If no profit is possible, return 0.",
     example: "[7,1,5,3,6,4] -> 5  (buy at 1, sell at 6)",
     signatures: {
-      python: "def max_profit(prices):\\n    # your code here\\n    pass\\n",
-      javascript: "function max_profit(prices) {\\n  // your code here\\n}\\n",
+      python: "def max_profit(prices):\n    # your code here\n    pass\n",
+      javascript: "function max_profit(prices) {\n  // your code here\n}\n",
     },
     tests: [
       { args: [[7, 1, 5, 3, 6, 4]], expected: 5 },
@@ -37,8 +37,8 @@ export const SLIDING_WINDOW: Problem[] = [
       "Given a string, return the length of the longest stretch of consecutive characters that contains no repeats.",
     example: "\"abcabcbb\" -> 3  (\"abc\")",
     signatures: {
-      python: "def length_of_longest(s):\\n    # your code here\\n    pass\\n",
-      javascript: "function length_of_longest(s) {\\n  // your code here\\n}\\n",
+      python: "def length_of_longest(s):\n    # your code here\n    pass\n",
+      javascript: "function length_of_longest(s) {\n  // your code here\n}\n",
     },
     tests: [
       { args: ["abcabcbb"], expected: 3 },
@@ -62,8 +62,8 @@ export const SLIDING_WINDOW: Problem[] = [
       "Given a string of uppercase letters and a budget k, you may change up to k characters to any other letter. Return the length of the longest run of one repeated letter you can produce.",
     example: "\"AABABBA\", k = 1 -> 4",
     signatures: {
-      python: "def character_replacement(s, k):\\n    # your code here\\n    pass\\n",
-      javascript: "function character_replacement(s, k) {\\n  // your code here\\n}\\n",
+      python: "def character_replacement(s, k):\n    # your code here\n    pass\n",
+      javascript: "function character_replacement(s, k) {\n  // your code here\n}\n",
     },
     tests: [
       { args: ["AABABBA", 1], expected: 4 },
@@ -86,8 +86,8 @@ export const SLIDING_WINDOW: Problem[] = [
       "Given a string and a set of required characters given as a string, return the shortest stretch of the first string that contains every required character including repeats. Return an empty string if none exists.",
     example: "\"ADOBECODEBANC\", \"ABC\" -> \"BANC\"",
     signatures: {
-      python: "def min_window(s, need):\\n    # your code here\\n    pass\\n",
-      javascript: "function min_window(s, need) {\\n  // your code here\\n}\\n",
+      python: "def min_window(s, need):\n    # your code here\n    pass\n",
+      javascript: "function min_window(s, need) {\n  // your code here\n}\n",
     },
     tests: [
       { args: ["ADOBECODEBANC", "ABC"], expected: "BANC" },

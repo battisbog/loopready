@@ -13,8 +13,8 @@ export const INTERVALS: Problem[] = [
       "Given a list of [start, end] intervals, merge every set that overlaps and return the resulting list sorted by start. Intervals that merely touch at an endpoint count as overlapping.",
     example: "[[1,3],[2,6],[8,10]] -> [[1,6],[8,10]]",
     signatures: {
-      python: "def merge_intervals(intervals):\\n    # your code here\\n    pass\\n",
-      javascript: "function merge_intervals(intervals) {\\n  // your code here\\n}\\n",
+      python: "def merge_intervals(intervals):\n    # your code here\n    pass\n",
+      javascript: "function merge_intervals(intervals) {\n  // your code here\n}\n",
     },
     tests: [
       { args: [[[1, 3], [2, 6], [8, 10], [15, 18]]], expected: [[1, 6], [8, 10], [15, 18]] },
@@ -37,8 +37,8 @@ export const INTERVALS: Problem[] = [
       "Given a list of non-overlapping [start, end] intervals sorted by start, insert one new interval and merge where needed. Return the resulting list.",
     example: "[[1,3],[6,9]], insert [2,5] -> [[1,5],[6,9]]",
     signatures: {
-      python: "def insert_interval(intervals, new_interval):\\n    # your code here\\n    pass\\n",
-      javascript: "function insert_interval(intervals, new_interval) {\\n  // your code here\\n}\\n",
+      python: "def insert_interval(intervals, new_interval):\n    # your code here\n    pass\n",
+      javascript: "function insert_interval(intervals, new_interval) {\n  // your code here\n}\n",
     },
     tests: [
       { args: [[[1, 3], [6, 9]], [2, 5]], expected: [[1, 5], [6, 9]] },
@@ -61,8 +61,8 @@ export const INTERVALS: Problem[] = [
       "Given meeting times as [start, end] intervals, return the smallest number of rooms needed so that no two meetings share a room at the same time. A meeting ending exactly when another begins can reuse the room.",
     example: "[[0,30],[5,10],[15,20]] -> 2",
     signatures: {
-      python: "def min_rooms(intervals):\\n    # your code here\\n    pass\\n",
-      javascript: "function min_rooms(intervals) {\\n  // your code here\\n}\\n",
+      python: "def min_rooms(intervals):\n    # your code here\n    pass\n",
+      javascript: "function min_rooms(intervals) {\n  // your code here\n}\n",
     },
     tests: [
       { args: [[[0, 30], [5, 10], [15, 20]]], expected: 2 },
@@ -85,8 +85,8 @@ export const INTERVALS: Problem[] = [
       "Given a list of [start, end] intervals, return the minimum number you must remove so that none of the remainder overlap. Touching endpoints do not count as overlap.",
     example: "[[1,2],[2,3],[3,4],[1,3]] -> 1",
     signatures: {
-      python: "def erase_overlap(intervals):\\n    # your code here\\n    pass\\n",
-      javascript: "function erase_overlap(intervals) {\\n  // your code here\\n}\\n",
+      python: "def erase_overlap(intervals):\n    # your code here\n    pass\n",
+      javascript: "function erase_overlap(intervals) {\n  // your code here\n}\n",
     },
     tests: [
       { args: [[[1, 2], [2, 3], [3, 4], [1, 3]]], expected: 1 },

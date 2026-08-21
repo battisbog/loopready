@@ -13,8 +13,8 @@ export const TREES: Problem[] = [
       "A binary tree is given as a level-order array where null marks a missing child. Return the number of nodes on the longest path from the root down to a leaf.",
     example: "[3,9,20,null,null,15,7] -> 3",
     signatures: {
-      python: "def max_depth(tree):\\n    # your code here\\n    pass\\n",
-      javascript: "function max_depth(tree) {\\n  // your code here\\n}\\n",
+      python: "def max_depth(tree):\n    # your code here\n    pass\n",
+      javascript: "function max_depth(tree) {\n  // your code here\n}\n",
     },
     tests: [
       { args: [[3, 9, 20, null, null, 15, 7]], expected: 3 },
@@ -37,8 +37,8 @@ export const TREES: Problem[] = [
       "A binary tree is given as a level-order array where null marks a missing child. Mirror the tree left-to-right and return the result as a level-order array with trailing nulls removed.",
     example: "[4,2,7,1,3,6,9] -> [4,7,2,9,6,3,1]",
     signatures: {
-      python: "def invert_tree(tree):\\n    # your code here\\n    pass\\n",
-      javascript: "function invert_tree(tree) {\\n  // your code here\\n}\\n",
+      python: "def invert_tree(tree):\n    # your code here\n    pass\n",
+      javascript: "function invert_tree(tree) {\n  // your code here\n}\n",
     },
     tests: [
       { args: [[4, 2, 7, 1, 3, 6, 9]], expected: [4, 7, 2, 9, 6, 3, 1] },
@@ -60,8 +60,8 @@ export const TREES: Problem[] = [
       "Two binary trees are given as level-order arrays where null marks a missing child. Return true if they have the same shape and the same values in the same positions.",
     example: "[1,2,3] and [1,2,3] -> true",
     signatures: {
-      python: "def is_same_tree(a, b):\\n    # your code here\\n    pass\\n",
-      javascript: "function is_same_tree(a, b) {\\n  // your code here\\n}\\n",
+      python: "def is_same_tree(a, b):\n    # your code here\n    pass\n",
+      javascript: "function is_same_tree(a, b) {\n  // your code here\n}\n",
     },
     tests: [
       { args: [[1, 2, 3], [1, 2, 3]], expected: true },
@@ -83,8 +83,8 @@ export const TREES: Problem[] = [
       "A binary tree is given as a level-order array where null marks a missing child. Return a list of lists holding the values at each depth, from the root down.",
     example: "[3,9,20,null,null,15,7] -> [[3],[9,20],[15,7]]",
     signatures: {
-      python: "def level_order(tree):\\n    # your code here\\n    pass\\n",
-      javascript: "function level_order(tree) {\\n  // your code here\\n}\\n",
+      python: "def level_order(tree):\n    # your code here\n    pass\n",
+      javascript: "function level_order(tree) {\n  // your code here\n}\n",
     },
     tests: [
       { args: [[3, 9, 20, null, null, 15, 7]], expected: [[3], [9, 20], [15, 7]] },
@@ -106,8 +106,8 @@ export const TREES: Problem[] = [
       "A binary tree is given as a level-order array where null marks a missing child. Return true if it is a valid binary search tree: every value in a node's left subtree is smaller than the node, and every value in its right subtree is larger.",
     example: "[5,1,4,null,null,3,6] -> false",
     signatures: {
-      python: "def is_valid_bst(tree):\\n    # your code here\\n    pass\\n",
-      javascript: "function is_valid_bst(tree) {\\n  // your code here\\n}\\n",
+      python: "def is_valid_bst(tree):\n    # your code here\n    pass\n",
+      javascript: "function is_valid_bst(tree) {\n  // your code here\n}\n",
     },
     tests: [
       { args: [[2, 1, 3]], expected: true },
@@ -131,8 +131,8 @@ export const TREES: Problem[] = [
       "A binary search tree is given as a level-order array where null marks a missing child, along with two values present in it. Return the value of the deepest node that has both of them as descendants, where a node may be its own descendant.",
     example: "[6,2,8,0,4,7,9], p = 2, q = 8 -> 6",
     signatures: {
-      python: "def lca_bst(tree, p, q):\\n    # your code here\\n    pass\\n",
-      javascript: "function lca_bst(tree, p, q) {\\n  // your code here\\n}\\n",
+      python: "def lca_bst(tree, p, q):\n    # your code here\n    pass\n",
+      javascript: "function lca_bst(tree, p, q) {\n  // your code here\n}\n",
     },
     tests: [
       { args: [[6, 2, 8, 0, 4, 7, 9], 2, 8], expected: 6 },

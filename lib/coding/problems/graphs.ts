@@ -13,8 +13,8 @@ export const GRAPHS: Problem[] = [
       "Given a grid of \"1\" for land and \"0\" for water, count the separate land masses. Cells join only horizontally or vertically.",
     example: "[[\"1\",\"1\",\"0\"],[\"0\",\"1\",\"0\"],[\"0\",\"0\",\"1\"]] -> 2",
     signatures: {
-      python: "def num_islands(grid):\\n    # your code here\\n    pass\\n",
-      javascript: "function num_islands(grid) {\\n  // your code here\\n}\\n",
+      python: "def num_islands(grid):\n    # your code here\n    pass\n",
+      javascript: "function num_islands(grid) {\n  // your code here\n}\n",
     },
     tests: [
       { args: [[["1", "1", "0"], ["0", "1", "0"], ["0", "0", "1"]]], expected: 2 },
@@ -36,8 +36,8 @@ export const GRAPHS: Problem[] = [
       "Given a grid of 1 for land and 0 for water, return the number of cells in the largest connected land mass. Cells join only horizontally or vertically. Return 0 if there is no land.",
     example: "[[1,1,0],[0,1,0],[0,0,1]] -> 3",
     signatures: {
-      python: "def max_area_island(grid):\\n    # your code here\\n    pass\\n",
-      javascript: "function max_area_island(grid) {\\n  // your code here\\n}\\n",
+      python: "def max_area_island(grid):\n    # your code here\n    pass\n",
+      javascript: "function max_area_island(grid) {\n  // your code here\n}\n",
     },
     tests: [
       { args: [[[1, 1, 0], [0, 1, 0], [0, 0, 1]]], expected: 3 },
@@ -59,8 +59,8 @@ export const GRAPHS: Problem[] = [
       "Given a number of courses labelled from zero and a list of [course, prerequisite] pairs, return true if there is an order that lets you take every course.",
     example: "2 courses, [[1,0]] -> true;  [[1,0],[0,1]] -> false",
     signatures: {
-      python: "def can_finish(n, prereqs):\\n    # your code here\\n    pass\\n",
-      javascript: "function can_finish(n, prereqs) {\\n  // your code here\\n}\\n",
+      python: "def can_finish(n, prereqs):\n    # your code here\n    pass\n",
+      javascript: "function can_finish(n, prereqs) {\n  // your code here\n}\n",
     },
     tests: [
       { args: [2, [[1, 0]]], expected: true },
@@ -83,8 +83,8 @@ export const GRAPHS: Problem[] = [
       "In a grid, 0 is empty, 1 is a fresh orange and 2 is a rotten one. Each minute, every fresh orange horizontally or vertically adjacent to a rotten one also rots. Return the minutes until none are fresh, or -1 if some can never rot.",
     example: "[[2,1,1],[1,1,0],[0,1,1]] -> 4",
     signatures: {
-      python: "def oranges_rotting(grid):\\n    # your code here\\n    pass\\n",
-      javascript: "function oranges_rotting(grid) {\\n  // your code here\\n}\\n",
+      python: "def oranges_rotting(grid):\n    # your code here\n    pass\n",
+      javascript: "function oranges_rotting(grid) {\n  // your code here\n}\n",
     },
     tests: [
       { args: [[[2, 1, 1], [1, 1, 0], [0, 1, 1]]], expected: 4 },
@@ -107,8 +107,8 @@ export const GRAPHS: Problem[] = [
       "Given a grid of heights, water flows from a cell to a neighbour of equal or lower height. The top and left edges touch one ocean, the bottom and right edges touch another. Return the coordinates of every cell from which water can reach both oceans.",
     example: "a 5x5 height map -> the ridge cells",
     signatures: {
-      python: "def pacific_atlantic(heights):\\n    # your code here\\n    pass\\n",
-      javascript: "function pacific_atlantic(heights) {\\n  // your code here\\n}\\n",
+      python: "def pacific_atlantic(heights):\n    # your code here\n    pass\n",
+      javascript: "function pacific_atlantic(heights) {\n  // your code here\n}\n",
     },
     tests: [
       { args: [[[1, 2, 3], [8, 9, 4], [7, 6, 5]]], expected: [[0, 2], [1, 0], [1, 1], [1, 2], [2, 0], [2, 1], [2, 2]], unordered: true },

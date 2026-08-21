@@ -13,8 +13,8 @@ export const ARRAYS_HASHING: Problem[] = [
       "Given an array of integers and a target, return the indices of the two numbers that add up to the target. Each input has exactly one solution, and you may not use the same element twice.",
     example: "nums = [2, 7, 11, 15], target = 9 -> [0, 1]",
     signatures: {
-      python: "def two_sum(nums, target):\\n    # your code here\\n    pass\\n",
-      javascript: "function two_sum(nums, target) {\\n  // your code here\\n}\\n",
+      python: "def two_sum(nums, target):\n    # your code here\n    pass\n",
+      javascript: "function two_sum(nums, target) {\n  // your code here\n}\n",
     },
     tests: [
       { args: [[2, 7, 11, 15], 9], expected: [0, 1] },
@@ -37,8 +37,8 @@ export const ARRAYS_HASHING: Problem[] = [
       "Given an array of integers, return true if any value appears more than once, and false if every element is distinct.",
     example: "[1, 2, 3, 1] -> true",
     signatures: {
-      python: "def has_duplicate(nums):\\n    # your code here\\n    pass\\n",
-      javascript: "function has_duplicate(nums) {\\n  // your code here\\n}\\n",
+      python: "def has_duplicate(nums):\n    # your code here\n    pass\n",
+      javascript: "function has_duplicate(nums) {\n  // your code here\n}\n",
     },
     tests: [
       { args: [[1, 2, 3, 1]], expected: true },
@@ -61,8 +61,8 @@ export const ARRAYS_HASHING: Problem[] = [
       "Given two strings, return true if the second is a rearrangement of the first using exactly the same letters with the same counts.",
     example: "\"listen\", \"silent\" -> true",
     signatures: {
-      python: "def is_anagram(s, t):\\n    # your code here\\n    pass\\n",
-      javascript: "function is_anagram(s, t) {\\n  // your code here\\n}\\n",
+      python: "def is_anagram(s, t):\n    # your code here\n    pass\n",
+      javascript: "function is_anagram(s, t) {\n  // your code here\n}\n",
     },
     tests: [
       { args: ["listen", "silent"], expected: true },
@@ -85,8 +85,8 @@ export const ARRAYS_HASHING: Problem[] = [
       "Given a list of words, group together the words that are rearrangements of one another. Return the groups in any order.",
     example: "[\"eat\",\"tea\",\"tan\",\"ate\"] -> [[\"eat\",\"tea\",\"ate\"],[\"tan\"]]",
     signatures: {
-      python: "def group_anagrams(words):\\n    # your code here\\n    pass\\n",
-      javascript: "function group_anagrams(words) {\\n  // your code here\\n}\\n",
+      python: "def group_anagrams(words):\n    # your code here\n    pass\n",
+      javascript: "function group_anagrams(words) {\n  // your code here\n}\n",
     },
     tests: [
       { args: [["eat", "tea", "tan", "ate", "nat", "bat"]], expected: [["eat", "tea", "ate"], ["tan", "nat"], ["bat"]], unordered: true },
@@ -108,8 +108,8 @@ export const ARRAYS_HASHING: Problem[] = [
       "Given an array of integers and a number k, return the k values that occur most often. The order of the returned values does not matter.",
     example: "nums = [1,1,1,2,2,3], k = 2 -> [1, 2]",
     signatures: {
-      python: "def top_k_frequent(nums, k):\\n    # your code here\\n    pass\\n",
-      javascript: "function top_k_frequent(nums, k) {\\n  // your code here\\n}\\n",
+      python: "def top_k_frequent(nums, k):\n    # your code here\n    pass\n",
+      javascript: "function top_k_frequent(nums, k) {\n  // your code here\n}\n",
     },
     tests: [
       { args: [[1, 1, 1, 2, 2, 3], 2], expected: [1, 2], unordered: true },
@@ -131,8 +131,8 @@ export const ARRAYS_HASHING: Problem[] = [
       "Given an array of integers, return an array where each position holds the product of every other element. Solve it without using division.",
     example: "[1,2,3,4] -> [24,12,8,6]",
     signatures: {
-      python: "def product_except_self(nums):\\n    # your code here\\n    pass\\n",
-      javascript: "function product_except_self(nums) {\\n  // your code here\\n}\\n",
+      python: "def product_except_self(nums):\n    # your code here\n    pass\n",
+      javascript: "function product_except_self(nums) {\n  // your code here\n}\n",
     },
     tests: [
       { args: [[1, 2, 3, 4]], expected: [24, 12, 8, 6] },
@@ -154,8 +154,8 @@ export const ARRAYS_HASHING: Problem[] = [
       "Given an unsorted array of integers, find the length of the longest run of consecutive whole numbers present in the array. Aim for linear time.",
     example: "[100, 4, 200, 1, 3, 2] -> 4  (the run 1,2,3,4)",
     signatures: {
-      python: "def longest_consecutive(nums):\\n    # your code here\\n    pass\\n",
-      javascript: "function longest_consecutive(nums) {\\n  // your code here\\n}\\n",
+      python: "def longest_consecutive(nums):\n    # your code here\n    pass\n",
+      javascript: "function longest_consecutive(nums) {\n  // your code here\n}\n",
     },
     tests: [
       { args: [[100, 4, 200, 1, 3, 2]], expected: 4 },

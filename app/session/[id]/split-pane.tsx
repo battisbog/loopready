@@ -32,12 +32,33 @@ export default function SplitPane({
   const [dragging, setDragging] = useState(false);
   const hostRef = useRef<HTMLDivElement>(null);
 
+  const leftRef = useRef<HTMLDivElement>(null);
+  const liveRef = useRef(pct);
+
+  /**
+   * Writes the width straight to the DOM and coalesces to one write per frame.
+   *
+   * Setting React state on every pointermove re-rendered the editor and the
+   * video on each event, which is what made the drag feel heavy and laggy next
+   * to a native split pane. React only hears about it on release.
+   */
+  const frameRef = useRef(0);
   const onMove = useCallback((clientX: number) => {
     const host = hostRef.current;
     if (!host) return;
     const rect = host.getBoundingClientRect();
-    const next = ((clientX - rect.left) / rect.width) * 100;
-    setPct(Math.min(MAX, Math.max(MIN, next)));
+    const next = Math.min(
+      MAX,
+      Math.max(MIN, ((clientX - rect.left) / rect.width) * 100)
+    );
+    liveRef.current = next;
+    if (frameRef.current) return;
+    frameRef.current = requestAnimationFrame(() => {
+      frameRef.current = 0;
+      if (leftRef.current) {
+        leftRef.current.style.flexBasis = `${liveRef.current}%`;
+      }
+    });
   }, []);
 
   useEffect(() => {
@@ -45,11 +66,10 @@ export default function SplitPane({
     const move = (e: PointerEvent) => onMove(e.clientX);
     const up = () => {
       setDragging(false);
-      // Persist only on release, so a drag does not thrash localStorage.
-      setPct((p) => {
-        window.localStorage.setItem(KEY, String(Math.round(p)));
-        return p;
-      });
+      // Sync React to where the DOM actually ended up, once.
+      const final = liveRef.current;
+      setPct(final);
+      window.localStorage.setItem(KEY, String(Math.round(final)));
     };
     window.addEventListener("pointermove", move);
     window.addEventListener("pointerup", up);
@@ -66,7 +86,11 @@ export default function SplitPane({
 
   return (
     <div ref={hostRef} className="flex min-h-0 flex-1 flex-col lg:flex-row">
-      <div className="min-h-0 lg:h-full" style={{ flexBasis: `${pct}%` }}>
+      <div
+        ref={leftRef}
+        className="min-h-0 lg:h-full"
+        style={{ flexBasis: `${pct}%` }}
+      >
         {left}
       </div>
 
@@ -85,11 +109,12 @@ export default function SplitPane({
           e.preventDefault();
           setPct((p) => {
             const next = Math.min(MAX, Math.max(MIN, p + (e.key === "ArrowLeft" ? -2 : 2)));
+            liveRef.current = next;
             window.localStorage.setItem(KEY, String(Math.round(next)));
             return next;
           });
         }}
-        className={`group hidden w-1.5 shrink-0 cursor-col-resize items-center justify-center border-x border-line transition-colors lg:flex ${
+        className={`group relative hidden w-1 shrink-0 cursor-col-resize items-center justify-center border-x border-line lg:flex after:absolute after:inset-y-0 after:-left-2 after:-right-2 after:content-[""] ${
           dragging ? "bg-accent-muted" : "hover:bg-elevated"
         }`}
       >

@@ -13,8 +13,8 @@ export const DYNAMIC_PROGRAMMING: Problem[] = [
       "You are climbing a staircase of n steps and may take one or two steps at a time. Return how many distinct ways you can reach the top.",
     example: "n = 4 -> 5",
     signatures: {
-      python: "def climb_stairs(n):\\n    # your code here\\n    pass\\n",
-      javascript: "function climb_stairs(n) {\\n  // your code here\\n}\\n",
+      python: "def climb_stairs(n):\n    # your code here\n    pass\n",
+      javascript: "function climb_stairs(n) {\n  // your code here\n}\n",
     },
     tests: [
       { args: [2], expected: 2 },
@@ -37,8 +37,8 @@ export const DYNAMIC_PROGRAMMING: Problem[] = [
       "Given an array of non-negative numbers, choose a subset with the largest possible sum such that no two chosen entries are adjacent. Return that sum.",
     example: "[2,7,9,3,1] -> 12",
     signatures: {
-      python: "def rob(nums):\\n    # your code here\\n    pass\\n",
-      javascript: "function rob(nums) {\\n  // your code here\\n}\\n",
+      python: "def rob(nums):\n    # your code here\n    pass\n",
+      javascript: "function rob(nums) {\n  // your code here\n}\n",
     },
     tests: [
       { args: [[1, 2, 3, 1]], expected: 4 },
@@ -61,8 +61,8 @@ export const DYNAMIC_PROGRAMMING: Problem[] = [
       "Given coin denominations available in unlimited quantity and a target amount, return the fewest coins that sum exactly to the amount, or -1 if it cannot be made.",
     example: "coins [1,2,5], amount 11 -> 3",
     signatures: {
-      python: "def coin_change(coins, amount):\\n    # your code here\\n    pass\\n",
-      javascript: "function coin_change(coins, amount) {\\n  // your code here\\n}\\n",
+      python: "def coin_change(coins, amount):\n    # your code here\n    pass\n",
+      javascript: "function coin_change(coins, amount) {\n  // your code here\n}\n",
     },
     tests: [
       { args: [[1, 2, 5], 11], expected: 3 },
@@ -85,8 +85,8 @@ export const DYNAMIC_PROGRAMMING: Problem[] = [
       "Given an array of integers, return the length of the longest strictly increasing subsequence. The chosen elements need not be adjacent.",
     example: "[10,9,2,5,3,7,101,18] -> 4",
     signatures: {
-      python: "def length_of_lis(nums):\\n    # your code here\\n    pass\\n",
-      javascript: "function length_of_lis(nums) {\\n  // your code here\\n}\\n",
+      python: "def length_of_lis(nums):\n    # your code here\n    pass\n",
+      javascript: "function length_of_lis(nums) {\n  // your code here\n}\n",
     },
     tests: [
       { args: [[10, 9, 2, 5, 3, 7, 101, 18]], expected: 4 },
@@ -109,8 +109,8 @@ export const DYNAMIC_PROGRAMMING: Problem[] = [
       "Given a string and a dictionary of words, return true if the string can be split into a sequence of dictionary words. Words may be reused.",
     example: "\"applepen\", [\"apple\",\"pen\"] -> true",
     signatures: {
-      python: "def word_break(s, words):\\n    # your code here\\n    pass\\n",
-      javascript: "function word_break(s, words) {\\n  // your code here\\n}\\n",
+      python: "def word_break(s, words):\n    # your code here\n    pass\n",
+      javascript: "function word_break(s, words) {\n  // your code here\n}\n",
     },
     tests: [
       { args: ["applepen", ["apple", "pen"]], expected: true },
@@ -133,8 +133,8 @@ export const DYNAMIC_PROGRAMMING: Problem[] = [
       "A robot starts at the top-left of an m by n grid and may move only right or down. Return how many distinct paths reach the bottom-right corner.",
     example: "3 by 7 -> 28",
     signatures: {
-      python: "def unique_paths(m, n):\\n    # your code here\\n    pass\\n",
-      javascript: "function unique_paths(m, n) {\\n  // your code here\\n}\\n",
+      python: "def unique_paths(m, n):\n    # your code here\n    pass\n",
+      javascript: "function unique_paths(m, n) {\n  // your code here\n}\n",
     },
     tests: [
       { args: [3, 7], expected: 28 },
@@ -157,8 +157,8 @@ export const DYNAMIC_PROGRAMMING: Problem[] = [
       "Given two strings, return the fewest single-character insertions, deletions or substitutions needed to turn the first into the second.",
     example: "\"horse\" -> \"ros\" is 3",
     signatures: {
-      python: "def min_distance(a, b):\\n    # your code here\\n    pass\\n",
-      javascript: "function min_distance(a, b) {\\n  // your code here\\n}\\n",
+      python: "def min_distance(a, b):\n    # your code here\n    pass\n",
+      javascript: "function min_distance(a, b) {\n  // your code here\n}\n",
     },
     tests: [
       { args: ["horse", "ros"], expected: 3 },

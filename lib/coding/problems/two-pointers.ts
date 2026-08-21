@@ -13,8 +13,8 @@ export const TWO_POINTERS: Problem[] = [
       "Given a string, return true if it reads the same forwards and backwards once you ignore punctuation and spacing and treat upper and lower case as equal.",
     example: "\"A man, a plan, a canal: Panama\" -> true",
     signatures: {
-      python: "def is_palindrome(s):\\n    # your code here\\n    pass\\n",
-      javascript: "function is_palindrome(s) {\\n  // your code here\\n}\\n",
+      python: "def is_palindrome(s):\n    # your code here\n    pass\n",
+      javascript: "function is_palindrome(s) {\n  // your code here\n}\n",
     },
     tests: [
       { args: ["A man, a plan, a canal: Panama"], expected: true },
@@ -38,8 +38,8 @@ export const TWO_POINTERS: Problem[] = [
       "Given an array sorted in ascending order and a target, return the 1-based positions of the two values that sum to the target. Exactly one pair exists. Use constant extra space.",
     example: "[2,7,11,15], target 9 -> [1,2]",
     signatures: {
-      python: "def two_sum_sorted(nums, target):\\n    # your code here\\n    pass\\n",
-      javascript: "function two_sum_sorted(nums, target) {\\n  // your code here\\n}\\n",
+      python: "def two_sum_sorted(nums, target):\n    # your code here\n    pass\n",
+      javascript: "function two_sum_sorted(nums, target) {\n  // your code here\n}\n",
     },
     tests: [
       { args: [[2, 7, 11, 15], 9], expected: [1, 2] },
@@ -61,8 +61,8 @@ export const TWO_POINTERS: Problem[] = [
       "Given an array of integers, find every unique triple of values that sums to zero. Each triple should appear once regardless of the order its members were found in.",
     example: "[-1,0,1,2,-1,-4] -> [[-1,-1,2],[-1,0,1]]",
     signatures: {
-      python: "def three_sum(nums):\\n    # your code here\\n    pass\\n",
-      javascript: "function three_sum(nums) {\\n  // your code here\\n}\\n",
+      python: "def three_sum(nums):\n    # your code here\n    pass\n",
+      javascript: "function three_sum(nums) {\n  // your code here\n}\n",
     },
     tests: [
       { args: [[-1, 0, 1, 2, -1, -4]], expected: [[-1, -1, 2], [-1, 0, 1]], unordered: true },
@@ -85,8 +85,8 @@ export const TWO_POINTERS: Problem[] = [
       "You are given an array where each value is the height of a vertical line at that index. Pick two lines so that the rectangle they form with the horizontal axis holds the most water, and return that area.",
     example: "[1,8,6,2,5,4,8,3,7] -> 49",
     signatures: {
-      python: "def max_area(heights):\\n    # your code here\\n    pass\\n",
-      javascript: "function max_area(heights) {\\n  // your code here\\n}\\n",
+      python: "def max_area(heights):\n    # your code here\n    pass\n",
+      javascript: "function max_area(heights) {\n  // your code here\n}\n",
     },
     tests: [
       { args: [[1, 8, 6, 2, 5, 4, 8, 3, 7]], expected: 49 },

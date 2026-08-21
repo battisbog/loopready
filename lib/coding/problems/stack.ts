@@ -13,8 +13,8 @@ export const STACK: Problem[] = [
       "Given a string containing only the characters ()[]{}, determine if it is balanced. Brackets must close in the correct order and every closing bracket must match the most recent unclosed opening bracket of the same type.",
     example: "\"{[]}\" -> true,  \"(]\" -> false",
     signatures: {
-      python: "def is_valid(s):\\n    # your code here\\n    pass\\n",
-      javascript: "function is_valid(s) {\\n  // your code here\\n}\\n",
+      python: "def is_valid(s):\n    # your code here\n    pass\n",
+      javascript: "function is_valid(s) {\n  // your code here\n}\n",
     },
     tests: [
       { args: ["()"], expected: true },
@@ -40,8 +40,8 @@ export const STACK: Problem[] = [
       "Evaluate an arithmetic expression given in postfix order, where each token is either an integer or one of + - * /. Division truncates toward zero.",
     example: "[\"2\",\"1\",\"+\",\"3\",\"*\"] -> 9",
     signatures: {
-      python: "def eval_rpn(tokens):\\n    # your code here\\n    pass\\n",
-      javascript: "function eval_rpn(tokens) {\\n  // your code here\\n}\\n",
+      python: "def eval_rpn(tokens):\n    # your code here\n    pass\n",
+      javascript: "function eval_rpn(tokens) {\n  // your code here\n}\n",
     },
     tests: [
       { args: [["2", "1", "+", "3", "*"]], expected: 9 },
@@ -64,8 +64,8 @@ export const STACK: Problem[] = [
       "Given daily temperatures, return an array where each position holds how many days you must wait for a warmer temperature. Use 0 where no warmer day follows.",
     example: "[73,74,75,71,69,72,76,73] -> [1,1,4,2,1,1,0,0]",
     signatures: {
-      python: "def daily_temperatures(temps):\\n    # your code here\\n    pass\\n",
-      javascript: "function daily_temperatures(temps) {\\n  // your code here\\n}\\n",
+      python: "def daily_temperatures(temps):\n    # your code here\n    pass\n",
+      javascript: "function daily_temperatures(temps) {\n  // your code here\n}\n",
     },
     tests: [
       { args: [[73, 74, 75, 71, 69, 72, 76, 73]], expected: [1, 1, 4, 2, 1, 1, 0, 0] },
@@ -88,8 +88,8 @@ export const STACK: Problem[] = [
       "Given bar heights of a histogram where every bar has width 1, return the area of the largest rectangle that fits entirely inside the bars.",
     example: "[2,1,5,6,2,3] -> 10",
     signatures: {
-      python: "def largest_rectangle(heights):\\n    # your code here\\n    pass\\n",
-      javascript: "function largest_rectangle(heights) {\\n  // your code here\\n}\\n",
+      python: "def largest_rectangle(heights):\n    # your code here\n    pass\n",
+      javascript: "function largest_rectangle(heights) {\n  // your code here\n}\n",
     },
     tests: [
       { args: [[2, 1, 5, 6, 2, 3]], expected: 10 },
@@ -113,8 +113,8 @@ export const STACK: Problem[] = [
       "You are given a list of operations, each one of [\"push\", value], [\"pop\"], [\"top\"] or [\"min\"]. Apply them to a stack and return the results of the top and min operations in order. Every operation must run in constant time.",
     example: "[[\"push\",-2],[\"push\",0],[\"push\",-3],[\"min\"],[\"pop\"],[\"top\"],[\"min\"]] -> [-3,0,-2]",
     signatures: {
-      python: "def min_stack_results(ops):\\n    # your code here\\n    pass\\n",
-      javascript: "function min_stack_results(ops) {\\n  // your code here\\n}\\n",
+      python: "def min_stack_results(ops):\n    # your code here\n    pass\n",
+      javascript: "function min_stack_results(ops) {\n  // your code here\n}\n",
     },
     tests: [
       { args: [[["push", -2], ["push", 0], ["push", -3], ["min"], ["pop"], ["top"], ["min"]]], expected: [-3, 0, -2] },

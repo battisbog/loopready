@@ -13,8 +13,8 @@ export const HEAP: Problem[] = [
       "Given an unsorted array of integers and a number k, return the kth largest value counting duplicates as separate entries.",
     example: "[3,2,1,5,6,4], k = 2 -> 5",
     signatures: {
-      python: "def find_kth_largest(nums, k):\\n    # your code here\\n    pass\\n",
-      javascript: "function find_kth_largest(nums, k) {\\n  // your code here\\n}\\n",
+      python: "def find_kth_largest(nums, k):\n    # your code here\n    pass\n",
+      javascript: "function find_kth_largest(nums, k) {\n  // your code here\n}\n",
     },
     tests: [
       { args: [[3, 2, 1, 5, 6, 4], 2], expected: 5 },
@@ -36,8 +36,8 @@ export const HEAP: Problem[] = [
       "Given a list of [x, y] points and a number k, return the k points nearest to the origin. The order of the returned points does not matter.",
     example: "[[1,3],[-2,2]], k = 1 -> [[-2,2]]",
     signatures: {
-      python: "def k_closest(points, k):\\n    # your code here\\n    pass\\n",
-      javascript: "function k_closest(points, k) {\\n  // your code here\\n}\\n",
+      python: "def k_closest(points, k):\n    # your code here\n    pass\n",
+      javascript: "function k_closest(points, k) {\n  // your code here\n}\n",
     },
     tests: [
       { args: [[[1, 3], [-2, 2]], 1], expected: [[-2, 2]], unordered: true },
@@ -58,8 +58,8 @@ export const HEAP: Problem[] = [
       "Given a list of task labels and a cooldown n, each unit of time runs one task or idles. The same label cannot run again until n units have passed. Return the fewest units of time needed to run every task.",
     example: "[\"A\",\"A\",\"A\",\"B\",\"B\",\"B\"], n = 2 -> 8",
     signatures: {
-      python: "def least_interval(tasks, n):\\n    # your code here\\n    pass\\n",
-      javascript: "function least_interval(tasks, n) {\\n  // your code here\\n}\\n",
+      python: "def least_interval(tasks, n):\n    # your code here\n    pass\n",
+      javascript: "function least_interval(tasks, n) {\n  // your code here\n}\n",
     },
     tests: [
       { args: [["A", "A", "A", "B", "B", "B"], 2], expected: 8 },

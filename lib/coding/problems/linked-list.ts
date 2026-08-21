@@ -13,8 +13,8 @@ export const LINKED_LIST: Problem[] = [
       "A singly linked list is given to you as an array of its values in order. Return an array of the values in reversed order. Discuss the pointer manipulation you would use on real nodes.",
     example: "[1,2,3,4,5] -> [5,4,3,2,1]",
     signatures: {
-      python: "def reverse_list(values):\\n    # your code here\\n    pass\\n",
-      javascript: "function reverse_list(values) {\\n  // your code here\\n}\\n",
+      python: "def reverse_list(values):\n    # your code here\n    pass\n",
+      javascript: "function reverse_list(values) {\n  // your code here\n}\n",
     },
     tests: [
       { args: [[1, 2, 3, 4, 5]], expected: [5, 4, 3, 2, 1] },
@@ -36,8 +36,8 @@ export const LINKED_LIST: Problem[] = [
       "Two sorted linked lists are given as arrays of their values. Return one sorted array containing every value from both.",
     example: "[1,2,4], [1,3,4] -> [1,1,2,3,4,4]",
     signatures: {
-      python: "def merge_sorted(a, b):\\n    # your code here\\n    pass\\n",
-      javascript: "function merge_sorted(a, b) {\\n  // your code here\\n}\\n",
+      python: "def merge_sorted(a, b):\n    # your code here\n    pass\n",
+      javascript: "function merge_sorted(a, b) {\n  // your code here\n}\n",
     },
     tests: [
       { args: [[1, 2, 4], [1, 3, 4]], expected: [1, 1, 2, 3, 4, 4] },
@@ -59,8 +59,8 @@ export const LINKED_LIST: Problem[] = [
       "A linked list is described by an array of values plus an index that the last node points back to, or -1 for no cycle. Return true if the list contains a cycle. Explain how you would do it with constant extra space.",
     example: "values = [3,2,0,-4], tail connects to index 1 -> true",
     signatures: {
-      python: "def has_cycle(values, tail_index):\\n    # your code here\\n    pass\\n",
-      javascript: "function has_cycle(values, tail_index) {\\n  // your code here\\n}\\n",
+      python: "def has_cycle(values, tail_index):\n    # your code here\n    pass\n",
+      javascript: "function has_cycle(values, tail_index) {\n  // your code here\n}\n",
     },
     tests: [
       { args: [[3, 2, 0, -4], 1], expected: true },
@@ -83,8 +83,8 @@ export const LINKED_LIST: Problem[] = [
       "Given a linked list as an array of values and a number n, remove the nth node counting from the end and return the remaining values. Aim to do it in a single pass.",
     example: "[1,2,3,4,5], n = 2 -> [1,2,3,5]",
     signatures: {
-      python: "def remove_nth(values, n):\\n    # your code here\\n    pass\\n",
-      javascript: "function remove_nth(values, n) {\\n  // your code here\\n}\\n",
+      python: "def remove_nth(values, n):\n    # your code here\n    pass\n",
+      javascript: "function remove_nth(values, n) {\n  // your code here\n}\n",
     },
     tests: [
       { args: [[1, 2, 3, 4, 5], 2], expected: [1, 2, 3, 5] },
@@ -107,8 +107,8 @@ export const LINKED_LIST: Problem[] = [
       "You are given several sorted linked lists, each as an array of its values. Return one sorted array containing every value from all of them.",
     example: "[[1,4,5],[1,3,4],[2,6]] -> [1,1,2,3,4,4,5,6]",
     signatures: {
-      python: "def merge_k(lists):\\n    # your code here\\n    pass\\n",
-      javascript: "function merge_k(lists) {\\n  // your code here\\n}\\n",
+      python: "def merge_k(lists):\n    # your code here\n    pass\n",
+      javascript: "function merge_k(lists) {\n  // your code here\n}\n",
     },
     tests: [
       { args: [[[1, 4, 5], [1, 3, 4], [2, 6]]], expected: [1, 1, 2, 3, 4, 4, 5, 6] },
@@ -131,8 +131,8 @@ export const LINKED_LIST: Problem[] = [
       "A linked list is given as an array of its values. Reorder it by interleaving the first half with the reversed second half: first element, last element, second element, second-to-last, and so on. Return the resulting array.",
     example: "[1,2,3,4,5] -> [1,5,2,4,3]",
     signatures: {
-      python: "def reorder(values):\\n    # your code here\\n    pass\\n",
-      javascript: "function reorder(values) {\\n  // your code here\\n}\\n",
+      python: "def reorder(values):\n    # your code here\n    pass\n",
+      javascript: "function reorder(values) {\n  // your code here\n}\n",
     },
     tests: [
       { args: [[1, 2, 3, 4]], expected: [1, 4, 2, 3] },
@@ -155,8 +155,8 @@ export const LINKED_LIST: Problem[] = [
       "You are given a capacity and a list of operations, each either [\"put\", key, value] or [\"get\", key]. Apply them to a cache that evicts the least recently used entry once it is over capacity. Both get and put count as a use. Return the list of results from the get operations, using -1 for a miss.",
     example: "capacity 2, [[\"put\",1,1],[\"put\",2,2],[\"get\",1],[\"put\",3,3],[\"get\",2]] -> [1,-1]",
     signatures: {
-      python: "def lru_results(capacity, ops):\\n    # your code here\\n    pass\\n",
-      javascript: "function lru_results(capacity, ops) {\\n  // your code here\\n}\\n",
+      python: "def lru_results(capacity, ops):\n    # your code here\n    pass\n",
+      javascript: "function lru_results(capacity, ops) {\n  // your code here\n}\n",
     },
     tests: [
       { args: [2, [["put", 1, 1], ["put", 2, 2], ["get", 1], ["put", 3, 3], ["get", 2]]], expected: [1, -1] },

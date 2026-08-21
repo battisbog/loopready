@@ -13,8 +13,8 @@ export const GREEDY: Problem[] = [
       "Given an array of integers, return the largest sum obtainable from any contiguous non-empty run of elements.",
     example: "[-2,1,-3,4,-1,2,1,-5,4] -> 6",
     signatures: {
-      python: "def max_subarray(nums):\\n    # your code here\\n    pass\\n",
-      javascript: "function max_subarray(nums) {\\n  // your code here\\n}\\n",
+      python: "def max_subarray(nums):\n    # your code here\n    pass\n",
+      javascript: "function max_subarray(nums) {\n  // your code here\n}\n",
     },
     tests: [
       { args: [[-2, 1, -3, 4, -1, 2, 1, -5, 4]], expected: 6 },
@@ -37,8 +37,8 @@ export const GREEDY: Problem[] = [
       "Given an array where each value is the maximum number of positions you may advance from that index, starting at index 0, return true if you can reach the final index.",
     example: "[2,3,1,1,4] -> true;  [3,2,1,0,4] -> false",
     signatures: {
-      python: "def can_jump(nums):\\n    # your code here\\n    pass\\n",
-      javascript: "function can_jump(nums) {\\n  // your code here\\n}\\n",
+      python: "def can_jump(nums):\n    # your code here\n    pass\n",
+      javascript: "function can_jump(nums) {\n  // your code here\n}\n",
     },
     tests: [
       { args: [[2, 3, 1, 1, 4]], expected: true },
@@ -61,8 +61,8 @@ export const GREEDY: Problem[] = [
       "Stations are arranged in a circle. Each has an amount of fuel available and a cost to travel to the next one. Starting empty, return the index you must begin at to complete one full loop, or -1 if no start works. A solution is unique when it exists.",
     example: "gas [1,2,3,4,5], cost [3,4,5,1,2] -> 3",
     signatures: {
-      python: "def can_complete_circuit(gas, cost):\\n    # your code here\\n    pass\\n",
-      javascript: "function can_complete_circuit(gas, cost) {\\n  // your code here\\n}\\n",
+      python: "def can_complete_circuit(gas, cost):\n    # your code here\n    pass\n",
+      javascript: "function can_complete_circuit(gas, cost) {\n  // your code here\n}\n",
     },
     tests: [
       { args: [[1, 2, 3, 4, 5], [3, 4, 5, 1, 2]], expected: 3 },
@@ -84,8 +84,8 @@ export const GREEDY: Problem[] = [
       "Given a string, split it into the largest possible number of contiguous pieces so that no letter appears in more than one piece. Return the length of each piece in order.",
     example: "\"ababcbacadefegde\" -> [9, 7]",
     signatures: {
-      python: "def partition_labels(s):\\n    # your code here\\n    pass\\n",
-      javascript: "function partition_labels(s) {\\n  // your code here\\n}\\n",
+      python: "def partition_labels(s):\n    # your code here\n    pass\n",
+      javascript: "function partition_labels(s) {\n  // your code here\n}\n",
     },
     tests: [
       { args: ["ababcbacadefegdehijhklij"], expected: [9, 7, 8] },

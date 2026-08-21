@@ -13,8 +13,8 @@ export const BACKTRACKING: Problem[] = [
       "Given an array of distinct integers, return every possible subset including the empty one. The order of the subsets does not matter.",
     example: "[1,2] -> [[],[1],[2],[1,2]]",
     signatures: {
-      python: "def subsets(nums):\\n    # your code here\\n    pass\\n",
-      javascript: "function subsets(nums) {\\n  // your code here\\n}\\n",
+      python: "def subsets(nums):\n    # your code here\n    pass\n",
+      javascript: "function subsets(nums) {\n  // your code here\n}\n",
     },
     tests: [
       { args: [[1, 2]], expected: [[], [1], [2], [1, 2]], unordered: true },
@@ -36,8 +36,8 @@ export const BACKTRACKING: Problem[] = [
       "Given an array of distinct integers, return every ordering of them. The order of the results does not matter.",
     example: "[1,2,3] -> six orderings",
     signatures: {
-      python: "def permutations(nums):\\n    # your code here\\n    pass\\n",
-      javascript: "function permutations(nums) {\\n  // your code here\\n}\\n",
+      python: "def permutations(nums):\n    # your code here\n    pass\n",
+      javascript: "function permutations(nums) {\n  // your code here\n}\n",
     },
     tests: [
       { args: [[1, 2, 3]], expected: [[1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1]], unordered: true },
@@ -59,8 +59,8 @@ export const BACKTRACKING: Problem[] = [
       "Given distinct positive integers and a target, return every unique combination that sums to the target. A number may be reused any number of times. Combinations differing only in order count as the same.",
     example: "[2,3,6,7], target 7 -> [[2,2,3],[7]]",
     signatures: {
-      python: "def combination_sum(nums, target):\\n    # your code here\\n    pass\\n",
-      javascript: "function combination_sum(nums, target) {\\n  // your code here\\n}\\n",
+      python: "def combination_sum(nums, target):\n    # your code here\n    pass\n",
+      javascript: "function combination_sum(nums, target) {\n  // your code here\n}\n",
     },
     tests: [
       { args: [[2, 3, 6, 7], 7], expected: [[2, 2, 3], [7]], unordered: true },
@@ -82,8 +82,8 @@ export const BACKTRACKING: Problem[] = [
       "Given a count n, return every string of n opening and n closing brackets that is balanced. The order of the results does not matter.",
     example: "n = 2 -> [\"(())\",\"()()\"]",
     signatures: {
-      python: "def generate_parens(n):\\n    # your code here\\n    pass\\n",
-      javascript: "function generate_parens(n) {\\n  // your code here\\n}\\n",
+      python: "def generate_parens(n):\n    # your code here\n    pass\n",
+      javascript: "function generate_parens(n) {\n  // your code here\n}\n",
     },
     tests: [
       { args: [2], expected: ["(())", "()()"], unordered: true },

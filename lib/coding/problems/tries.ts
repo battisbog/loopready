@@ -13,8 +13,8 @@ export const TRIES: Problem[] = [
       "Given a list of words, return the longest starting string that all of them share. Return an empty string if there is none.",
     example: "[\"flower\",\"flow\",\"flight\"] -> \"fl\"",
     signatures: {
-      python: "def longest_common_prefix(words):\\n    # your code here\\n    pass\\n",
-      javascript: "function longest_common_prefix(words) {\\n  // your code here\\n}\\n",
+      python: "def longest_common_prefix(words):\n    # your code here\n    pass\n",
+      javascript: "function longest_common_prefix(words) {\n  // your code here\n}\n",
     },
     tests: [
       { args: [["flower", "flow", "flight"]], expected: "fl" },
@@ -37,8 +37,8 @@ export const TRIES: Problem[] = [
       "Given a dictionary of words and a list of prefixes, return for each prefix how many dictionary words start with it. Assume the prefix list is long, so preprocessing the dictionary is worthwhile.",
     example: "words [\"apple\",\"app\",\"apt\"], prefixes [\"ap\",\"app\"] -> [3, 2]",
     signatures: {
-      python: "def count_by_prefix(words, prefixes):\\n    # your code here\\n    pass\\n",
-      javascript: "function count_by_prefix(words, prefixes) {\\n  // your code here\\n}\\n",
+      python: "def count_by_prefix(words, prefixes):\n    # your code here\n    pass\n",
+      javascript: "function count_by_prefix(words, prefixes) {\n  // your code here\n}\n",
     },
     tests: [
       { args: [["apple", "app", "apt"], ["ap", "app"]], expected: [3, 2] },
@@ -60,8 +60,8 @@ export const TRIES: Problem[] = [
       "Given a grid of letters and a list of target words, return which of those words can be spelled by walking between horizontally or vertically adjacent cells without reusing a cell in a single word.",
     example: "grid [[\"o\",\"a\"],[\"e\",\"t\"]], words [\"oat\",\"ate\"] -> [\"oat\",\"ate\"]",
     signatures: {
-      python: "def find_words(grid, words):\\n    # your code here\\n    pass\\n",
-      javascript: "function find_words(grid, words) {\\n  // your code here\\n}\\n",
+      python: "def find_words(grid, words):\n    # your code here\n    pass\n",
+      javascript: "function find_words(grid, words) {\n  // your code here\n}\n",
     },
     tests: [
       { args: [[["o", "a"], ["e", "t"]], ["oat", "ate", "tea", "zzz"]], expected: ["oat", "ate"], unordered: true },

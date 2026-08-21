@@ -1602,9 +1602,11 @@ def emit():
             f"export const {pat.replace('-', '_').upper()}: Problem[] = [",
         ]
         for p in items:
-            py_sig = f"def {p['fn']}({p['params']}):\\n    # your code here\\n    pass\\n"
+            # REAL newlines. Using "\\n" here emits a literal backslash-n into
+            # the TypeScript, which Monaco then shows as \\n on one line.
+            py_sig = "def %s(%s):\n    # your code here\n    pass\n" % (p["fn"], p["params"])
             js_params = ", ".join(x.strip() for x in p["params"].split(","))
-            js_sig = f"function {p['fn']}({js_params}) {{\\n  // your code here\\n}}\\n"
+            js_sig = "function %s(%s) {\n  // your code here\n}\n" % (p["fn"], js_params)
             tests = ",\n".join(
                 f"      {{ args: {ts_value(a)}, expected: {ts_value(e)}"
                 + (", unordered: true" if p.get("unordered") else "")
