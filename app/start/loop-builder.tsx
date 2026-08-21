@@ -40,24 +40,33 @@ export default function LoopBuilder({
   credits: number;
 }) {
   const types = ROUND_TYPES.filter((t) => ROUND_IMPLEMENTED[t]);
-  const mode: RoundMode = plan[0]?.mode ?? "voice";
+  const modeOf = (t: RoundType): RoundMode =>
+    plan.find((r) => r.roundType === t)?.mode ?? "voice";
   const cost = planCost(plan);
   const overBudget = cost.creditsNeeded > credits;
 
   const countOf = (t: RoundType) => plan.filter((r) => r.roundType === t).length;
 
-  function rebuild(counts: Map<RoundType, number>, nextMode: RoundMode) {
+  function rebuild(
+    counts: Map<RoundType, number>,
+    modes: Map<RoundType, RoundMode>
+  ) {
     const next: PlannedRound[] = [];
     for (const t of types) {
       for (let i = 0; i < (counts.get(t) ?? 0); i++) {
-        next.push({ roundType: t, mode: nextMode });
+        next.push({ roundType: t, mode: modes.get(t) ?? "voice" });
       }
     }
     setPlan(next.slice(0, MAX_ROUNDS_PER_LOOP));
   }
 
+  const snapshot = () => ({
+    counts: new Map(types.map((x) => [x, countOf(x)])),
+    modes: new Map(types.map((x) => [x, modeOf(x)])),
+  });
+
   function setCount(t: RoundType, next: number) {
-    const counts = new Map(types.map((x) => [x, countOf(x)]));
+    const { counts, modes } = snapshot();
     const others = types
       .filter((x) => x !== t)
       .reduce((sum, x) => sum + (counts.get(x) ?? 0), 0);
@@ -65,7 +74,16 @@ export default function LoopBuilder({
       t,
       Math.max(0, Math.min(next, MAX_PER_ROUND_TYPE, MAX_ROUNDS_PER_LOOP - others))
     );
-    rebuild(counts, mode);
+    rebuild(counts, modes);
+  }
+
+  function setMode(t: RoundType, m: RoundMode) {
+    const { counts, modes } = snapshot();
+    modes.set(t, m);
+    // Picking a mode for a round you have not added is a dead click, so it
+    // adds one instead of doing nothing.
+    if ((counts.get(t) ?? 0) === 0) counts.set(t, 1);
+    rebuild(counts, modes);
   }
 
   return (
@@ -81,7 +99,27 @@ export default function LoopBuilder({
             <span className={`text-sm ${n > 0 ? "text-primary" : "text-secondary"}`}>
               {LABEL[t] ?? t}
             </span>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-3">
+              {videoEnabled && (
+                <div className="flex overflow-hidden rounded-md border border-line">
+                  {(["voice", "video"] as const).map((m) => (
+                    <button
+                      key={m}
+                      type="button"
+                      aria-label={`${LABEL[t]} rounds use ${m}`}
+                      onClick={() => setMode(t, m)}
+                      className={`px-2 py-1 text-xs transition-colors ${
+                        modeOf(t) === m && n > 0
+                          ? "bg-accent-muted text-accent"
+                          : "text-muted hover:text-secondary"
+                      }`}
+                    >
+                      {m === "voice" ? "Voice" : "Video"}
+                    </button>
+                  ))}
+                </div>
+              )}
+              <div className="flex items-center gap-1">
               <button
                 type="button"
                 aria-label={`One fewer ${LABEL[t]} round`}
@@ -107,34 +145,11 @@ export default function LoopBuilder({
               >
                 +
               </button>
+              </div>
             </div>
           </div>
         );
       })}
-
-      {videoEnabled && (
-        <div className="flex items-center justify-between pt-4">
-          <span className="text-sm text-secondary">Interviewer</span>
-          <div className="flex gap-1">
-            {(["voice", "video"] as const).map((m) => (
-              <button
-                key={m}
-                type="button"
-                onClick={() =>
-                  rebuild(new Map(types.map((x) => [x, countOf(x)])), m)
-                }
-                className={`rounded-md border px-2.5 py-1 text-xs transition-colors ${
-                  mode === m
-                    ? "border-accent-border bg-accent-muted text-accent"
-                    : "border-line text-secondary hover:border-line-strong"
-                }`}
-              >
-                {m === "voice" ? "Voice" : "Video"}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
 
       <p
         className={`pt-3 text-xs ${overBudget ? "text-error" : "text-muted"}`}
