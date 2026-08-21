@@ -1,4 +1,7 @@
-import type { InterviewContext } from "@/lib/interview/companies";
+import {
+  GENERIC_DISPLAY_NAME,
+  type InterviewContext,
+} from "@/lib/interview/companies";
 import { QUESTIONS, type Question } from "@/lib/interview/questions";
 import {
   MAX_FOLLOWUPS,
@@ -358,7 +361,7 @@ export function buildGreeting(
   ctx: InterviewContext | null
 ): string {
   const name = ctx?.profile.displayName;
-  const where = name && name !== "Generic FAANG" ? ` at ${name}` : "";
+  const where = name && name !== GENERIC_DISPLAY_NAME ? ` at ${name}` : "";
   const level = ctx?.levelLabel ? ` for a ${ctx.levelLabel} role` : "";
 
   const round =
@@ -407,7 +410,7 @@ export function buildSpokenGreeting(
   interviewerName = "Sam"
 ): string {
   const company = ctx?.profile.displayName;
-  const where = company && company !== "Generic FAANG" ? ` here at ${company}` : "";
+  const where = company && company !== GENERIC_DISPLAY_NAME ? ` here at ${company}` : "";
   const level = ctx?.levelLabel ? ` for the ${ctx.levelLabel} role` : "";
 
   const round =

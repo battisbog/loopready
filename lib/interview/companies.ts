@@ -23,6 +23,16 @@ export const TIER_GUIDANCE: Record<Tier, string> = {
     "Expect org-level or multi-team impact, navigating ambiguity without direction, influencing peers and leadership without authority, and raising the bar for others (mentoring, standards, mechanisms). A well-executed solo project is below this bar — probe for blast radius beyond their own work.",
 };
 
+/**
+ * The company-agnostic option's label.
+ *
+ * Exported because several prompts decide whether to say "at <company>" by
+ * comparing against it. Hardcoding the string in five files meant renaming it
+ * would have had the interviewer introduce themselves as working "at Any
+ * company".
+ */
+export const GENERIC_DISPLAY_NAME = "Any company";
+
 export const COMPANY_PROFILES: Record<string, CompanyProfile> = {
   amazon: {
     displayName: "Amazon",
@@ -167,13 +177,13 @@ export const COMPANY_PROFILES: Record<string, CompanyProfile> = {
     competencyEmphasis: ["conflict", "failure", "ambiguity", "leadership"],
   },
   generic: {
-    displayName: "Generic FAANG",
+    displayName: GENERIC_DISPLAY_NAME,
     behavioralStyle:
-      "A composite top-tier bar: probe individual ownership, measurable impact, honest failure handling, and influence without authority, the way a calibrated interviewer at any of the big five would.",
+      "A strong, company-agnostic bar. Probe individual ownership over team narrative, the reasoning behind decisions, measurable impact, honest handling of failure, and how they work with people who disagree with them. Hold a high standard without leaning on any one company's named values or rubric.",
     codingStyle:
-      "Standard DSA interview: communication of approach before code, correctness, complexity, edge cases.",
+      "A solid engineering interview: approach and trade-offs stated before code, correct and readable implementation, complexity understood rather than recited, and edge cases considered unprompted. Judgement about the right solution for the problem matters more than reaching for the cleverest one.",
     systemDesignStyle:
-      "Standard large-scale design: requirements, estimation, data model, bottlenecks, trade-offs.",
+      "A practical design discussion: clarify requirements and scale before designing, size things with real numbers, justify the data model and storage choices, and reason about failure modes and bottlenecks. Sensible, defensible engineering rather than maximum scale for its own sake.",
     levels: {
       junior: { label: "Junior (0-2 yrs)", tier: "junior" },
       mid: { label: "Mid-level (2-5 yrs)", tier: "mid" },
@@ -184,7 +194,7 @@ export const COMPANY_PROFILES: Record<string, CompanyProfile> = {
       "Impact",
       "Collaboration",
       "Dealing with ambiguity",
-      "Raising the bar",
+      "Sound engineering judgement",
     ],
     competencyEmphasis: ["ownership", "conflict", "failure", "delivery"],
   },

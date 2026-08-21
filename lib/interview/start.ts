@@ -1,3 +1,4 @@
+import { GENERIC_DISPLAY_NAME } from "./companies";
 import { generateText } from "ai";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { interviewModel } from "@/lib/ai";
@@ -45,7 +46,7 @@ async function generateGreeting(
   }
   // Never block the start of an interview on the model.
   const where =
-    companyName && companyName !== "Generic FAANG" ? ` at ${companyName}` : "";
+    companyName && companyName !== GENERIC_DISPLAY_NAME ? ` at ${companyName}` : "";
   return `Hi, thanks for joining. I'm a senior engineer${where}, and I'll be running your interview today. Before we start, tell me a bit about yourself and what you've been working on recently.`;
 }
 

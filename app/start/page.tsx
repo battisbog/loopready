@@ -9,19 +9,22 @@ import { COMPANY_PROFILES } from "@/lib/interview/companies";
 import LoopBuilder from "./loop-builder";
 import { planCost, type PlannedRound } from "@/lib/interview/loop-plan";
 
+// "generic" leads and is the default: most people practising are not targeting
+// one named company, and burying the company-agnostic option last implied you
+// had to pick a FAANG to get started.
 const COMPANY_KEYS = [
+  "generic",
   "amazon",
   "google",
   "meta",
   "microsoft",
   "apple",
   "netflix",
-  "generic",
 ];
 
 export default function StartPage() {
   const router = useRouter();
-  const [company, setCompany] = useState("amazon");
+  const [company, setCompany] = useState("generic");
   const [level, setLevel] = useState("sde2");
   const [plan, setPlan] = useState<PlannedRound[]>([
     { roundType: "behavioral", mode: "voice" },

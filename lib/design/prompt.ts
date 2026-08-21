@@ -1,4 +1,4 @@
-import { TIER_GUIDANCE, type InterviewContext } from "@/lib/interview/companies";
+import { TIER_GUIDANCE, type InterviewContext, GENERIC_DISPLAY_NAME } from "@/lib/interview/companies";
 import { INTERVIEWER_STANCE, STUCK_RULE } from "@/lib/interview/stance";
 import type { DesignPrompt } from "./prompts";
 
@@ -105,7 +105,7 @@ export function designOpening(
   companyName?: string
 ): string {
   const where =
-    companyName && companyName !== "Generic FAANG" ? ` at ${companyName}` : "";
+    companyName && companyName !== GENERIC_DISPLAY_NAME ? ` at ${companyName}` : "";
   return `Hi, thanks for joining. I'm a senior engineer${where} and I'll be running your system design round. Here's the prompt: ${design.statement} Take a minute. Before you draw anything, tell me what questions you have about the requirements and scale.`;
 }
 

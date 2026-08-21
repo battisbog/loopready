@@ -1,4 +1,4 @@
-import { TIER_GUIDANCE, type InterviewContext } from "@/lib/interview/companies";
+import { TIER_GUIDANCE, type InterviewContext, GENERIC_DISPLAY_NAME } from "@/lib/interview/companies";
 import { INTERVIEWER_STANCE, STUCK_RULE } from "@/lib/interview/stance";
 import type { Problem } from "./problems";
 
@@ -93,7 +93,7 @@ ${STUCK_RULE}`;
 }
 
 export function codingOpening(problem: Problem, companyName?: string): string {
-  const where = companyName && companyName !== "Generic FAANG" ? ` at ${companyName}` : "";
+  const where = companyName && companyName !== GENERIC_DISPLAY_NAME ? ` at ${companyName}` : "";
   return `Hi, thanks for joining. I'm a senior engineer${where} and I'll be running your coding round. Here's the problem: ${problem.statement} For example, ${problem.example}. Before you start typing, walk me through how you're thinking about it.`;
 }
 
