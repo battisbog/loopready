@@ -28,6 +28,12 @@ import {
   videoAvailable,
 } from "@/lib/video/config";
 import { createConversation, endConversation } from "@/lib/video/tavus";
+import {
+  DEMO_SECONDS,
+  consumeDemoUse,
+  demoExhaustedMessage,
+  isDemoAccount,
+} from "@/lib/demo/gate";
 import { getSiteUrl } from "@/lib/site-url";
 
 export const maxDuration = 60;
@@ -81,9 +87,31 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Session is not active" }, { status: 409 });
   }
 
-  // 2. Entitlement and credits, before spending anything.
+  // 2a. The shared demo account. Checked BEFORE entitlements, because it does
+  //     not hold video credits and must not be judged by them; its budget is
+  //     the lifetime cap instead. Consuming here, before the Tavus call, means
+  //     a refused demo costs nothing.
+  const demo = isDemoAccount(user.email);
+  if (demo) {
+    const gate = await consumeDemoUse(admin);
+    console.log(
+      `[demo] video attempt: allowed=${gate.allowed} used=${gate.used}/${gate.cap} disabled=${gate.disabled}`
+    );
+    if (!gate.allowed) {
+      return NextResponse.json(
+        {
+          error: demoExhaustedMessage(gate.disabled),
+          demoExhausted: true,
+          signUpUrl: "/pricing",
+        },
+        { status: 403 }
+      );
+    }
+  }
+
+  // 2b. Entitlement and credits, before spending anything.
   const ent = await getEntitlements(admin, user.id);
-  if (!ent.canUseVideo) return outOfVideoCredits(ent);
+  if (!demo && !ent.canUseVideo) return outOfVideoCredits(ent);
   if (
     ent.openReservationSessionId &&
     ent.openReservationSessionId !== sessionId
@@ -107,7 +135,9 @@ export async function POST(request: Request) {
   // 4. Reserve BEFORE calling Tavus. Reserving after a successful create would
   //    leave a billable room running with no credit attached if the reserve
   //    then failed.
-  const reserved = await reserveVideoCredit(admin, user.id, sessionId);
+  const reserved = demo
+    ? ({ ok: true as const, remaining: undefined })
+    : await reserveVideoCredit(admin, user.id, sessionId);
   if (!reserved.ok) {
     return NextResponse.json(
       { error: "Could not reserve a video credit.", reason: reserved.reason },
@@ -157,7 +187,7 @@ This session ends automatically after ${VIDEO_SESSION_MAX_MINUTES} minutes. At
 around ${VIDEO_WRAP_UP_MINUTES} minutes, begin closing: finish the current
 thread, thank them, and stop. Never leave them mid-answer with no ending.`;
   } catch (e) {
-    await releaseVideoCredit(admin, user.id, sessionId);
+    if (!demo) await releaseVideoCredit(admin, user.id, sessionId);
     return NextResponse.json(
       { error: e instanceof Error ? e.message : "Cannot start round" },
       { status: 409 }
@@ -173,12 +203,15 @@ thread, thank them, and stop. Never leave them mid-answer with no ending.`;
       // the actual words, never our instruction text.
       greeting: greet ? buildSpokenGreeting(session, ctx) : undefined,
       sessionId,
-      maxMinutes: VIDEO_SESSION_MAX_MINUTES,
+      // Tavus enforces this server-side; a tampered client cannot extend it.
+      maxMinutes: demo ? DEMO_SECONDS / 60 : VIDEO_SESSION_MAX_MINUTES,
       callbackUrl: `${getSiteUrl()}/api/video/callback`,
     });
   } catch (e) {
     // The room never came up, so the candidate keeps their credit.
-    const released = await releaseVideoCredit(admin, user.id, sessionId);
+    const released = demo
+      ? { ok: true }
+      : await releaseVideoCredit(admin, user.id, sessionId);
     console.error(
       `[video] create failed for session=${sessionId}, credit released=${released.ok}:`,
       e
@@ -201,7 +234,7 @@ thread, thank them, and stop. Never leave them mid-answer with no ending.`;
   if (saveError) {
     // We cannot track a room we failed to record, so do not leave it billing.
     await endConversation(conversation.conversationId);
-    await releaseVideoCredit(admin, user.id, sessionId);
+    if (!demo) await releaseVideoCredit(admin, user.id, sessionId);
     console.error("[video] could not persist conversation id:", saveError);
     return NextResponse.json(
       { error: "Could not start the video interview. Your credit was not used." },
@@ -218,8 +251,11 @@ thread, thank them, and stop. Never leave them mid-answer with no ending.`;
   return NextResponse.json({
     conversationUrl: conversation.conversationUrl,
     conversationId: conversation.conversationId,
-    maxMinutes: VIDEO_SESSION_MAX_MINUTES,
-    wrapUpMinutes: VIDEO_WRAP_UP_MINUTES,
+    maxMinutes: demo ? DEMO_SECONDS / 60 : VIDEO_SESSION_MAX_MINUTES,
+    wrapUpMinutes: demo ? 0 : VIDEO_WRAP_UP_MINUTES,
+    demo,
+    // Where the demo sends people when their 30 seconds are up.
+    ...(demo ? { demoEndsAt: "/pricing" } : {}),
     // The client shows this so a candidate knows when the credit is spent.
     creditThresholdMinutes: VIDEO_CREDIT_THRESHOLD_MINUTES,
     videoCreditsRemaining: reserved.remaining ?? ent.videoCreditsRemaining,

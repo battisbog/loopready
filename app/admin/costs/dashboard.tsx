@@ -18,6 +18,7 @@ interface Costs {
   byOperation: Record<string, number>;
   requestsByEndpoint: Record<string, number>;
   sessionsToday: number;
+  demoAccount?: { used: number; cap: number; remaining: number; disabled: boolean };
   unitCostsUsd: Record<string, number>;
   config: {
     freeTierBudgetShare: number;
@@ -169,6 +170,20 @@ export default function CostDashboard() {
             <span className="text-secondary">Sessions started</span>
             <span className="font-mono text-primary">{data.sessionsToday}</span>
           </p>
+          {data.demoAccount && (
+            <p className="mt-1.5 flex justify-between border-t border-line pt-1.5 text-sm">
+              <span className="text-secondary">
+                Demo account{data.demoAccount.disabled ? " (disabled)" : ""}
+              </span>
+              <span
+                className={`font-mono ${
+                  data.demoAccount.remaining === 0 ? "text-error" : "text-primary"
+                }`}
+              >
+                {data.demoAccount.used}/{data.demoAccount.cap}
+              </span>
+            </p>
+          )}
           {Object.entries(data.requestsByEndpoint).map(([ep, n]) => (
             <p key={ep} className="mt-1.5 flex justify-between text-sm">
               <span className="text-secondary">{ep}</span>

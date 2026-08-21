@@ -9,6 +9,7 @@ import {
   RATE_LIMITING_CONFIGURED,
   FREE_DAILY_SESSIONS,
 } from "@/lib/rate-limit";
+import { peekDemoUsage } from "@/lib/demo/gate";
 import {
   COST,
   DAILY_CAP_MICRO,
@@ -40,6 +41,7 @@ export async function GET() {
     peekUsageCounts(),
     rateLimitHealth(),
   ]);
+  const demoUsage = await peekDemoUsage(createAdminClient());
 
   // Sessions started today, straight from Postgres, so the figure survives a
   // Redis flush.
@@ -78,6 +80,8 @@ export async function GET() {
     ),
     requestsByEndpoint: counts,
     sessionsToday: sessionsToday ?? 0,
+    // Shared demo account: lifetime, never refills.
+    demoAccount: demoUsage,
     unitCostsUsd: Object.fromEntries(
       Object.entries(COST).map(([k, v]) => [k, Number((v / USD).toFixed(4))])
     ),
