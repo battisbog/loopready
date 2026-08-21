@@ -21,9 +21,20 @@ export default function AppError({
         Something went wrong
       </h1>
       <p className="mt-2 max-w-md text-sm leading-relaxed text-secondary">
-        This one is on us. Try again, and if it keeps happening let us know.
+        This one is on us. Try again, and if it keeps happening email us at{" "}
+        <a
+          href={`mailto:support@loopready.io?subject=${encodeURIComponent(
+            "LoopReady error" + (error.digest ? ` (ref ${error.digest})` : "")
+          )}`}
+          className="text-accent underline underline-offset-2"
+        >
+          support@loopready.io
+        </a>
+        .
       </p>
       {error.digest && (
+        // Prefilled into the mail subject above too: a report without this is
+        // far harder to trace.
         <p className="mt-3 font-mono text-xs text-muted">ref: {error.digest}</p>
       )}
       <div className="mt-6 flex gap-3">

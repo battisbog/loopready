@@ -17,6 +17,15 @@ export default function NotFound() {
           Home
         </Button>
       </div>
+      <p className="mt-6 text-xs text-muted">
+        Think this should exist?{" "}
+        <a
+          href="mailto:support@loopready.io"
+          className="underline underline-offset-2 hover:text-secondary"
+        >
+          support@loopready.io
+        </a>
+      </p>
     </main>
   );
 }

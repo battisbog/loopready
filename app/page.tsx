@@ -468,7 +468,10 @@ export default async function Landing() {
                 links={[
                   { href: "/terms", label: "Terms" },
                   { href: "/privacy", label: "Privacy" },
-                  { href: "mailto:support@loopready.io", label: "Contact" },
+                  {
+                    href: "mailto:support@loopready.io",
+                    label: "support@loopready.io",
+                  },
                 ]}
               />
             </div>
