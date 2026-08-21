@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     "system design interview",
   ],
   openGraph: {
-    title: "LoopReady: Fail your mock, not your loop",
+    title: "LoopReady: Pass your loop, not just your mock",
     description:
       "Voice mock interviews calibrated to your target company and level, with feedback that tells you where you'd get dinged.",
     type: "website",
@@ -37,7 +37,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "LoopReady: Fail your mock, not your loop",
+    title: "LoopReady: Pass your loop, not just your mock",
     description:
       "Voice mock interviews calibrated to your target company and level.",
   },

@@ -2,7 +2,7 @@ import { ImageResponse } from "next/og";
 
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
-export const alt = "LoopReady: Fail your mock, not your loop";
+export const alt = "LoopReady: Pass your loop, not just your mock";
 
 export default function OgImage() {
   return new ImageResponse(
@@ -49,8 +49,8 @@ export default function OgImage() {
             lineHeight: 1.1,
           }}
         >
-          <span>Fail your mock,</span>
-          <span style={{ color: "#34d399" }}>not your loop.</span>
+          <span>Pass your loop,</span>
+          <span style={{ color: "#34d399" }}>not just your mock.</span>
         </div>
 
         <div

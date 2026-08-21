@@ -42,9 +42,9 @@ export default async function Landing() {
               </span>
 
               <h1 className="mt-6 text-4xl font-semibold leading-[1.08] tracking-tight sm:text-5xl lg:text-6xl">
-                Fail your mock,
+                Pass your loop,
                 <br />
-                <span className="text-accent">not your loop.</span>
+                <span className="text-accent">not just your mock.</span>
               </h1>
 
               <p className="mt-6 max-w-xl text-lg leading-relaxed text-secondary">
