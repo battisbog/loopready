@@ -88,7 +88,14 @@ export async function getUserTier(
   const status = data.subscription_status;
   const paidSubscription =
     data.subscription_tier === "voice" || data.subscription_tier === "premium";
-  if (paidSubscription && status && !["ACTIVE", "APPROVED"].includes(status)) {
+  // PAST_DUE is deliberately good standing: PayPal is still retrying the
+  // charge, and pulling access mid-retry punishes a customer whose card just
+  // expired. CANCELLED/EXPIRED/SUSPENDED are the terminal states.
+  if (
+    paidSubscription &&
+    status &&
+    !["ACTIVE", "APPROVED", "PAST_DUE"].includes(status)
+  ) {
     return "free";
   }
 

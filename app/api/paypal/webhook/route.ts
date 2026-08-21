@@ -196,13 +196,33 @@ export async function POST(request: Request) {
       }
       break;
     }
+    /**
+     * A failed charge is NOT the end of a subscription.
+     *
+     * PayPal retries a failed payment several times over days before it gives
+     * up and sends CANCELLED or EXPIRED. Downgrading on the first failure would
+     * strip a paying customer's access over an expired card that they fix an
+     * hour later, and would delete their video credits with it.
+     *
+     * So this marks them past_due and changes nothing else. Access continues.
+     * The real downgrade happens below, when PayPal confirms the subscription
+     * is actually over.
+     */
+    case "BILLING.SUBSCRIPTION.PAYMENT.FAILED": {
+      patch.subscription_status = "PAST_DUE";
+      console.warn(
+        `[paypal] payment failed for user=${userId}, marked past_due (access retained)`
+      );
+      break;
+    }
+
+    // Genuinely over: PayPal has stopped trying, or the user cancelled.
     case "BILLING.SUBSCRIPTION.CANCELLED":
     case "BILLING.SUBSCRIPTION.EXPIRED":
-    case "BILLING.SUBSCRIPTION.SUSPENDED":
-    case "BILLING.SUBSCRIPTION.PAYMENT.FAILED": {
+    case "BILLING.SUBSCRIPTION.SUSPENDED": {
       tier = "free";
       patch.subscription_status = type.split(".").pop();
-      // Losing the subscription loses the plan allowance immediately.
+      // Losing the subscription loses the plan allowance.
       credits = { mode: "set", amount: 0, reset: null, detail: type };
       break;
     }
