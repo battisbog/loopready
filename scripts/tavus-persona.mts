@@ -220,6 +220,7 @@ async function main() {
     ["perception_model", pc.perception_model, PERCEPTION],
     ["llm.model", llm.model, LLM_MODEL],
     ["greeting", current.json.greeting, ""],
+    ["default_replica_id", current.json.default_replica_id, REPLICA_ID],
     ["objectives_id", current.json.objectives_id, "(set)"],
     ["guardrails_id", current.json.guardrails_id, "(set)"],
   ];
@@ -244,6 +245,10 @@ async function main() {
     { op: "replace", path: "/layers/perception/perception_model", value: PERCEPTION },
     { op: "replace", path: "/layers/perception/emotion_recognition", value: "limited" },
     { op: "replace", path: "/layers/llm/model", value: LLM_MODEL },
+    // Kept in step with TAVUS_REPLICA_ID. Runtime already passes replica_id
+    // explicitly on every conversation, so this is only the persona's own
+    // fallback, but leaving the two disagreeing is a trap for the next reader.
+    { op: "replace", path: "/default_replica_id", value: REPLICA_ID },
   ];
   if (objectivesId) ops.push({ op: "replace", path: "/objectives_id", value: objectivesId });
   if (guardrailsId) ops.push({ op: "replace", path: "/guardrails_id", value: guardrailsId });
