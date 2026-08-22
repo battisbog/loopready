@@ -8,7 +8,7 @@ import Nav from "../(marketing)/nav";
 export const metadata: Metadata = {
   title: "Pricing",
   description:
-    "LoopReady plans: a free practice mock, unlimited voice interviews, and video-avatar rounds when they ship.",
+    "LoopReady plans: a free practice mock, unlimited voice interviews, and video-avatar rounds on Premium.",
 };
 
 /**
