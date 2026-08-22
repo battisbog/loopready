@@ -54,9 +54,9 @@ const TIERS: Tier[] = [
     price: PRICING.premium.display,
     cadence: "/mo",
     tagline: "Face-to-face practice for the real thing.",
-    cta: "Join the waitlist",
+    cta: "Get Premium",
     href: "/checkout?plan=premium",
-    note: "Video avatar is still in development. You'll be first in line.",
+    note: "Video rounds use one credit each. Voice stays unlimited.",
     features: [
       { label: "Everything in Voice" },
       { label: "2 video-avatar mock interviews / month" },

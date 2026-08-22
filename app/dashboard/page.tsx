@@ -27,7 +27,7 @@ const PLAN_COPY: Record<string, { label: string; blurb: string }> = {
   },
   premium: {
     label: "Premium",
-    blurb: "Everything in Voice, plus video-avatar interviews when they ship.",
+    blurb: "Everything in Voice, plus 2 video-avatar interviews a month.",
   },
   unlimited: {
     label: "Unlimited",
