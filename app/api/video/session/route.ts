@@ -112,6 +112,32 @@ export async function POST(request: Request) {
   // 2b. Entitlement and credits, before spending anything.
   const ent = await getEntitlements(admin, user.id);
   if (!demo && !ent.canUseVideo) return outOfVideoCredits(ent);
+  // A reservation left behind by a session that already ended is not a real
+  // conflict. The client can die between creating the room and settling it (a
+  // crash, a closed laptop), and without this the candidate is locked out of
+  // video permanently by their own previous attempt.
+  if (
+    ent.openReservationSessionId &&
+    ent.openReservationSessionId !== sessionId
+  ) {
+    const { data: holder } = await admin
+      .from("sessions")
+      .select("status, video_ended_at")
+      .eq("id", ent.openReservationSessionId)
+      .maybeSingle();
+
+    const stale =
+      !holder || holder.status !== "active" || Boolean(holder.video_ended_at);
+
+    if (stale) {
+      console.warn(
+        `[video] releasing stale reservation on ${ent.openReservationSessionId} for user=${user.id}`
+      );
+      await releaseVideoCredit(admin, user.id, ent.openReservationSessionId);
+      ent.openReservationSessionId = null;
+    }
+  }
+
   if (
     ent.openReservationSessionId &&
     ent.openReservationSessionId !== sessionId
