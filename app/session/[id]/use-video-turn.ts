@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { DailyCall } from "@daily-co/daily-js";
 import type { Turn } from "./use-voice-turn";
 import { contextUpdateMessage } from "@/lib/video/tavus";
+import { endInterviewBeacon } from "@/lib/interview/end-beacon";
 
 export type VideoStatus =
   | "starting"
@@ -48,6 +49,10 @@ export function useVideoTurn({
   const aliveRef = useRef(true);
   const startedRef = useRef(false);
   const settledRef = useRef(false);
+  // True once the round has genuinely finished (button click or normal
+  // completion). A pagehide AFTER this must not re-abandon a loop that is
+  // correctly moving on to its next round or to feedback.
+  const finishedRef = useRef(false);
 
   useEffect(() => {
     const t0 = Date.now();
@@ -111,15 +116,19 @@ export function useVideoTurn({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionId]);
 
-  // Leaving the page mid-interview must still settle, or the credit stays
-  // reserved and the user cannot start another.
+  // Leaving the page mid-interview must still fully end it: settle any held
+  // credit AND abandon the whole loop, exactly like clicking "End interview"
+  // does. Without the second half, the credit used to settle correctly but the
+  // session and loop stayed "active" in the database forever.
   useEffect(() => {
     const onHide = () => {
-      if (!settledRef.current) void settle("user_ended");
+      if (finishedRef.current) return;
+      finishedRef.current = true;
+      endInterviewBeacon(sessionId, true);
     };
     window.addEventListener("pagehide", onHide);
     return () => window.removeEventListener("pagehide", onHide);
-  }, [settle]);
+  }, [sessionId]);
 
   /** Records a finalized turn and applies whatever the server decides next. */
   const recordTurn = useCallback(
@@ -150,6 +159,10 @@ export function useVideoTurn({
         );
       }
       if (data.done) {
+        // A normal finish, not an abandonment: the pagehide beacon must not
+        // fire for whatever tab-close happens during the 8s closing line or
+        // the subsequent navigation.
+        finishedRef.current = true;
         setStatus("done");
         await settle("completed");
         setTimeout(
@@ -181,6 +194,7 @@ export function useVideoTurn({
 
   const endEarly = useCallback(async () => {
     aliveRef.current = false;
+    finishedRef.current = true;
     // Marking the session complete is the part that must not be skipped, so it
     // runs even when the transport cleanup below throws. Leaving a row "active"
     // is what kept finished interviews showing as in progress.

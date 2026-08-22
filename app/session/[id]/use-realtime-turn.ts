@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { RealtimeSession } from "@/lib/realtime/client";
+import { endInterviewBeacon } from "@/lib/interview/end-beacon";
 import type { Turn } from "./use-voice-turn";
 
 export type LiveStatus =
@@ -64,6 +65,11 @@ export function useRealtimeTurn({
     loopId: string | null;
   } | null>(null);
   const finishTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // True once the round has genuinely finished (button click or normal
+  // completion). This hook previously had NO unload handling at all: closing
+  // the tab mid-interview left the session and the whole loop "active" in the
+  // database forever, with nothing to ever clean it up.
+  const finishedRef = useRef(false);
   // Held in a ref so teardown never needs to be rebuilt when the callback
   // identity changes. Committed in an effect rather than during render.
   const onDoneRef = useRef(onDone);
@@ -76,6 +82,19 @@ export function useRealtimeTurn({
     const t = setInterval(() => setElapsed(Date.now() - startedAt), 1000);
     return () => clearInterval(t);
   }, []);
+
+  // Leaving the page mid-interview must still fully abandon it: mark this
+  // session and every sibling round completed, and close the loop, exactly
+  // like clicking "End interview" does.
+  useEffect(() => {
+    const onHide = () => {
+      if (finishedRef.current) return;
+      finishedRef.current = true;
+      endInterviewBeacon(sessionId, false);
+    };
+    window.addEventListener("pagehide", onHide);
+    return () => window.removeEventListener("pagehide", onHide);
+  }, [sessionId]);
 
   const post = useCallback(
     async (body: object) => {
@@ -125,6 +144,10 @@ export function useRealtimeTurn({
       if (data.instructions && live) live.updateInstructions(data.instructions);
 
       if (data.done) {
+        // A normal finish, not an abandonment: the pagehide beacon must not
+        // fire for a tab-close during the closing line or the navigation that
+        // follows it.
+        finishedRef.current = true;
         setStatus("done");
         // Wait for the closing line to actually finish rather than padding a
         // fixed delay. This is end-of-interview teardown only and never sits in
@@ -260,6 +283,7 @@ export function useRealtimeTurn({
 
   const endEarly = useCallback(async () => {
     aliveRef.current = false;
+    finishedRef.current = true;
     // Marking the session complete is the part that must not be skipped, so it
     // runs even when the transport cleanup below throws. Leaving a row "active"
     // is what kept finished interviews showing as in progress.

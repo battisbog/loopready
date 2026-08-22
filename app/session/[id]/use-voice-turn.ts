@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import type { ServerAudio } from "./audio-source-badge";
 import { SpeechQueue } from "./speech-queue";
 import { audioLevels } from "@/lib/audio-levels";
+import { endInterviewBeacon } from "@/lib/interview/end-beacon";
 
 export interface Turn {
   role: string;
@@ -154,6 +155,10 @@ export function useVoiceTurn({
   // Guards every async continuation: audio must never start (or keep going)
   // after the user leaves the interview.
   const aliveRef = useRef(true);
+  // True once the round has genuinely finished (button click or a normal
+  // completion). Guards the pagehide beacon below from abandoning a loop
+  // that is correctly moving on.
+  const finishedRef = useRef(false);
 
   useEffect(() => {
     aliveRef.current = true;
@@ -168,12 +173,22 @@ export function useVoiceTurn({
       } catch {}
     };
     // Chrome can keep speaking across a hard navigation, so cover that too.
+    // A closed tab must also end the round server-side, or the session and the
+    // whole loop stay "active" in the database forever with nothing to clean
+    // it up. Local teardown above stops audio; this stops the database rot.
+    const onHide = () => {
+      if (finishedRef.current) return;
+      finishedRef.current = true;
+      endInterviewBeacon(sessionId, false);
+    };
     window.addEventListener("pagehide", teardown);
+    window.addEventListener("pagehide", onHide);
     return () => {
       window.removeEventListener("pagehide", teardown);
+      window.removeEventListener("pagehide", onHide);
       teardown();
     };
-  }, []);
+  }, [sessionId]);
 
   function stopAllAudio() {
     audioLevels.detachAll();
@@ -496,6 +511,7 @@ export function useVoiceTurn({
       if (!aliveRef.current) return;
 
       if (result.done) {
+        finishedRef.current = true;
         setStatus("done");
         stopAllAudio();
         onDone(result.nextRound?.sessionId ?? null, result.loopComplete ?? null);
@@ -511,6 +527,7 @@ export function useVoiceTurn({
   async function endEarly() {
     // Silence immediately — the user is leaving, don't wait on the request.
     aliveRef.current = false;
+    finishedRef.current = true;
     stopAllAudio();
     setStatus("done");
     const res = await fetch("/api/interview/end", {
