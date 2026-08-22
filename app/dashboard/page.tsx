@@ -20,11 +20,11 @@ import { FREE_DAILY_SESSIONS } from "@/lib/rate-limit";
 const PLAN_COPY: Record<string, { label: string; blurb: string }> = {
   free: {
     label: "Free",
-    blurb: `${FREE_DAILY_SESSIONS} practice interviews per day, browser voice.`,
+    blurb: `${FREE_DAILY_SESSIONS} behavioral mocks a day, with the full written debrief.`,
   },
   voice: {
     label: "Voice",
-    blurb: "Unlimited interviews across all rounds, studio voice.",
+    blurb: "Unlimited interviews across behavioral, coding and system design.",
   },
   premium: {
     label: "Premium",

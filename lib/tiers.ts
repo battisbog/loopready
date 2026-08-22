@@ -15,7 +15,6 @@ export interface TierFeatures {
   /** Rounds this tier may start. */
   rounds: RoundType[];
   /** Paid voice providers (ElevenLabs / realtime). Free gets standard voice. */
-  premiumVoice: boolean;
   /** Sessions per UTC day; null means uncapped. */
   dailySessions: number | null;
   /** Video-avatar interviews per month, when that ships. */
@@ -43,28 +42,24 @@ export const TIERS: Record<Tier, TierFeatures> = {
   free: {
     label: "Free",
     rounds: ["behavioral"],
-    premiumVoice: false,
     dailySessions: FREE_DAILY,
     videoSlots: 0,
   },
   voice: {
     label: "Voice",
     rounds: ["coding", "system_design", "behavioral"],
-    premiumVoice: true,
     dailySessions: null,
     videoSlots: 0,
   },
   premium: {
     label: "Premium",
     rounds: ["coding", "system_design", "behavioral"],
-    premiumVoice: true,
     dailySessions: null,
     videoSlots: PREMIUM_VIDEO_ALLOWANCE,
   },
   unlimited: {
     label: "Unlimited",
     rounds: ["coding", "system_design", "behavioral"],
-    premiumVoice: true,
     dailySessions: null,
     videoSlots: PREMIUM_VIDEO_ALLOWANCE,
   },
@@ -123,10 +118,6 @@ export function featuresFor(tier: Tier): TierFeatures {
 
 export function canUseRound(tier: Tier, round: RoundType): boolean {
   return featuresFor(tier).rounds.includes(round);
-}
-
-export function canUsePremiumVoice(tier: Tier): boolean {
-  return featuresFor(tier).premiumVoice;
 }
 
 /** 402 with an upgrade path, for a feature the tier does not include. */

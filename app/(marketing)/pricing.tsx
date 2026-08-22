@@ -25,10 +25,10 @@ const TIERS: Tier[] = [
     cta: "Start free",
     href: "/login",
     features: [
-      { label: "One short behavioral mock" },
-      { label: "A few practice questions" },
-      { label: "Browser voice (basic quality)" },
-      { label: "Full written debrief" },
+      { label: "3 behavioral mocks a day" },
+      { label: "Real-time voice conversation" },
+      { label: "Full written debrief on every mock" },
+      { label: "Behavioral round only" },
     ],
   },
   {
@@ -41,9 +41,9 @@ const TIERS: Tier[] = [
     href: "/checkout?plan=voice",
     featured: true,
     features: [
-      { label: "Unlimited voice mock interviews" },
+      { label: "Unlimited mock interviews, no daily cap" },
       { label: "All rounds: behavioral, coding, system design" },
-      { label: "Studio-quality interviewer voice" },
+      { label: "Full loops, rounds back to back" },
       { label: "Company and level calibration" },
       { label: "Full feedback on every round" },
       { label: "Session history and transcripts" },
@@ -73,12 +73,12 @@ const COMPARISON: {
   voice: string | boolean;
   premium: string | boolean;
 }[] = [
-  { label: "Behavioral round", free: "1 short mock", voice: "Unlimited", premium: "Unlimited" },
+  { label: "Behavioral round", free: "3 a day", voice: "Unlimited", premium: "Unlimited" },
   { label: "Coding round (live editor + execution)", free: false, voice: true, premium: true },
   { label: "System design round (canvas)", free: false, voice: true, premium: true },
   { label: "Full loop, rounds back to back", free: false, voice: true, premium: true },
   { label: "Company + level calibration", free: "Generic only", voice: "All 6 companies", premium: "All 6 companies" },
-  { label: "Interviewer voice quality", free: "Browser", voice: "Studio", premium: "Studio" },
+  { label: "Real-time voice interviewer", free: true, voice: true, premium: true },
   { label: "Written debrief", free: true, voice: true, premium: true },
   { label: "Session history", free: "Last session", voice: true, premium: true },
   { label: "Video-avatar interviews", free: false, voice: false, premium: `${PREMIUM_VIDEO_ALLOWANCE} / month` },
@@ -203,7 +203,7 @@ export default function Pricing() {
         <div className="mt-20 grid gap-x-12 gap-y-8 md:grid-cols-2">
           <PriceFaq
             q="What am I actually paying for?"
-            a="Interview quality. Every mock runs a real language model for the interviewer and a second pass for the debrief, plus speech-to-text and a studio voice. The subscription covers that so you can practise as often as you need without watching a meter."
+            a="Access and volume. Every mock runs a real language model for the interviewer and a second pass for the debrief, which costs money each time. Paying removes the daily cap and unlocks the coding and system design rounds, so you can practise the whole loop as often as you need without watching a meter."
           />
           <PriceFaq
             q="Can I cancel anytime?"
@@ -211,11 +211,11 @@ export default function Pricing() {
           />
           <PriceFaq
             q="What does the Free plan actually get me?"
-            a="One short behavioral mock with the full written debrief, using your browser's built-in voice. It's enough to judge whether the feedback is worth paying for. That's the point of it."
+            a="Three behavioral mocks a day, in the same real-time voice the paid plans use, each with the full written debrief. It is enough to judge whether the feedback is worth paying for. That is the point of it."
           />
           <PriceFaq
-            q="Why is the interviewer voice better on paid plans?"
-            a="Free uses your browser's built-in speech, which sounds robotic and breaks the illusion. Paid plans use a studio-quality voice and Whisper transcription, which is what makes it feel like a real conversation."
+            q="What is the difference between Free and Voice?"
+            a="The interviewer is identical: the same voice, the same probing, the same debrief. Free is capped at three behavioral mocks a day. Voice removes that cap and adds the coding round with a live editor and the system design round with a canvas, so you can rehearse a full loop rather than one round."
           />
           <PriceFaq
             q="How do video interviews work?"

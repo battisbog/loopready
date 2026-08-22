@@ -125,7 +125,7 @@ export default async function BillingPage() {
               <p className="mt-1 text-sm leading-relaxed text-secondary">
                 {paid
                   ? "Cancelling keeps your access until the end of the current period."
-                  : "Unlock all rounds, unlimited interviews and the studio voice."}
+                  : "Unlock the coding and system design rounds, and remove the daily cap."}
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
