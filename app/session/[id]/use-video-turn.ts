@@ -42,7 +42,12 @@ export function useVideoTurn({
   const [status, setStatus] = useState<VideoStatus>("starting");
   const [error, setError] = useState<string | null>(null);
   const [elapsed, setElapsed] = useState(0);
-  const [room, setRoom] = useState<{ conversationUrl: string } | null>(null);
+  const [room, setRoom] = useState<{
+    conversationUrl: string;
+    maxMinutes: number;
+    demo: boolean;
+    demoEndsAt: string | null;
+  } | null>(null);
 
   const callRef = useRef<DailyCall | null>(null);
   const conversationIdRef = useRef<string | null>(null);
@@ -99,7 +104,12 @@ export function useVideoTurn({
         if (!res.ok) throw new Error(cfg.error ?? "Could not start video mode");
         if (!aliveRef.current) return;
         conversationIdRef.current = cfg.conversationId;
-        setRoom({ conversationUrl: cfg.conversationUrl });
+        setRoom({
+          conversationUrl: cfg.conversationUrl,
+          maxMinutes: Number(cfg.maxMinutes ?? 45),
+          demo: Boolean(cfg.demo),
+          demoEndsAt: cfg.demoEndsAt ?? null,
+        });
         setStatus("connecting");
       } catch (e) {
         if (!aliveRef.current) return;
@@ -237,6 +247,28 @@ export function useVideoTurn({
       setError(message);
       setStatus("failed");
       void settle("session_failed");
+    },
+    /**
+     * The call ended on schedule -- Tavus's own duration cap, not a failure.
+     * This is the demo's 30-second limit doing exactly what it is supposed to,
+     * so it must read as a clean finish, never as an error screen.
+     */
+    onNaturalEnd: () => {
+      if (finishedRef.current) return;
+      finishedRef.current = true;
+      setStatus("done");
+      void settle("completed").then(() => {
+        if (!aliveRef.current) return;
+        if (room?.demo) {
+          // The demo is over. Send them straight to plans, not into feedback
+          // for a 30-second clip or a "next round" that does not exist.
+          window.location.assign(room.demoEndsAt ?? "/pricing");
+          return;
+        }
+        // A real video round that ran out the clock is a finished round: route
+        // it exactly like a normal completion (feedback for this session).
+        setTimeout(() => onDone(null, null), 1500);
+      });
     },
   };
 }

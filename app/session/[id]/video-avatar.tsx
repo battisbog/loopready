@@ -22,9 +22,13 @@ export default function VideoAvatar({
   conversationUrl,
   micStream,
   className = "",
+  /** Expected call length, in seconds. Used to tell a genuine failure apart
+   * from Tavus's own duration cap ending the room on schedule. */
+  maxSeconds,
   onJoined,
   onLeft,
   onError,
+  onNaturalEnd,
   onAppMessage,
 }: {
   conversationUrl: string;
@@ -32,16 +36,42 @@ export default function VideoAvatar({
   micStream: MediaStream;
   /** Sized by the parent, so the layout decides how much room the avatar gets. */
   className?: string;
+  maxSeconds?: number;
   onJoined?: (call: DailyCall) => void;
   onLeft?: () => void;
   onError?: (message: string) => void;
+  /** Fired instead of onError when the call ended on schedule, not by accident. */
+  onNaturalEnd?: () => void;
   onAppMessage?: (data: unknown) => void;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const callRef = useRef<DailyCall | null>(null);
   /** Track ids currently attached, so we never reattach the same pair. */
   const attachedRef = useRef<string>("");
-  const [state, setState] = useState<"joining" | "live" | "failed">("joining");
+  const joinedAtRef = useRef<number | null>(null);
+  const [state, setState] = useState<"joining" | "live" | "ended" | "failed">(
+    "joining"
+  );
+
+  /**
+   * Tavus enforces the session's max_call_duration by ending the Daily room,
+   * which this SDK reports as an `error` event with a message like "Meeting
+   * has ended". Without this, a 30-second demo hitting its cap on schedule
+   * looked identical to a genuine connection failure: same "Video failed"
+   * screen. Classify by BOTH signals -- close to the expected duration, or the
+   * message reading like an intentional close -- so scheduled endings and real
+   * failures never share one code path.
+   */
+  const isExpectedEnd = (message: string) => {
+    const elapsed = joinedAtRef.current
+      ? (Date.now() - joinedAtRef.current) / 1000
+      : 0;
+    const nearCap = maxSeconds != null && elapsed >= maxSeconds - 5;
+    const soundsExpected = /meeting.*(end|ended)|ejected|duration/i.test(
+      message
+    );
+    return nearCap || soundsExpected;
+  };
 
   useEffect(() => {
     let alive = true;
@@ -112,17 +142,32 @@ export default function VideoAvatar({
         call
           .on("joined-meeting", () => {
             if (!alive) return;
+            joinedAtRef.current = Date.now();
             setState("live");
             onJoined?.(call!);
           })
           .on("participant-joined", (e) => attach(e?.participant))
           .on("participant-updated", (e) => attach(e?.participant))
           .on("app-message", (e) => onAppMessage?.(e?.data))
-          .on("left-meeting", () => alive && onLeft?.())
+          .on("left-meeting", () => {
+            if (!alive) return;
+            if (isExpectedEnd("")) {
+              setState("ended");
+              onNaturalEnd?.();
+            } else {
+              onLeft?.();
+            }
+          })
           .on("error", (e) => {
             if (!alive) return;
-            setState("failed");
-            onError?.(e?.errorMsg ?? "Video connection failed");
+            const message = e?.errorMsg ?? "Video connection failed";
+            if (isExpectedEnd(message)) {
+              setState("ended");
+              onNaturalEnd?.();
+            } else {
+              setState("failed");
+              onError?.(message);
+            }
           });
 
         await call.join({ url: conversationUrl });
@@ -167,7 +212,11 @@ export default function VideoAvatar({
       {state !== "live" && (
         <div className="absolute inset-0 flex items-center justify-center bg-surface">
           <p className="text-sm text-muted">
-            {state === "joining" ? "Connecting to your interviewer…" : "Video failed"}
+            {state === "joining"
+              ? "Connecting to your interviewer…"
+              : state === "ended"
+                ? "Wrapping up…"
+                : "Video failed"}
           </p>
         </div>
       )}

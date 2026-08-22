@@ -33,9 +33,11 @@ export default function InterviewerPresence({
   video?: {
     conversationUrl: string;
     micStream: MediaStream;
+    maxSeconds?: number;
     onJoined?: (call: import("@daily-co/daily-js").DailyCall) => void;
     onAppMessage?: (data: unknown) => void;
     onError?: (message: string) => void;
+    onNaturalEnd?: () => void;
   } | null;
   /** Only used by the portrait mode; the ring is deliberately caption-free. */
   line?: string;
@@ -79,9 +81,11 @@ export default function InterviewerPresence({
         <VideoAvatar
           conversationUrl={video.conversationUrl}
           micStream={video.micStream}
+          maxSeconds={video.maxSeconds}
           onJoined={video.onJoined}
           onAppMessage={video.onAppMessage}
           onError={video.onError}
+          onNaturalEnd={video.onNaturalEnd}
           className={
             hero
               ? // Grows with the window but stays a sensible interview size

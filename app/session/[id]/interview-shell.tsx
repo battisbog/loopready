@@ -42,9 +42,11 @@ export interface ShellProps {
   video?: {
     conversationUrl: string;
     micStream: MediaStream;
+    maxSeconds?: number;
     onJoined?: (call: import("@daily-co/daily-js").DailyCall) => void;
     onAppMessage?: (data: unknown) => void;
     onError?: (message: string) => void;
+    onNaturalEnd?: () => void;
   } | null;
   /** Push-to-talk mode controls */
   recording?: boolean;

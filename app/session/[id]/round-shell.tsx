@@ -261,6 +261,7 @@ function VideoRound({
     onAppMessage,
     onJoined,
     onVideoError,
+    onNaturalEnd,
   } = useVideoTurn({ sessionId, initialTurns, onDone, onLeave });
 
   return (
@@ -292,9 +293,11 @@ function VideoRound({
           ? {
               conversationUrl: room.conversationUrl,
               micStream: stream,
+              maxSeconds: room.maxMinutes * 60,
               onJoined,
               onAppMessage,
               onError: onVideoError,
+              onNaturalEnd,
             }
           : null
       }
