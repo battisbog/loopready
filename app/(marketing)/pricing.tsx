@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Button } from "@/components/ui";
+import { PREMIUM_VIDEO_ALLOWANCE } from "@/lib/tiers";
 import { PRICING } from "@/lib/pricing";
 
 interface Tier {
@@ -59,7 +60,7 @@ const TIERS: Tier[] = [
     note: "Video rounds use one credit each. Voice stays unlimited.",
     features: [
       { label: "Everything in Voice" },
-      { label: "2 video-avatar mock interviews / month" },
+      { label: `${PREMIUM_VIDEO_ALLOWANCE} video-avatar mock interviews / month` },
       { label: "Face-to-face interview presence practice" },
       { label: "Priority access to new rounds" },
     ],
@@ -80,7 +81,7 @@ const COMPARISON: {
   { label: "Interviewer voice quality", free: "Browser", voice: "Studio", premium: "Studio" },
   { label: "Written debrief", free: true, voice: true, premium: true },
   { label: "Session history", free: "Last session", voice: true, premium: true },
-  { label: "Video-avatar interviews", free: false, voice: false, premium: "2 / month" },
+  { label: "Video-avatar interviews", free: false, voice: false, premium: `${PREMIUM_VIDEO_ALLOWANCE} / month` },
 ];
 
 export default function Pricing() {

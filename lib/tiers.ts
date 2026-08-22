@@ -24,6 +24,21 @@ export interface TierFeatures {
 
 const FREE_DAILY = Number(process.env.FREE_DAILY_SESSION_LIMIT ?? 3);
 
+/**
+ * Video allowance. ONE definition, used by the tier table, the webhook that
+ * grants credits, and every place the number is shown to a customer.
+ *
+ * It was previously three separate values: the webhook granted 3, the tier
+ * table said 2, and the marketing copy hardcoded "2". Customers were quietly
+ * given one more than they were sold, and nothing would have caught it.
+ */
+export const PREMIUM_VIDEO_ALLOWANCE = Number(
+  process.env.PREMIUM_VIDEO_ALLOWANCE ?? 3
+);
+
+/** Credits added by a one-time video pack purchase. */
+export const VIDEO_PACK_CREDITS = Number(process.env.VIDEO_PACK_CREDITS ?? 3);
+
 export const TIERS: Record<Tier, TierFeatures> = {
   free: {
     label: "Free",
@@ -44,14 +59,14 @@ export const TIERS: Record<Tier, TierFeatures> = {
     rounds: ["coding", "system_design", "behavioral"],
     premiumVoice: true,
     dailySessions: null,
-    videoSlots: 2,
+    videoSlots: PREMIUM_VIDEO_ALLOWANCE,
   },
   unlimited: {
     label: "Unlimited",
     rounds: ["coding", "system_design", "behavioral"],
     premiumVoice: true,
     dailySessions: null,
-    videoSlots: 2,
+    videoSlots: PREMIUM_VIDEO_ALLOWANCE,
   },
 };
 
@@ -136,13 +151,6 @@ export function upgradeRequired(
 // Video interview credits
 // ============================================================
 
-/** Credits granted by an active Premium subscription each cycle. */
-export const PREMIUM_VIDEO_ALLOWANCE = Number(
-  process.env.PREMIUM_VIDEO_ALLOWANCE ?? 3
-);
-
-/** Credits added by a one-time video pack purchase. */
-export const VIDEO_PACK_CREDITS = Number(process.env.VIDEO_PACK_CREDITS ?? 3);
 
 export interface Entitlements {
   tier: Tier;

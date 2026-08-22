@@ -1,3 +1,4 @@
+import { PREMIUM_VIDEO_ALLOWANCE } from "@/lib/tiers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -27,7 +28,7 @@ const PLAN_COPY: Record<string, { label: string; blurb: string }> = {
   },
   premium: {
     label: "Premium",
-    blurb: "Everything in Voice, plus 2 video-avatar interviews a month.",
+    blurb: `Everything in Voice, plus ${PREMIUM_VIDEO_ALLOWANCE} video-avatar interviews a month.`,
   },
   unlimited: {
     label: "Unlimited",
