@@ -223,14 +223,28 @@ export async function checkDailySessionQuota(
   admin: SupabaseClient,
   userId: string
 ): Promise<DailyQuota> {
+  // `subscription_tier` is the canonical entitlement column (see
+  // supabase/schema.sql). `profiles.plan` is a legacy column kept only so old
+  // rows are not lost; it is permanently "free" for every account, including
+  // real Voice/Premium/Unlimited subscribers, because nothing has written to
+  // it since the migration. Reading it here silently capped every paying
+  // customer at the free daily limit -- this was live in production.
   const { data: profile } = await admin
     .from("profiles")
-    .select("plan")
+    .select("subscription_tier, subscription_status")
     .eq("id", userId)
     .maybeSingle();
 
   // Missing profile is treated as free — fail closed on the paid path.
-  const plan = profile?.plan ?? "free";
+  const rawTier = profile?.subscription_tier ?? "free";
+  // A lapsed paid subscription must not keep the uncapped quota forever;
+  // mirrors the same good-standing check getUserTier applies elsewhere.
+  const paidSubscription = rawTier === "voice" || rawTier === "premium";
+  const status = profile?.subscription_status;
+  const plan =
+    paidSubscription && status && !["ACTIVE", "APPROVED", "PAST_DUE"].includes(status)
+      ? "free"
+      : rawTier;
 
   const since = new Date();
   since.setUTCHours(0, 0, 0, 0);
