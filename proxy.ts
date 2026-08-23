@@ -21,7 +21,19 @@ const PUBLIC_PATHS = [
 
 // Public surface: marketing page, auth, and crawler files. Everything else
 // requires a session.
-const PUBLIC_FILES = ["/sitemap.xml", "/robots.txt", "/opengraph-image", "/icon"];
+//
+// /demo.mp4 and /demo-poster.png are here because the matcher below only
+// excludes image extensions, not video -- without this an anonymous visitor
+// clicking "Watch it in action" on the homepage got redirected to /login
+// instead of the demo.
+const PUBLIC_FILES = [
+  "/sitemap.xml",
+  "/robots.txt",
+  "/opengraph-image",
+  "/icon",
+  "/demo.mp4",
+  "/demo-poster.png",
+];
 
 function isPublicPath(pathname: string) {
   return (
