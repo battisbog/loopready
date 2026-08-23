@@ -7,6 +7,7 @@ import { COMPANY_PROFILES } from "@/lib/interview/companies";
 import CompanyTabs from "./(marketing)/company-tabs";
 import Nav from "./(marketing)/nav";
 import Pricing from "./(marketing)/pricing";
+import DemoVideoModal from "./(marketing)/demo-video-modal";
 
 const COMPANIES = ["amazon", "google", "meta", "microsoft", "apple", "netflix"];
 
@@ -20,10 +21,11 @@ export default async function Landing() {
   // reachable at /pricing.
   if (user) redirect("/dashboard");
 
-  // Points at plans rather than straight to sign-up: someone landing cold gets
-  // to see what is free and what is paid before being asked for an account.
+  // Points at plans, not straight to sign-up: the Free tier is the first,
+  // most prominent card on /pricing (see (marketing)/pricing.tsx), so the
+  // "free" promise in the label is honoured the moment they land there.
   const ctaHref = "/pricing";
-  const ctaLabel = "Start a free mock interview";
+  const ctaLabel = "Start free";
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -59,9 +61,7 @@ export default async function Landing() {
                 <Button href={ctaHref} size="lg">
                   {ctaLabel}
                 </Button>
-                <Button href="#feedback" variant="secondary" size="lg">
-                  See real feedback
-                </Button>
+                <DemoVideoModal ctaHref={ctaHref} />
               </div>
 
               <p className="mt-4 text-xs text-muted">
