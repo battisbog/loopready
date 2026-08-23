@@ -2,7 +2,6 @@ import { PREMIUM_VIDEO_ALLOWANCE } from "@/lib/tiers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import AppNav from "@/components/app-nav";
 import {
   Badge,
   Button,
@@ -16,6 +15,7 @@ import {
 import { ROUND_LABEL, type RoundType } from "@/lib/interview/rounds";
 import { COMPANY_PROFILES } from "@/lib/interview/companies";
 import { FREE_DAILY_SESSIONS } from "@/lib/rate-limit";
+import { getEntitlements } from "@/lib/tiers";
 
 const PLAN_COPY: Record<string, { label: string; blurb: string }> = {
   free: {
@@ -53,11 +53,10 @@ export default async function Dashboard() {
     .order("started_at", { ascending: false })
     .limit(20);
 
-  const { data: profile } = await admin
-    .from("profiles")
-    .select("plan")
-    .eq("id", user.id)
-    .maybeSingle();
+  // subscription_tier is the canonical entitlement column; profiles.plan is
+  // dead (see lib/rate-limit.ts). Reading it here would show every paying
+  // subscriber as "Free".
+  const ent = await getEntitlements(admin, user.id);
 
   const { data: loops } = await admin
     .from("loops")
@@ -70,7 +69,7 @@ export default async function Dashboard() {
   const fullLoops = (loops ?? []).filter((l) => (l.rounds?.length ?? 0) > 1);
 
   const rows = sessions ?? [];
-  const plan = profile?.plan ?? "free";
+  const plan = ent.tier;
   const planCopy = PLAN_COPY[plan] ?? PLAN_COPY.free;
 
   const signalOf = (s: (typeof rows)[number]) => {
@@ -92,9 +91,7 @@ export default async function Dashboard() {
     "there";
 
   return (
-    <>
-      <AppNav email={user.email} />
-      <PageShell
+    <PageShell
         width="lg"
         title={`Welcome back, ${firstName}`}
         description="Run a mock, then read the debrief like a real interviewer would write it."
@@ -312,7 +309,6 @@ export default async function Dashboard() {
             </Button>
           </Card>
         </Section>
-      </PageShell>
-    </>
+    </PageShell>
   );
 }

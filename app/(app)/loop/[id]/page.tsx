@@ -1,7 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import AppNav from "@/components/app-nav";
 import { PageShell } from "@/components/ui";
 import { getContext } from "@/lib/interview/companies";
 import type { RoundType } from "@/lib/interview/rounds";
@@ -46,9 +45,7 @@ export default async function LoopPage({
   });
 
   return (
-    <>
-      <AppNav email={user.email} />
-      <PageShell
+    <PageShell
         width="md"
         title="Loop debrief"
         description={
@@ -58,7 +55,6 @@ export default async function LoopPage({
         }
       >
         <LoopSummaryView loopId={id} rounds={rounds} />
-      </PageShell>
-    </>
+    </PageShell>
   );
 }

@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import AppNav from "@/components/app-nav";
 import {
   Badge,
   Button,
@@ -59,9 +58,7 @@ export default async function BillingPage() {
   const paid = ent.tier === "voice" || ent.tier === "premium";
 
   return (
-    <>
-      <AppNav email={user.email} />
-      <PageShell
+    <PageShell
         width="md"
         title="Billing & Plan"
         description="Your current plan, credits, and payment history."
@@ -178,7 +175,6 @@ export default async function BillingPage() {
             </div>
           )}
         </Section>
-      </PageShell>
-    </>
+    </PageShell>
   );
 }

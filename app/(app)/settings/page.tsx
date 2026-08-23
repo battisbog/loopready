@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import AppNav from "@/components/app-nav";
 import { PageShell } from "@/components/ui";
 import SettingsForms from "./settings-forms";
 
@@ -22,9 +21,7 @@ export default async function SettingsPage() {
     .maybeSingle();
 
   return (
-    <>
-      <AppNav email={user.email} />
-      <PageShell
+    <PageShell
         width="sm"
         title="Settings"
         description="Manage your login details, preferences, and account."
@@ -42,7 +39,6 @@ export default async function SettingsPage() {
             support@loopready.io
           </a>
         </p>
-      </PageShell>
-    </>
+    </PageShell>
   );
 }

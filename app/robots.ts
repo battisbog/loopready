@@ -7,7 +7,7 @@ export default function robots(): MetadataRoute.Robots {
       userAgent: "*",
       allow: "/",
       // Authenticated surfaces have nothing useful to index.
-      disallow: ["/dashboard", "/session/", "/start", "/dev-chat", "/dev-ring", "/admin", "/api/"],
+      disallow: ["/dashboard", "/session/", "/start", "/history", "/feedback", "/billing", "/settings", "/loop/", "/dev-chat", "/dev-ring", "/admin", "/api/"],
     },
     sitemap: `${getSiteUrl()}/sitemap.xml`,
   };
