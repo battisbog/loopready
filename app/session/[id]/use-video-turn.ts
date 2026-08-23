@@ -191,7 +191,13 @@ export function useVideoTurn({
       const type = msg?.event_type ?? "";
       if (/replica.started_speaking/.test(type)) setStatus("speaking");
       if (/replica.stopped_speaking/.test(type)) setStatus("listening");
-      if (/utterance|transcription/.test(type)) {
+      // Tavus sends TWO distinct events per line: "conversation.utterance_streaming"
+      // fires repeatedly as the text grows token by token, and
+      // "conversation.utterance" fires once with the complete line. The old regex
+      // (/utterance|transcription/) matched both, so every partial got recorded
+      // as its own turn -- a spoken sentence became a dozen duplicate/fragment
+      // rows. Only the non-streaming event is a finished turn.
+      if (/utterance/.test(type) && !/streaming/.test(type)) {
         const text = String(msg.properties?.speech ?? msg.properties?.text ?? "");
         const role = String(msg.properties?.role ?? "").toLowerCase();
         if (text) {
