@@ -24,13 +24,6 @@ export default function LegalLayout({
       </h1>
       <p className="mt-2 text-sm text-muted">Last updated: {updated}</p>
 
-      <div className="mt-4 rounded-md border border-warn/30 bg-warn-muted p-5">
-        <p className="text-sm leading-relaxed text-warn">
-          This is a draft prepared for review. It has not been checked by a
-          lawyer and should be reviewed before launch.
-        </p>
-      </div>
-
       <div className="legal mt-10 space-y-8">{children}</div>
 
       <footer className="mt-16 flex gap-6 border-t border-line pt-6 text-sm">

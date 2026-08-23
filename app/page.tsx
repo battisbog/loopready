@@ -42,7 +42,7 @@ export default async function Landing() {
             <div className="rise">
               <span className="inline-flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-1 text-xs text-secondary">
                 <span className="h-1.5 w-1.5 rounded-full bg-accent-hover" />
-                Voice interviews · Calibrated to company and level
+                Video interviews · Calibrated to company and level
               </span>
 
               <h1 className="mt-6 text-4xl font-semibold leading-[1.08] tracking-tight sm:text-5xl lg:text-6xl">
