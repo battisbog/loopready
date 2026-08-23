@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Button } from "@/components/ui";
 
 interface CompanyDemo {
   key: string;
@@ -87,9 +88,16 @@ const DEMOS: CompanyDemo[] = [
   },
 ];
 
+// Not a seventh named company: LoopReady's real "generic" interview profile
+// (lib/interview/companies.ts, GENERIC_DISPLAY_NAME) is company-agnostic by
+// design, so this tab honestly represents what picking it actually gets you
+// rather than promising bespoke calibration for a company that isn't listed.
+const CUSTOM_INDEX = DEMOS.length;
+
 export default function CompanyTabs() {
   const [active, setActive] = useState(0);
-  const demo = DEMOS[active];
+  const isCustom = active === CUSTOM_INDEX;
+  const demo = isCustom ? null : DEMOS[active];
 
   return (
     <div className="mt-10">
@@ -113,33 +121,64 @@ export default function CompanyTabs() {
             {d.name}
           </button>
         ))}
+        <button
+          role="tab"
+          aria-selected={isCustom}
+          onClick={() => setActive(CUSTOM_INDEX)}
+          className={`rounded-lg border px-4 py-2 text-sm font-medium transition-colors ${
+            isCustom
+              ? "border-accent bg-accent-muted text-accent"
+              : "border-dashed border-line text-secondary hover:border-line-strong hover:text-primary"
+          }`}
+        >
+          Custom
+        </button>
       </div>
 
-      <div className="mt-6 rounded-lg border border-line bg-surface p-5">
-        <div className="flex flex-wrap items-baseline justify-between gap-3">
+      {isCustom ? (
+        <div className="mt-6 rounded-lg border border-line bg-surface p-5">
           <h3 className="text-lg font-semibold text-primary">
-            {demo.name} · {demo.lens}
+            Interviewing somewhere not on this list?
           </h3>
-          <span className="text-xs text-muted">
-            Scored against: {demo.scoredAgainst}
-          </span>
+          <p className="mt-3 text-sm leading-relaxed text-secondary">
+            LoopReady isn&rsquo;t limited to these six. Pick &ldquo;Any
+            company&rdquo; when you start a round and you get a strong,
+            company-agnostic bar instead: individual ownership over team
+            narrative, the reasoning behind decisions, measurable impact, and
+            honest handling of failure — the same depth of probing, calibrated
+            to your level rather than to one company&rsquo;s named values.
+          </p>
+          <Button href="/pricing" className="mt-6">
+            Start free
+          </Button>
         </div>
+      ) : (
+        <div className="mt-6 rounded-lg border border-line bg-surface p-5">
+          <div className="flex flex-wrap items-baseline justify-between gap-3">
+            <h3 className="text-lg font-semibold text-primary">
+              {demo!.name} · {demo!.lens}
+            </h3>
+            <span className="text-xs text-muted">
+              Scored against: {demo!.scoredAgainst}
+            </span>
+          </div>
 
-        <p className="mt-6 text-xs font-medium uppercase tracking-wide text-muted">
-          Follow-ups your interviewer will actually ask
-        </p>
-        <ul className="mt-4 space-y-3">
-          {demo.probes.map((p) => (
-            <li
-              key={p}
-              className="rounded-lg border border-line bg-base/60 px-4 py-3 text-sm leading-relaxed text-secondary"
-            >
-              <span className="mr-2 text-accent">&rsaquo;</span>
-              {p}
-            </li>
-          ))}
-        </ul>
-      </div>
+          <p className="mt-6 text-xs font-medium uppercase tracking-wide text-muted">
+            Follow-ups your interviewer will actually ask
+          </p>
+          <ul className="mt-4 space-y-3">
+            {demo!.probes.map((p) => (
+              <li
+                key={p}
+                className="rounded-lg border border-line bg-base/60 px-4 py-3 text-sm leading-relaxed text-secondary"
+              >
+                <span className="mr-2 text-accent">&rsaquo;</span>
+                {p}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }

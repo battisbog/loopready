@@ -230,13 +230,15 @@ export default async function Landing() {
         <div className="mx-auto w-full max-w-6xl px-6 py-24">
           <div className="max-w-3xl">
             <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-              Six companies. Six different interviews.
+              Calibrated to the exact structure of the company you&rsquo;re
+              interviewing at.
             </h2>
             <p className="mt-5 text-lg leading-relaxed text-secondary">
               A generic tool asks &ldquo;tell me about a challenge.&rdquo;
               LoopReady interviews you the way your target actually does, and the
               level you pick changes the bar, not just the wording. Pick a
-              company to see the difference.
+              company to see the difference — interviewing somewhere else? Pick
+              Custom.
             </p>
           </div>
           <CompanyTabs />
