@@ -11,6 +11,7 @@ import {
 } from "@/lib/rate-limit";
 import { getUserTier } from "@/lib/tiers";
 import {
+  NOISE_REDUCTION_CONFIG,
   REALTIME_MODEL,
   REALTIME_VOICE,
   TURN_DETECTION,
@@ -144,6 +145,10 @@ export async function POST(request: Request) {
           input: {
             transcription: { model: "whisper-1" },
             turn_detection: TURN_DETECTION,
+            // Filters breaths/room noise out before turn detection ever sees
+            // them, so they never register as candidate speech in the first
+            // place. See lib/realtime/config.ts for the field verification.
+            noise_reduction: NOISE_REDUCTION_CONFIG,
           },
           output: { voice: REALTIME_VOICE },
         },
