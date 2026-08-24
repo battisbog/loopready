@@ -192,3 +192,12 @@ body {
 .paypal-buttons {
   margin: 0 !important;
 }
+
+/* The button frame itself, so a rounded button never sits on a square white
+ * plate. Applied to the frame rather than our container as well, because the
+ * iframe paints its own background inside whatever box we give it. */
+.paypal-buttons,
+.paypal-buttons > iframe {
+  border-radius: 0.375rem !important;
+  background: transparent !important;
+}

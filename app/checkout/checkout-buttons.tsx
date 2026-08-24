@@ -210,8 +210,13 @@ export default function CheckoutButtons({
           is ours rather than PayPal's. Kept mounted: PayPal renders into these
           and re-rendering would tear them down. */}
       <div className={`space-y-2 ${status === "working" ? "hidden" : ""}`}>
-        <div ref={paypalMount} />
-        <div ref={cardMount} />
+        {/* overflow-hidden + a matching radius clips the corners of PayPal's
+            iframe, whose background is opaque white. The button inside is
+            rounded, so without this the square white box behind it shows
+            through at each corner. Nothing inside the frame is stylable from
+            here, so clipping from the outside is the only lever we have. */}
+        <div ref={paypalMount} className="overflow-hidden rounded-md" />
+        <div ref={cardMount} className="overflow-hidden rounded-md" />
       </div>
 
       {error && (
