@@ -21,8 +21,30 @@ export default function LoginPage() {
   );
   const [busy, setBusy] = useState<string | null>(null);
   const [showEmail, setShowEmail] = useState(false);
-  // Preserve where the user was heading (e.g. /checkout?plan=voice).
-  const [next, setNext] = useState("/dashboard");
+  /**
+   * Where to land after signing in.
+   *
+   * /checkout redirects here as `/login?next=/checkout?plan=voice` when a
+   * logged-out visitor picks a paid plan. This used to be initialised to
+   * "/dashboard" and never updated -- setNext was never called -- so that
+   * parameter was passed and then ignored, and everyone who clicked "Get
+   * Voice" while logged out was signed in and dropped on the dashboard as a
+   * free user with no payment taken and no way to tell what had gone wrong.
+   *
+   * Seeded from the URL in a lazy initialiser, matching how `status` reads its
+   * error param, so there is no setState-in-effect cascade.
+   *
+   * Only same-origin paths are accepted. A protocol-relative "//evil.com"
+   * begins with "/" but navigates off-site, so it is rejected too.
+   */
+  const [next] = useState(() => {
+    if (typeof window === "undefined") return "/dashboard";
+    const requested = new URLSearchParams(window.location.search).get("next");
+    if (!requested) return "/dashboard";
+    return requested.startsWith("/") && !requested.startsWith("//")
+      ? requested
+      : "/dashboard";
+  });
 
   async function signInWithProvider(provider: Provider) {
     setBusy(provider);

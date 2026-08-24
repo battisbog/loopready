@@ -34,6 +34,12 @@ export default async function AppLayout({
     <div className="min-h-screen bg-base">
       <AppSidebar
         email={user.email}
+        // Google and GitHub both return a display name; email sign-ups have
+        // none, so the sidebar falls back to the address in that case.
+        name={
+          (user.user_metadata?.full_name as string | undefined) ??
+          (user.user_metadata?.name as string | undefined)
+        }
         credits={{
           // Showing a "buy more" balance for a feature that is off would be
           // confusing, so this is gated on the same flag the feature itself is.

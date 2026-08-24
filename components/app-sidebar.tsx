@@ -23,11 +23,21 @@ const FOOTER = [
   { href: "/settings", label: "Settings" },
 ];
 
-function initials(email?: string): string {
-  if (!email) return "?";
-  const name = email.split("@")[0];
-  const parts = name.split(/[._-]/).filter(Boolean);
-  return (parts.length > 1 ? parts[0][0] + parts[1][0] : name.slice(0, 2)).toUpperCase();
+/**
+ * Two-letter monogram for whatever identity we can show.
+ *
+ * A real name splits on spaces ("Aryan Patil" -> "AP"); an email falls back to
+ * the local part and its separators ("ada.lovelace@x" -> "AL"). Passing the
+ * display label rather than always the email means the monogram matches the
+ * name shown beside it instead of contradicting it.
+ */
+function initials(label?: string): string {
+  if (!label) return "?";
+  const base = label.includes("@") ? label.split("@")[0] : label;
+  const parts = base.split(/[\s._-]+/).filter(Boolean);
+  const monogram =
+    parts.length > 1 ? parts[0][0] + parts[1][0] : base.slice(0, 2);
+  return monogram.toUpperCase();
 }
 
 export interface SidebarCredits {
@@ -38,10 +48,13 @@ export interface SidebarCredits {
 
 function SidebarContent({
   email,
+  name,
   credits,
   onNavigate,
 }: {
   email?: string;
+  /** Display name from the auth provider, when it gave us one. */
+  name?: string;
   credits: SidebarCredits;
   onNavigate?: () => void;
 }) {
@@ -138,10 +151,13 @@ function SidebarContent({
               actually makes the truncate take effect inside a flex row. */}
           <div className="flex min-w-0 items-center gap-2.5 px-3 py-2.5">
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-line bg-surface text-xs font-semibold text-secondary">
-              {initials(email)}
+              {initials(name ?? email)}
             </span>
+            {/* Name when the provider gave us one, email otherwise. The
+                email stays as the tooltip so the account is still
+                identifiable when two people share a display name. */}
             <span className="min-w-0 flex-1 truncate text-sm text-secondary" title={email}>
-              {email ?? "Account"}
+              {name ?? email ?? "Account"}
             </span>
           </div>
           <button
@@ -172,9 +188,12 @@ const SIDEBAR_CONTENT_PADDING = "lg:pl-60";
  */
 export default function AppSidebar({
   email,
+  name,
   credits,
 }: {
   email?: string;
+  /** Display name from the auth provider, when it gave us one. */
+  name?: string;
   credits: SidebarCredits;
 }) {
   const [open, setOpen] = useState(false);
@@ -202,7 +221,7 @@ export default function AppSidebar({
           SIDEBAR_WIDTH
         )}
       >
-        <SidebarContent email={email} credits={credits} />
+        <SidebarContent email={email} name={name} credits={credits} />
       </aside>
 
       {/* Mobile drawer */}
@@ -221,6 +240,7 @@ export default function AppSidebar({
           >
             <SidebarContent
               email={email}
+              name={name}
               credits={credits}
               onNavigate={() => setOpen(false)}
             />
