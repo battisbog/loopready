@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { getUserTier } from "@/lib/tiers";
 import Pricing from "../(marketing)/pricing";
 import AppNav from "@/components/app-nav";
 import Nav from "../(marketing)/nav";
@@ -21,11 +23,15 @@ export default async function PricingPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
+  const currentTier = user
+    ? await getUserTier(createAdminClient(), user.id)
+    : undefined;
+
   return (
     <div className="flex min-h-screen flex-col">
       {user ? <AppNav email={user.email} /> : <Nav signedIn={false} />}
 
-      <Pricing />
+      <Pricing signedIn={Boolean(user)} currentTier={currentTier} />
 
       <footer className="border-t border-line">
         <div className="mx-auto flex w-full max-w-6xl flex-col items-center justify-between gap-3 px-6 py-8 sm:flex-row">

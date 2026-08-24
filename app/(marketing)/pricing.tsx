@@ -84,7 +84,45 @@ const COMPARISON: {
   { label: "Video-avatar interviews", free: false, voice: false, premium: `${PREMIUM_VIDEO_ALLOWANCE} / month` },
 ];
 
-export default function Pricing() {
+/**
+ * Resolves a tier card's call to action for who is actually looking at it.
+ *
+ * The Free card used to hardcode href="/login", which is auth-blind: a
+ * signed-in visitor clicking "Start free" was sent back to a login page they
+ * had already been through. The paid cards route through /checkout, which
+ * handles auth itself, so only Free needed a destination that depends on the
+ * viewer -- but none of the three showed which plan you are already on, so a
+ * subscriber saw "Get Voice" as though they had never bought it.
+ */
+function callToAction(
+  tier: Tier,
+  signedIn: boolean,
+  currentTier?: string
+): { cta: string; href: string; current: boolean } {
+  const current = signedIn && currentTier === tier.id;
+
+  if (current) {
+    // Billing is where you change or cancel something you already have.
+    return { cta: "Your current plan", href: "/billing", current: true };
+  }
+  if (tier.id === "free") {
+    return signedIn
+      ? { cta: "Go to dashboard", href: "/dashboard", current: false }
+      : { cta: tier.cta, href: tier.href, current: false };
+  }
+  // Paid tiers always point at checkout, signed in or not: /checkout is the
+  // single place that requires an account, and it sends you back here after.
+  return { cta: tier.cta, href: tier.href, current: false };
+}
+
+export default function Pricing({
+  signedIn = false,
+  currentTier,
+}: {
+  signedIn?: boolean;
+  /** The viewer's tier, so their existing plan is marked as theirs. */
+  currentTier?: string;
+} = {}) {
   return (
     <section id="pricing" className="border-t border-line">
       <div className="mx-auto w-full max-w-6xl px-6 py-24">
@@ -131,13 +169,24 @@ export default function Pricing() {
                 )}
               </p>
 
-              <Button
-                href={tier.href}
-                variant={tier.featured ? "primary" : "secondary"}
-                className="mt-6 w-full"
-              >
-                {tier.cta}
-              </Button>
+              {(() => {
+                const action = callToAction(tier, signedIn, currentTier);
+                return (
+                  <Button
+                    href={action.href}
+                    variant={
+                      action.current
+                        ? "secondary"
+                        : tier.featured
+                          ? "primary"
+                          : "secondary"
+                    }
+                    className="mt-6 w-full"
+                  >
+                    {action.cta}
+                  </Button>
+                );
+              })()}
 
               <ul className="mt-7 space-y-3">
                 {tier.features.map((f) => (

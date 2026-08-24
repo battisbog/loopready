@@ -2,6 +2,8 @@ import Link from "next/link";
 import { Button } from "@/components/ui";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { getUserTier } from "@/lib/tiers";
 import { COMPANY_PROFILES } from "@/lib/interview/companies";
 import { PRICING } from "@/lib/pricing";
 import CompanyTabs from "./(marketing)/company-tabs";
@@ -32,6 +34,11 @@ export default async function Landing() {
    * what requires an account, which is the one place the requirement belongs.
    */
   const signedIn = Boolean(user);
+  // So a subscriber sees "Your current plan" on the card they already pay for
+  // rather than a buy button for something they own.
+  const currentTier = user
+    ? await getUserTier(createAdminClient(), user.id)
+    : undefined;
 
   // "Start free" is meaningless to someone who already has an account, so the
   // primary CTA becomes the way back into the app for them.
@@ -398,7 +405,7 @@ export default async function Landing() {
         </div>
       </section>
 
-      <Pricing />
+      <Pricing signedIn={signedIn} currentTier={currentTier} />
 
       {/* ---------- FAQ ---------- */}
       <section id="faq" className="border-t border-line bg-base/60">
