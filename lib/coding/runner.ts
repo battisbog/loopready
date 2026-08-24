@@ -198,32 +198,40 @@ export async function runTests(
       };
     }
 
-    const rawOut = truncate(await cmd.stdout());
+    // The results line is printed LAST, so the output cap has to be applied
+    // from the end. Truncating the head first cut the marker off whenever a
+    // candidate printed more than MAX_OUTPUT_CHARS of debug output, and a
+    // solution that passed every test was reported as "did not run to
+    // completion".
+    const fullOut = await cmd.stdout();
     const rawErr = truncate(await cmd.stderr());
 
-    const markerAt = rawOut.lastIndexOf(MARKER);
+    const markerAt = fullOut.lastIndexOf(MARKER);
     if (markerAt === -1) {
       // Syntax error, crash before the harness, or an infinite-loop timeout.
+      const shown = truncate(fullOut);
       return {
         results: [],
         passed: 0,
         total: problem.tests.length,
-        stdout: rawOut.trim(),
+        stdout: shown.trim(),
         compileError:
-          (rawErr || rawOut).trim().slice(-1500) ||
+          (rawErr || shown).trim().slice(-1500) ||
           "Your code did not run to completion.",
       };
     }
 
     const results = JSON.parse(
-      rawOut.slice(markerAt + MARKER.length)
+      fullOut.slice(markerAt + MARKER.length)
     ) as TestResult[];
 
     return {
       results,
       passed: results.filter((r) => r.passed).length,
       total: results.length,
-      stdout: rawOut.slice(0, markerAt).trim(),
+      // Only the candidate's own prints are capped; the results line is
+      // already parsed by this point.
+      stdout: truncate(fullOut.slice(0, markerAt)).trim(),
     };
   } finally {
     await sandbox.stop().catch(() => {});
