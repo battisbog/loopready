@@ -154,6 +154,29 @@ export function advanceState(
   let followupCount = session.followup_count;
   let done = false;
 
+  // The opening arc, walked one step per candidate turn exactly as the text
+  // path does (lib/interview/turn.ts handles greeting and format before it
+  // branches on round_type; this must match).
+  //
+  // EVERY round type walks it, which is why it sits above the non-behavioral
+  // branch below. It used to sit underneath, so coding and system design
+  // returned phase "questions" on the candidate's very first reply and never
+  // reached the "format" branch of buildInstructions -- the only place that
+  // tells the interviewer to present the problem. Given no problem to present
+  // and a standing instruction to ask something, the model improvised, which
+  // is how a coding round opened with a behavioral question.
+  //
+  // Deliberately NOT gated on `substantive`: "yeah, sounds good" is a complete
+  // and correct answer to "are you ready?", and must still advance the arc.
+  if (phase === "greeting") {
+    // They have just introduced themselves.
+    return { questionIndex, followupCount: 0, phase: "format", done: false };
+  }
+  if (phase === "format") {
+    // They have just confirmed they are ready.
+    return { questionIndex, followupCount: 0, phase: "questions", done: false };
+  }
+
   if (session.round_type !== "behavioral") {
     const cap =
       session.round_type === "coding" ? MAX_CODING_TURNS : MAX_DESIGN_TURNS;
@@ -168,21 +191,6 @@ export function advanceState(
   }
 
   const questions: Question[] = session.questions ?? QUESTIONS;
-
-  // The opening arc, walked one step per candidate turn exactly as the text
-  // path does. Collapsing it meant the candidate was never asked to introduce
-  // themselves, which is the first thing a real interview does.
-  //
-  // Deliberately NOT gated on `substantive`: "yeah, sounds good" is a complete
-  // and correct answer to "are you ready?", and must still advance the arc.
-  if (phase === "greeting") {
-    // They have just introduced themselves.
-    return { questionIndex, followupCount: 0, phase: "format", done: false };
-  }
-  if (phase === "format") {
-    // They have just confirmed they are ready.
-    return { questionIndex, followupCount: 0, phase: "questions", done: false };
-  }
 
   if (opts.substantive) followupCount += 1;
   const exhausted = followupCount > MAX_FOLLOWUPS;
