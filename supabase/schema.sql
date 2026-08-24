@@ -298,3 +298,23 @@ alter table profiles add column if not exists email_notifications boolean not nu
 -- Interview arc: greeting -> format -> questions -> closing.
 -- Existing rows default to 'questions' so in-flight sessions are unaffected.
 alter table sessions add column if not exists phase text not null default 'questions';
+
+-- ============================================================
+-- PayPal webhook idempotency
+--
+-- PayPal delivers at least once: a timeout, a 5xx, or a lost response all
+-- produce a redelivery of the SAME event id. Most handlers here are naturally
+-- idempotent because they set an absolute value, but the video-pack grant adds
+-- credits, so a redelivery handed out another pack for free.
+--
+-- The webhook claims an event id here before applying it, and releases the
+-- claim if processing fails so the retry can still get through.
+-- ============================================================
+create table if not exists paypal_webhook_events (
+  event_id text primary key,
+  event_type text,
+  received_at timestamptz not null default now()
+);
+
+alter table paypal_webhook_events enable row level security;
+-- No policies: service role only. RLS denies every client read and write.

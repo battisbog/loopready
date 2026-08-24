@@ -124,6 +124,40 @@ async function resolveUserId(
   return { userId: null, purpose: null };
 }
 
+/**
+ * Claims an event id so a redelivery cannot apply it twice.
+ *
+ * Returns "fresh" to proceed, "duplicate" to skip. Any other database problem
+ * returns "unknown", which proceeds anyway: refusing every payment because the
+ * dedupe table is unreachable is a worse failure than the rare double-grant it
+ * protects against. That case is logged loudly.
+ */
+async function claimEvent(
+  admin: ReturnType<typeof createAdminClient>,
+  eventId: string,
+  eventType: string
+): Promise<"fresh" | "duplicate" | "unknown"> {
+  const { error } = await admin
+    .from("paypal_webhook_events")
+    .insert({ event_id: eventId, event_type: eventType });
+  if (!error) return "fresh";
+  // 23505 = unique_violation: we have already handled this delivery.
+  if (error.code === "23505") return "duplicate";
+  console.error(
+    `[paypal] idempotency claim failed (${error.code}): ${error.message}. ` +
+      "Processing anyway WITHOUT replay protection."
+  );
+  return "unknown";
+}
+
+/** Lets a retry back in after processing failed partway. */
+async function releaseEvent(
+  admin: ReturnType<typeof createAdminClient>,
+  eventId: string
+): Promise<void> {
+  await admin.from("paypal_webhook_events").delete().eq("event_id", eventId);
+}
+
 /** Period end from a subscription resource, used as the credit reset date. */
 function periodEnd(resource: Record<string, unknown>): string | null {
   const billing = resource.billing_info as
@@ -141,7 +175,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
   }
 
-  let event: { event_type?: string; resource?: Record<string, unknown> };
+  let event: {
+    id?: string;
+    event_type?: string;
+    resource?: Record<string, unknown>;
+  };
   try {
     event = JSON.parse(rawBody);
   } catch {
@@ -151,6 +189,26 @@ export async function POST(request: Request) {
   const type = event.event_type ?? "";
   const resource = event.resource ?? {};
   const admin = createAdminClient();
+
+  // Before anything is applied. A redelivered video-pack capture would
+  // otherwise add another pack of credits at no charge.
+  const eventId = event.id;
+  if (eventId) {
+    const claim = await claimEvent(admin, eventId, type);
+    if (claim === "duplicate") {
+      console.log(`[paypal] ${type} ${eventId} already applied; ignoring replay`);
+      return NextResponse.json({ ok: true, duplicate: true });
+    }
+  } else {
+    console.warn(`[paypal] ${type} arrived with no event id; cannot dedupe`);
+  }
+
+  /** Hands the event back so PayPal's retry is not swallowed by the claim. */
+  const failed = async (body: object, status: number) => {
+    if (eventId) await releaseEvent(admin, eventId);
+    return NextResponse.json(body, { status });
+  };
+
   const { userId, purpose } = await resolveUserId(admin, resource);
 
   if (!userId) {
@@ -344,7 +402,7 @@ export async function POST(request: Request) {
   if (error) {
     // 500 makes PayPal retry, which is what we want for a transient DB error.
     console.error("[paypal] profile update failed:", error.message);
-    return NextResponse.json({ error: "Update failed" }, { status: 500 });
+    return failed({ error: "Update failed" }, 500);
   }
 
   if (credits) {
@@ -365,7 +423,7 @@ export async function POST(request: Request) {
       });
       if (creditError) {
         console.error("[paypal] credit grant failed:", creditError.message);
-        return NextResponse.json({ error: "Credit update failed" }, { status: 500 });
+        return failed({ error: "Credit update failed" }, 500);
       }
     }
   }
