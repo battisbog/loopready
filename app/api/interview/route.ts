@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { generateText, type ModelMessage } from "ai";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { sanitizeArtifactPatch } from "@/lib/interview/artifact";
 import { interviewModel } from "@/lib/ai";
 import { planTurn, progressPayload } from "@/lib/interview/turn";
 import { MAX_CODING_TURNS, MAX_DESIGN_TURNS, startSession } from "@/lib/interview/start";
@@ -131,7 +132,12 @@ export async function POST(request: Request) {
   // each turn. Merge it — a full replace would drop server-owned fields like
   // problemId and the last run results.
   if (body.artifact !== undefined) {
-    session.artifact = { ...session.artifact, ...body.artifact };
+    session.artifact = {
+      ...session.artifact,
+      // Whitelisted: a client must not be able to rewrite problemId or forge
+      // lastRun, both of which the feedback report treats as fact.
+      ...sanitizeArtifactPatch(body.artifact).patch,
+    };
     await admin
       .from("sessions")
       .update({ artifact: session.artifact })

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { sanitizeArtifactPatch } from "@/lib/interview/artifact";
 import { getContext } from "@/lib/interview/companies";
 import { QUESTIONS, type Question } from "@/lib/interview/questions";
 import { startSession } from "@/lib/interview/start";
@@ -96,7 +97,12 @@ export async function POST(request: Request) {
 
   // Merge (never replace) so server-owned fields like problemId survive.
   if (body.artifact !== undefined) {
-    session.artifact = { ...session.artifact, ...body.artifact };
+    session.artifact = {
+      ...session.artifact,
+      // Whitelisted: a client must not be able to rewrite problemId or forge
+      // lastRun, both of which the feedback report treats as fact.
+      ...sanitizeArtifactPatch(body.artifact).patch,
+    };
     await admin
       .from("sessions")
       .update({ artifact: session.artifact })
