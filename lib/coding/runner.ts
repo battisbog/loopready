@@ -162,16 +162,29 @@ export async function runTests(
 
     // Race the program against a wall clock. An infinite loop in candidate
     // code would otherwise burn the full sandbox lifetime on every run.
-    const timer = new Promise<null>((resolve) =>
-      setTimeout(() => {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const deadline = new Promise<null>((resolve) => {
+      timer = setTimeout(() => {
         timedOut = true;
         resolve(null);
-      }, RUN_TIMEOUT_MS)
-    );
-    const cmd = await Promise.race([
-      sandbox.runCommand(isPy ? "python3" : "node", [file]),
-      timer,
-    ]);
+      }, RUN_TIMEOUT_MS);
+    });
+
+    // Promise.race leaves the loser unhandled. The command keeps running until
+    // sandbox.stop() kills it, and the rejection that follows arrived with no
+    // catch attached -- an unhandled rejection in the server process, caused by
+    // nothing worse than a candidate writing an infinite loop.
+    const run = sandbox
+      .runCommand(isPy ? "python3" : "node", [file])
+      .catch((e: unknown) => {
+        if (!timedOut) throw e;
+        console.warn("[run] command failed after timeout kill:", e);
+        return null;
+      });
+
+    const cmd = await Promise.race([run, deadline]);
+    // Never leave the process alive for the rest of the timeout window.
+    if (timer) clearTimeout(timer);
 
     if (!cmd || timedOut) {
       return {
