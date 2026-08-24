@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { RealtimeSession } from "@/lib/realtime/client";
 import { endInterviewBeacon } from "@/lib/interview/end-beacon";
+import { postTurn } from "@/lib/interview/post-turn";
 import type { Turn } from "./use-voice-turn";
 
 export type LiveStatus =
@@ -97,14 +98,13 @@ export function useRealtimeTurn({
   }, [sessionId]);
 
   const post = useCallback(
-    async (body: object) => {
-      const res = await fetch("/api/realtime/turn", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sessionId, ...body }),
-      });
-      if (!res.ok) return null;
-      return res.json();
+    async (body: Record<string, unknown>) => {
+      const result = await postTurn(sessionId, body);
+      // A live round keeps running even when our server is unreachable, so a
+      // dropped turn is invisible unless we say so. Silence here truncated the
+      // transcript the debrief is graded from.
+      if (!result.ok && result.error && aliveRef.current) setError(result.error);
+      return result.data;
     },
     [sessionId]
   );

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { DailyCall } from "@daily-co/daily-js";
 import type { Turn } from "./use-voice-turn";
 import { contextUpdateMessage } from "@/lib/video/tavus";
+import { postTurn } from "@/lib/interview/post-turn";
 import { endInterviewBeacon } from "@/lib/interview/end-beacon";
 
 export type VideoStatus =
@@ -146,19 +147,16 @@ export function useVideoTurn({
       if (!text.trim() || !aliveRef.current) return;
       setTurns((t) => [...t, { role, text }]);
       if (role !== "candidate") {
-        void fetch("/api/realtime/turn", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ sessionId, role, text }),
-        });
+        void postTurn(sessionId, { role, text });
         return;
       }
-      const res = await fetch("/api/realtime/turn", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sessionId, role, text }),
-      });
-      const data = await res.json().catch(() => null);
+      // res.ok was never checked here: an error body is still valid JSON, so a
+      // 429 or a 503 read as success and was quietly discarded, leaving the
+      // turn unrecorded and the phase machine frozen while Tavus carried on
+      // interviewing.
+      const result = await postTurn(sessionId, { role, text });
+      if (!result.ok && result.error && aliveRef.current) setError(result.error);
+      const data = result.data;
       if (!data || !aliveRef.current) return;
 
       // Relay refreshed instructions into the room over the data channel.
