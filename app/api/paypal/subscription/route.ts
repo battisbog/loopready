@@ -65,6 +65,15 @@ export async function POST(request: Request) {
       }
     );
 
+    // Logged because this id is otherwise never recorded anywhere unless the
+    // subscription activates: the webhook is what persists it. An attempt that
+    // the payer abandons, or that PayPal declines at the card step, leaves us
+    // with no reference at all -- so a "my card was refused" report cannot be
+    // traced back to the actual subscription to read its status.
+    console.log(
+      `[paypal] subscription ${sub.id} created for user=${user.id} plan=${plan} status=${sub.status}`
+    );
+
     return NextResponse.json({
       subscriptionId: sub.id,
       amount: PRICING[plan as PaidPlan].amount,
