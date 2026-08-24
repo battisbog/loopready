@@ -110,14 +110,23 @@ async function resolveUserId(
     return { userId: parsed.userId || null, purpose: parsed.purpose };
   }
 
-  const subscriptionId =
-    (resource.id as string | undefined) ??
-    (resource.billing_agreement_id as string | undefined);
-  if (subscriptionId) {
+  // Try every id that could be the SUBSCRIPTION id, most specific first.
+  //
+  // This used to be `resource.id ?? resource.billing_agreement_id`, which
+  // never once consulted billing_agreement_id: on a sale resource `id` is
+  // always present and is the transaction id, so ?? short-circuited on it and
+  // the lookup searched paypal_subscription_id for a transaction id. The
+  // renewal fallback the comment above promises was unreachable.
+  const candidates = [
+    resource.billing_agreement_id as string | undefined,
+    resource.id as string | undefined,
+  ].filter((v): v is string => Boolean(v));
+
+  for (const candidate of candidates) {
     const { data } = await admin
       .from("profiles")
       .select("id")
-      .eq("paypal_subscription_id", subscriptionId)
+      .eq("paypal_subscription_id", candidate)
       .maybeSingle();
     if (data?.id) return { userId: data.id, purpose: null };
   }
