@@ -183,13 +183,12 @@ body {
  * between them. Those gaps read as stray white bands against a dark surface,
  * because PayPal's buttons are designed to sit on a light background.
  *
- * Tightening the rhythm here rather than in the component keeps it in one
- * place: the SDK re-renders its own DOM, so inline styling would be
- * overwritten on every render.
+ * Each funding source is now rendered into its own container (see
+ * checkout-buttons.tsx), so the spacing between buttons is set by the wrapper
+ * in that component. PayPal must contribute no margin of its own, or the two
+ * stack up. Zeroing it here rather than inline because the SDK re-renders its
+ * own DOM and would overwrite anything set on the elements directly.
  * ------------------------------------------------------------------ */
 .paypal-buttons {
-  margin-bottom: 0.5rem !important;
-}
-.paypal-buttons:last-child {
-  margin-bottom: 0 !important;
+  margin: 0 !important;
 }

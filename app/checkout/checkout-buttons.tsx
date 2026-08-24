@@ -11,8 +11,11 @@ type Purchase =
 interface PayPalSdk {
   Buttons: (opts: Record<string, unknown>) => {
     render: (target: HTMLElement) => Promise<void>;
+    isEligible: () => boolean;
     close?: () => void;
   };
+  /** Funding source constants, used to render each button on its own. */
+  FUNDING: Record<string, string>;
 }
 declare global {
   interface Window {
@@ -34,11 +37,6 @@ function loadSdk(clientId: string, subscription: boolean): Promise<PayPalSdk> {
       "client-id": clientId,
       currency: "USD",
       components: "buttons",
-      // Pay Later adds a third stacked button that most candidates will never
-      // use, and each extra funding source is another block with a gap around
-      // it. Card is deliberately kept: it is the guest-checkout path for
-      // anyone without a PayPal account, which the copy beside it promises.
-      "disable-funding": "paylater",
       ...(subscription
         ? { intent: "subscription", vault: "true" }
         : { intent: "capture" }),
@@ -63,7 +61,8 @@ export default function CheckoutButtons({
   purchase: Purchase;
 }) {
   const router = useRouter();
-  const mount = useRef<HTMLDivElement>(null);
+  const paypalMount = useRef<HTMLDivElement>(null);
+  const cardMount = useRef<HTMLDivElement>(null);
   const [status, setStatus] = useState<"loading" | "ready" | "working" | "error">(
     "loading"
   );
@@ -73,90 +72,113 @@ export default function CheckoutButtons({
     let cancelled = false;
     const isSubscription = purchase.kind === "subscription";
 
-    loadSdk(clientId, isSubscription)
-      .then((paypal) => {
-        if (cancelled || !mount.current) return;
-        mount.current.innerHTML = "";
-
-        paypal
-          .Buttons({
-            style: {
-              layout: "vertical",
-              shape: "rect",
-              label: "pay",
-              height: 45,
-              // Removes the "Powered by PayPal" strip under the stack, which
-              // added another band of empty space.
-              tagline: false,
-            },
-
-            // Both flows create the object on OUR server, so the plan id,
-            // amount and custom_id can never be set by the browser.
-            ...(isSubscription
-              ? {
-                  createSubscription: async () => {
-                    const res = await fetch("/api/paypal/subscription", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ plan: purchase.plan }),
-                    });
-                    const data = await res.json();
-                    if (!res.ok) throw new Error(data.error ?? "Could not start");
-                    return data.subscriptionId;
-                  },
-                  onApprove: async () => {
-                    setStatus("working");
-                    // The webhook grants the tier; this just moves the user on.
-                    router.push("/billing?checkout=success");
-                  },
-                }
-              : {
-                  createOrder: async () => {
-                    const res = await fetch("/api/paypal/order", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ product: purchase.product }),
-                    });
-                    const data = await res.json();
-                    if (!res.ok) throw new Error(data.error ?? "Could not start");
-                    return data.orderId;
-                  },
-                  onApprove: async (data: { orderID: string }) => {
-                    setStatus("working");
-                    const res = await fetch("/api/paypal/order/capture", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ orderId: data.orderID }),
-                    });
-                    const body = await res.json();
-                    if (!res.ok) {
-                      setStatus("error");
-                      setError(body.error ?? "Payment could not be completed.");
-                      return;
-                    }
-                    router.push("/billing?checkout=success");
-                  },
-                }),
-
-            onCancel: () => {
-              setStatus("ready");
-              setError(null);
-            },
-            onError: (e: unknown) => {
-              console.error("[paypal] button error:", e);
+    /** Handlers are identical for every funding source. */
+    const flow = isSubscription
+      ? {
+          createSubscription: async () => {
+            const res = await fetch("/api/paypal/subscription", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ plan: (purchase as { plan: string }).plan }),
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error ?? "Could not start");
+            return data.subscriptionId;
+          },
+          onApprove: async () => {
+            setStatus("working");
+            // The webhook grants the tier; this just moves the user on.
+            router.push("/billing?checkout=success");
+          },
+        }
+      : {
+          createOrder: async () => {
+            const res = await fetch("/api/paypal/order", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                product: (purchase as { product: string }).product,
+              }),
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error ?? "Could not start");
+            return data.orderId;
+          },
+          onApprove: async (data: { orderID: string }) => {
+            setStatus("working");
+            const res = await fetch("/api/paypal/order/capture", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ orderId: data.orderID }),
+            });
+            const body = await res.json();
+            if (!res.ok) {
               setStatus("error");
-              setError(
-                "Something went wrong with PayPal. You have not been charged."
-              );
-            },
-          })
-          .render(mount.current)
-          .then(() => !cancelled && setStatus("ready"))
-          .catch(() => {
-            if (cancelled) return;
-            setStatus("error");
-            setError("PayPal could not display the payment options.");
-          });
+              setError(body.error ?? "Payment could not be completed.");
+              return;
+            }
+            router.push("/billing?checkout=success");
+          },
+        };
+
+    const shared = {
+      style: { shape: "rect", label: "pay", height: 45 } as Record<string, unknown>,
+      ...flow,
+      onCancel: () => {
+        setStatus("ready");
+        setError(null);
+      },
+      onError: (e: unknown) => {
+        console.error("[paypal] button error:", e);
+        setStatus("error");
+        setError("Something went wrong with PayPal. You have not been charged.");
+      },
+    };
+
+    loadSdk(clientId, isSubscription)
+      .then(async (paypal) => {
+        if (cancelled) return;
+
+        /**
+         * Each funding source is rendered on its own.
+         *
+         * layout:"vertical" puts every funding source inside ONE PayPal
+         * iframe, and the spacing between them lives in PayPal's own DOM --
+         * unreachable from our stylesheet, which is why tightening
+         * .paypal-buttons did nothing. Naming a fundingSource renders exactly
+         * one button per container, so the gap between them becomes ours.
+         *
+         * isEligible() is checked first because render() throws on an
+         * ineligible source, and eligibility genuinely varies: the standalone
+         * card button is not always offered for subscriptions. Skipping one
+         * quietly is correct -- PayPal's own flow still takes cards for guests.
+         */
+        const targets = [
+          { funding: paypal.FUNDING.PAYPAL, mount: paypalMount.current },
+          { funding: paypal.FUNDING.CARD, mount: cardMount.current },
+        ];
+
+        let rendered = 0;
+        for (const t of targets) {
+          if (!t.mount || !t.funding) continue;
+          t.mount.innerHTML = "";
+          const button = paypal.Buttons({ ...shared, fundingSource: t.funding });
+          if (!button.isEligible()) continue;
+          try {
+            await button.render(t.mount);
+            rendered += 1;
+          } catch {
+            // One unavailable source must not take the whole checkout down.
+          }
+        }
+
+        if (cancelled) return;
+        if (rendered === 0) {
+          setStatus("error");
+          setError("PayPal could not display the payment options.");
+          return;
+        }
+        setStatus("ready");
       })
       .catch(() => {
         if (cancelled) return;
@@ -184,8 +206,13 @@ export default function CheckoutButtons({
         </div>
       )}
 
-      {/* Kept mounted: PayPal renders into it and re-rendering would tear it down. */}
-      <div ref={mount} className={status === "working" ? "hidden" : ""} />
+      {/* One container per funding source, so the spacing between the buttons
+          is ours rather than PayPal's. Kept mounted: PayPal renders into these
+          and re-rendering would tear them down. */}
+      <div className={`space-y-2 ${status === "working" ? "hidden" : ""}`}>
+        <div ref={paypalMount} />
+        <div ref={cardMount} />
+      </div>
 
       {error && (
         <p className="mt-3 text-center text-sm text-error" role="alert">
