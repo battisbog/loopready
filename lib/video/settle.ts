@@ -81,16 +81,33 @@ export async function settleVideoSession(
   } else if (reason === "session_failed" && reachedThreshold) {
     // It ran long enough to charge, then broke. Charge, then hand it back, so
     // the ledger shows what happened rather than silently swallowing it.
-    await commitVideoCredit(admin, userId, session.id);
-    ok = (
-      await refundVideoCredit(
-        admin,
-        userId,
-        session.id,
-        `session failed after ${minutes.toFixed(1)} min`
-      )
-    ).ok;
-    settlement = "refunded";
+    //
+    // The refund is conditional on the commit having actually happened.
+    // refund_video_credit is an unconditional +1 with no reservation guard, so
+    // running it after a commit that did nothing -- the reservation was already
+    // cleared by a concurrent settle, or by the recovery path -- minted a
+    // credit the user never paid for.
+    const committed = await commitVideoCredit(admin, userId, session.id);
+    if (committed.ok) {
+      ok = (
+        await refundVideoCredit(
+          admin,
+          userId,
+          session.id,
+          `session failed after ${minutes.toFixed(1)} min`
+        )
+      ).ok;
+      settlement = "refunded";
+    } else {
+      // Nothing was charged, so there is nothing to give back. Recorded as
+      // released rather than refunded so the ledger stays truthful.
+      console.warn(
+        `[video] session=${session.id} failed late but had no live reservation ` +
+          `(${committed.reason}); skipping refund`
+      );
+      ok = false;
+      settlement = "released";
+    }
   } else if (reachedThreshold) {
     ok = (await commitVideoCredit(admin, userId, session.id)).ok;
     settlement = "committed";
