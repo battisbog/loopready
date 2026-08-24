@@ -18,13 +18,61 @@ export const VIDEO_ENABLED_CLIENT =
  */
 export const VIDEO_ENABLED_SERVER = process.env.VIDEO_ENABLED === "true";
 
-/** Tavus credentials. Absent means the feature cannot run, whatever the flags. */
+/**
+ * Which Tavus account is live.
+ *
+ * A second account exists purely as a failover, configured with an identical
+ * persona (same system prompt, same objectives and guardrails, same replica,
+ * same turn-taking and LLM settings) so a switch changes nothing the candidate
+ * can perceive.
+ *
+ * The switch is a deliberate manual act, not automatic failover. Silently
+ * retrying a failed video session against a second billed account would double
+ * the spend on a transient error and hide the outage that caused it, so
+ * flipping this is a decision a human makes.
+ *
+ * To switch: set TAVUS_USE_BACKUP=true in Vercel and redeploy.
+ */
+export const TAVUS_USE_BACKUP = process.env.TAVUS_USE_BACKUP === "true";
+
+/**
+ * Credentials for whichever account is selected. Absent means the feature
+ * cannot run, whatever the flags.
+ *
+ * Falls back to the primary value per-field, so a half-filled backup config
+ * cannot silently produce a mismatched pair -- e.g. the backup API key with
+ * the primary's persona id, which belongs to a different account and would
+ * fail on every request.
+ */
+const useBackup =
+  TAVUS_USE_BACKUP && Boolean(process.env.TAVUS_BACKUP_API_KEY);
+
 export const TAVUS = {
-  apiKey: process.env.TAVUS_API_KEY ?? "",
-  replicaId: process.env.TAVUS_REPLICA_ID ?? "",
-  personaId: process.env.TAVUS_PERSONA_ID ?? "",
+  apiKey:
+    (useBackup ? process.env.TAVUS_BACKUP_API_KEY : process.env.TAVUS_API_KEY) ??
+    "",
+  replicaId:
+    (useBackup
+      ? process.env.TAVUS_BACKUP_REPLICA_ID ?? process.env.TAVUS_REPLICA_ID
+      : process.env.TAVUS_REPLICA_ID) ?? "",
+  personaId:
+    (useBackup
+      ? process.env.TAVUS_BACKUP_PERSONA_ID
+      : process.env.TAVUS_PERSONA_ID) ?? "",
   apiBase: process.env.TAVUS_API_BASE ?? "https://tavusapi.com",
+  /** Which account these credentials belong to, for logs and /api/health. */
+  account: useBackup ? ("backup" as const) : ("primary" as const),
 };
+
+// Loud on boot: running on the failover is a state someone must not forget
+// they are in, because the primary stops being exercised while it is on.
+if (TAVUS_USE_BACKUP && !useBackup) {
+  console.error(
+    "[video] TAVUS_USE_BACKUP is set but TAVUS_BACKUP_API_KEY is missing; staying on the PRIMARY account."
+  );
+} else if (useBackup) {
+  console.warn("[video] Tavus is running on the BACKUP account.");
+}
 
 export function tavusConfigured(): boolean {
   return Boolean(TAVUS.apiKey && TAVUS.replicaId && TAVUS.personaId);
