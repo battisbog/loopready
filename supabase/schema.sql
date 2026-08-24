@@ -273,8 +273,13 @@ begin
     returning video_credits_remaining into v_remaining;
   else
     -- One-time pack: add on top of whatever is left.
+    --
+    -- greatest(0, ...) matters because p_allowance is NEGATIVE when a pack is
+    -- refunded. Without the floor, refunding a 3-credit pack against a balance
+    -- of 1 left -2, which the UI never shows and which silently swallowed the
+    -- first two credits of the next purchase.
     update profiles
-       set video_credits_remaining = video_credits_remaining + p_allowance,
+       set video_credits_remaining = greatest(0, video_credits_remaining + p_allowance),
            updated_at = now()
      where id = p_user
     returning video_credits_remaining into v_remaining;
