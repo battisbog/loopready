@@ -13,6 +13,9 @@ import { getUserTier } from "@/lib/tiers";
 
 export const maxDuration = 60;
 
+/** Matches the transcription provider's own per-file ceiling. */
+const MAX_AUDIO_BYTES = Number(process.env.MAX_AUDIO_BYTES ?? 25 * 1024 * 1024);
+
 export async function POST(request: Request) {
   const supabase = await createClient();
   const {
@@ -37,6 +40,18 @@ export async function POST(request: Request) {
   const file = form.get("audio");
   if (!(file instanceof File) || file.size === 0) {
     return NextResponse.json({ error: "audio file required" }, { status: 400 });
+  }
+  // The spend ceiling charges a FIXED unit per call, sized for one interview
+  // answer, but nothing bounded how much audio a call could carry. Transcription
+  // is billed per minute of audio, so a single long upload could cost many times
+  // what the budget counter was told it did -- the ceiling would hold on paper
+  // while the real bill ran past it. 25MB is also the provider's own hard limit,
+  // so anything larger was a wasted round trip regardless.
+  if (file.size > MAX_AUDIO_BYTES) {
+    return NextResponse.json(
+      { error: "That recording is too long. Keep answers under a few minutes." },
+      { status: 413 }
+    );
   }
 
   try {
