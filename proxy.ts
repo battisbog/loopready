@@ -10,6 +10,12 @@ const PUBLIC_PATHS = [
   // PayPal posts server-to-server with no session. This route authenticates
   // itself by verifying the PayPal signature, so session auth must not block it.
   "/api/paypal/webhook",
+  // Tavus posts lifecycle callbacks the same way, and was missed when the
+  // PayPal one was whitelisted: every callback got the proxy's 401 instead of
+  // reaching the route, so the "candidate closed their laptop" safety net had
+  // never once fired. The route is behind the video flag and only ever marks a
+  // room as ended, so an unauthenticated POST cannot move money or credits.
+  "/api/video/callback",
   // Uptime monitors have no session. The route itself returns only a bare
   // status to anonymous callers and detail to signed-in ones.
   "/api/health",
