@@ -254,7 +254,7 @@ export default async function CheckoutPage({
               {[
                 "Card details go to PayPal, never to LoopReady",
                 isSubscription
-                  ? "Cancel anytime — access runs to the end of the period you paid for"
+                  ? "Cancel anytime. Access runs to the end of the period you paid for"
                   : "Credits are added to your account immediately",
                 "Access unlocks the moment payment clears",
               ].map((t) => (
