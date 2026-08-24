@@ -167,6 +167,30 @@ async function releaseEvent(
   await admin.from("paypal_webhook_events").delete().eq("event_id", eventId);
 }
 
+/**
+ * Which paid tier an event refers to.
+ *
+ * `purpose` comes from custom_id, which we set at checkout -- but an event
+ * resolved through the subscription-id fallback has no custom_id and so no
+ * purpose. Defaulting that to "voice" silently demoted Premium subscribers on
+ * any event that arrived without it, taking their video access with it. When
+ * the event does not say, keep whatever the account already has.
+ */
+async function resolveTier(
+  admin: ReturnType<typeof createAdminClient>,
+  userId: string,
+  purpose: Purpose
+): Promise<Tier> {
+  if (purpose === "premium") return "premium";
+  if (purpose === "voice") return "voice";
+  const { data } = await admin
+    .from("profiles")
+    .select("subscription_tier")
+    .eq("id", userId)
+    .maybeSingle();
+  return data?.subscription_tier === "premium" ? "premium" : "voice";
+}
+
 /** Period end from a subscription resource, used as the credit reset date. */
 function periodEnd(resource: Record<string, unknown>): string | null {
   const billing = resource.billing_info as
@@ -238,7 +262,7 @@ export async function POST(request: Request) {
     // --- Subscriptions (Voice) ---
     case "BILLING.SUBSCRIPTION.ACTIVATED":
     case "BILLING.SUBSCRIPTION.RE-ACTIVATED": {
-      const isPremium = purpose === "premium";
+      const isPremium = (await resolveTier(admin, userId, purpose)) === "premium";
       tier = isPremium ? "premium" : "voice";
       patch.subscription_status = "ACTIVE";
       patch.paypal_subscription_id = resource.id;
@@ -263,7 +287,7 @@ export async function POST(request: Request) {
       if (periodEnd(resource)) patch.current_period_end = periodEnd(resource);
       const active = status === "ACTIVE" || status === "";
       // Only an active subscription keeps the paid tier.
-      tier = active ? (purpose === "premium" ? "premium" : "voice") : "free";
+      tier = active ? await resolveTier(admin, userId, purpose) : "free";
       if (!active) {
         credits = { mode: "set", amount: 0, reset: null, detail: type };
       }
