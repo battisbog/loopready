@@ -11,7 +11,7 @@ import {
   usd,
   type Operation,
 } from "@/lib/cost";
-import type { Tier } from "@/lib/tiers";
+import { isGoodStanding, withinPaidPeriod, type Tier } from "@/lib/tiers";
 
 /**
  * Per-user rate limiting for routes that cost money (LLM, STT, TTS, sandbox).
@@ -231,20 +231,21 @@ export async function checkDailySessionQuota(
   // customer at the free daily limit -- this was live in production.
   const { data: profile } = await admin
     .from("profiles")
-    .select("subscription_tier, subscription_status")
+    .select("subscription_tier, subscription_status, current_period_end")
     .eq("id", userId)
     .maybeSingle();
 
   // Missing profile is treated as free — fail closed on the paid path.
   const rawTier = profile?.subscription_tier ?? "free";
-  // A lapsed paid subscription must not keep the uncapped quota forever;
-  // mirrors the same good-standing check getUserTier applies elsewhere.
+  // A lapsed paid subscription must not keep the uncapped quota forever. This
+  // shares getUserTier's definition of good standing rather than repeating the
+  // status list, because the copy that used to live here drifted out of step.
   const paidSubscription = rawTier === "voice" || rawTier === "premium";
-  const status = profile?.subscription_status;
-  const plan =
-    paidSubscription && status && !["ACTIVE", "APPROVED", "PAST_DUE"].includes(status)
-      ? "free"
-      : rawTier;
+  const lapsed =
+    paidSubscription &&
+    !isGoodStanding(profile?.subscription_status) &&
+    !withinPaidPeriod(profile?.subscription_status, profile?.current_period_end);
+  const plan = lapsed ? "free" : rawTier;
 
   const since = new Date();
   since.setUTCHours(0, 0, 0, 0);

@@ -65,6 +65,51 @@ export const TIERS: Record<Tier, TierFeatures> = {
   },
 };
 
+/**
+ * Subscription statuses that still carry paid access.
+ *
+ * ONE definition, imported by everything that gates on standing. It used to be
+ * duplicated in lib/rate-limit.ts, which is how the two drifted apart.
+ *
+ * PAST_DUE is good standing: PayPal is still retrying the charge, and pulling
+ * access mid-retry punishes a customer whose card just expired.
+ *
+ * CANCEL_REQUESTED is good standing too, and that is the important one. A
+ * cancellation means "do not bill me again", not "cut me off now" -- the
+ * pricing FAQ promises "you keep access until the end of the period you've paid
+ * for". /api/billing/cancel sets this the moment the user clicks cancel, so
+ * treating it as terminal revoked access instantly for someone who had already
+ * paid for the rest of the month. PayPal sends CANCELLED or EXPIRED when the
+ * period actually ends, and those ARE terminal.
+ */
+const GOOD_STANDING = ["ACTIVE", "APPROVED", "PAST_DUE", "CANCEL_REQUESTED"];
+
+/**
+ * Whether a subscription status still entitles the user to their paid tier.
+ * An absent status is allowed: one-time purchases have no status.
+ */
+export function isGoodStanding(status: unknown): boolean {
+  return !status || GOOD_STANDING.includes(String(status));
+}
+
+/**
+ * Statuses that end the subscription but leave the already-paid period intact.
+ * REFUNDED is excluded on purpose: the money went back, so the period did not
+ * happen. SUSPENDED is excluded because PayPal stopped it, not the customer.
+ */
+const ENDS_AT_PERIOD_END = ["CANCELLED", "EXPIRED"];
+
+/** Whether a terminated subscription is still inside the period paid for. */
+export function withinPaidPeriod(
+  status: unknown,
+  currentPeriodEnd: unknown
+): boolean {
+  if (!ENDS_AT_PERIOD_END.includes(String(status))) return false;
+  if (!currentPeriodEnd) return false;
+  const until = new Date(String(currentPeriodEnd)).getTime();
+  return Number.isFinite(until) && until > Date.now();
+}
+
 function isTier(value: unknown): value is Tier {
   return (
     value === "free" ||
@@ -86,7 +131,7 @@ export async function getUserTier(
 ): Promise<Tier> {
   const { data, error } = await admin
     .from("profiles")
-    .select("subscription_tier, subscription_status")
+    .select("subscription_tier, subscription_status, current_period_end")
     .eq("id", userId)
     .maybeSingle();
 
@@ -95,18 +140,16 @@ export async function getUserTier(
 
   // A paid tier only counts while the subscription is in good standing.
   // One-time (premium) purchases have no status, so absence is allowed.
-  const status = data.subscription_status;
   const paidSubscription =
     data.subscription_tier === "voice" || data.subscription_tier === "premium";
-  // PAST_DUE is deliberately good standing: PayPal is still retrying the
-  // charge, and pulling access mid-retry punishes a customer whose card just
-  // expired. CANCELLED/EXPIRED/SUSPENDED are the terminal states.
-  if (
-    paidSubscription &&
-    status &&
-    !["ACTIVE", "APPROVED", "PAST_DUE"].includes(status)
-  ) {
-    return "free";
+  if (paidSubscription && !isGoodStanding(data.subscription_status)) {
+    // Cancelling stops the next charge; it does not refund the current period.
+    // They keep what they already paid for, which is what the pricing FAQ
+    // promises. A refund or a suspension is not a paid period, so neither gets
+    // the grace.
+    if (!withinPaidPeriod(data.subscription_status, data.current_period_end)) {
+      return "free";
+    }
   }
 
   return data.subscription_tier;

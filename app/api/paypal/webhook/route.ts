@@ -4,6 +4,7 @@ import { paypalFetch } from "@/lib/paypal/client";
 import {
   PREMIUM_VIDEO_ALLOWANCE,
   VIDEO_PACK_CREDITS,
+  withinPaidPeriod,
   type Tier,
 } from "@/lib/tiers";
 
@@ -174,6 +175,10 @@ export async function POST(request: Request) {
       tier = isPremium ? "premium" : "voice";
       patch.subscription_status = "ACTIVE";
       patch.paypal_subscription_id = resource.id;
+      // Nothing wrote this before, so it was always null: the billing page's
+      // renewal date never rendered, and a cancellation had no paid-through
+      // date to honour.
+      if (periodEnd(resource)) patch.current_period_end = periodEnd(resource);
       if (isPremium) {
         credits = {
           mode: "set",
@@ -188,6 +193,7 @@ export async function POST(request: Request) {
       const status = String(resource.status ?? "");
       patch.subscription_status = status || "ACTIVE";
       patch.paypal_subscription_id = resource.id;
+      if (periodEnd(resource)) patch.current_period_end = periodEnd(resource);
       const active = status === "ACTIVE" || status === "";
       // Only an active subscription keeps the paid tier.
       tier = active ? (purpose === "premium" ? "premium" : "voice") : "free";
@@ -220,10 +226,34 @@ export async function POST(request: Request) {
     case "BILLING.SUBSCRIPTION.CANCELLED":
     case "BILLING.SUBSCRIPTION.EXPIRED":
     case "BILLING.SUBSCRIPTION.SUSPENDED": {
-      tier = "free";
-      patch.subscription_status = type.split(".").pop();
-      // Losing the subscription loses the plan allowance.
-      credits = { mode: "set", amount: 0, reset: null, detail: type };
+      const status = type.split(".").pop()!;
+      patch.subscription_status = status;
+
+      // PayPal cancels immediately on request, so this fires the moment the
+      // user clicks cancel -- not at the end of the month. Wiping the tier here
+      // is what actually took access away from someone who had already paid for
+      // the rest of the period.
+      //
+      // So the stored tier is LEFT ALONE while the paid period runs, and
+      // getUserTier decides from (status, current_period_end). Once the date
+      // passes it resolves to free on its own, with no scheduled job needed.
+      const { data: prof } = await admin
+        .from("profiles")
+        .select("current_period_end")
+        .eq("id", userId)
+        .maybeSingle();
+      const paidUntil = periodEnd(resource) ?? prof?.current_period_end ?? null;
+      if (paidUntil) patch.current_period_end = paidUntil;
+
+      if (withinPaidPeriod(status, paidUntil)) {
+        // Keep the credits too: they were bought with the period being served.
+        console.log(
+          `[paypal] ${type} for ${userId}: access retained until ${paidUntil}`
+        );
+      } else {
+        tier = "free";
+        credits = { mode: "set", amount: 0, reset: null, detail: type };
+      }
       break;
     }
     // Renewal payments: keep the subscription alive.
