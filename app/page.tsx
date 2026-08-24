@@ -4,6 +4,7 @@ import Image from "next/image";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { COMPANY_PROFILES } from "@/lib/interview/companies";
+import { PRICING } from "@/lib/pricing";
 import CompanyTabs from "./(marketing)/company-tabs";
 import Nav from "./(marketing)/nav";
 import Pricing from "./(marketing)/pricing";
@@ -65,7 +66,13 @@ export default async function Landing() {
               </div>
 
               <p className="mt-4 text-xs text-muted">
-                Free while in early access · No credit card · About 15 minutes
+                {/* Sourced from PRICING, never typed as a literal: a hardcoded
+                    price here would silently drift from what PayPal bills.
+                    This line used to read "Free while in early access · No
+                    credit card", which was a free claim sitting directly above
+                    a section selling monthly plans. */}
+                Free plan, no credit card · Paid from{" "}
+                {PRICING.voice.displayWithInterval} · About 15 minutes
               </p>
             </div>
 
