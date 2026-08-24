@@ -221,7 +221,19 @@ export interface DailyQuota {
  */
 export async function checkDailySessionQuota(
   admin: SupabaseClient,
-  userId: string
+  userId: string,
+  /**
+   * How many sessions the caller is about to create. A loop creates its first
+   * round now and the rest as each one finishes, and those later rounds do NOT
+   * re-check the quota -- deliberately, because stranding someone halfway
+   * through a loop they were allowed to start is worse than the overshoot.
+   *
+   * So the WHOLE loop has to be authorised up front, which is what this counts.
+   * Previously only the first round was, and the daily cap was enforced solely
+   * by the coincidence that MAX_PER_ROUND_TYPE happened to equal the free
+   * daily limit -- two unrelated constants, either of which could move.
+   */
+  sessionsNeeded = 1
 ): Promise<DailyQuota> {
   // `subscription_tier` is the canonical entitlement column (see
   // supabase/schema.sql). `profiles.plan` is a legacy column kept only so old
@@ -260,18 +272,23 @@ export async function checkDailySessionQuota(
     used,
     plan,
     limit: FREE_DAILY_SESSIONS,
-    exceeded: !UNCAPPED_PLANS.has(plan) && used >= FREE_DAILY_SESSIONS,
+    exceeded:
+      !UNCAPPED_PLANS.has(plan) && used + sessionsNeeded > FREE_DAILY_SESSIONS,
   };
 }
 
 export function dailyQuotaResponse(quota: DailyQuota): NextResponse {
+  const remaining = Math.max(0, quota.limit - quota.used);
+  // "You've used all 3" is wrong when they have 1 left and asked for a
+  // 3-round loop, which is now a case that can refuse.
+  const error =
+    remaining > 0
+      ? `That loop needs more rounds than you have left today (${remaining} of ${quota.limit} remaining). ` +
+        `Start a shorter loop, or come back after midnight UTC.`
+      : `You've used all ${quota.limit} practice interviews for today. Your quota resets at midnight UTC.`;
+
   return NextResponse.json(
-    {
-      error: `You've used all ${quota.limit} practice interviews for today. Your quota resets at midnight UTC.`,
-      used: quota.used,
-      limit: quota.limit,
-      quotaExceeded: true,
-    },
+    { error, used: quota.used, limit: quota.limit, remaining, quotaExceeded: true },
     { status: 429 }
   );
 }

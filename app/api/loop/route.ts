@@ -105,7 +105,9 @@ export async function POST(request: Request) {
   const ipLimited = await checkIpRateLimit("interview", request);
   if (!ipLimited.ok) return ipLimited.response!;
 
-  const quota = await checkDailySessionQuota(admin, user.id);
+  // The whole loop is authorised here, because the later rounds start
+  // automatically as each one finishes and never re-check.
+  const quota = await checkDailySessionQuota(admin, user.id, roundList.length);
   if (quota.exceeded) return dailyQuotaResponse(quota);
 
   // startSession generates a spoken opening, so creating a loop costs money.
