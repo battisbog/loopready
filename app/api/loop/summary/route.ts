@@ -42,10 +42,6 @@ export async function POST(request: Request) {
 
   const admin = createAdminClient();
 
-  const tier = await getUserTier(admin, user.id);
-  const budget = await consumeGlobalBudget("loop_summary", tier);
-  if (budget.exceeded) return serviceBusyResponse(tier);
-  void recordUsage("loop_summary", user.id, request);
   const { data: loop } = await admin
     .from("loops")
     .select("id, company, level, rounds, summary, overall_signal")
@@ -88,6 +84,14 @@ export async function POST(request: Request) {
   }
 
   const ctx = getContext(loop.company, loop.level);
+
+  // Charged immediately before the generation, not before the idempotent
+  // return above: a loop verdict never changes, so re-reading one must not
+  // add phantom spend to the daily ceiling.
+  const tier = await getUserTier(admin, user.id);
+  const budget = await consumeGlobalBudget("loop_summary", tier);
+  if (budget.exceeded) return serviceBusyResponse(tier);
+  void recordUsage("loop_summary", user.id, request);
 
   const { object } = await generateObject({
     model: feedbackModel(),

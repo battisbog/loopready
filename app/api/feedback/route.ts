@@ -47,10 +47,6 @@ export async function POST(request: Request) {
 
   const admin = createAdminClient();
 
-  const tier = await getUserTier(admin, user.id);
-  const budget = await consumeGlobalBudget("feedback", tier);
-  if (budget.exceeded) return serviceBusyResponse(tier);
-  void recordUsage("feedback", user.id, request);
   const { data: session } = await admin
     .from("sessions")
     .select()
@@ -106,6 +102,18 @@ export async function POST(request: Request) {
   const isDesign = session.round_type === "system_design";
   const problem = isCoding ? getProblem(session.artifact?.problemId) : undefined;
   const design = isDesign ? getDesignPrompt(session.artifact?.promptId) : undefined;
+
+  // Charged HERE, immediately before the only call that actually costs money.
+  //
+  // This used to run before the idempotency check above, so every view of an
+  // ALREADY-GENERATED debrief added $0.02 of phantom spend to the daily
+  // ceiling. The feedback page POSTs on mount, so simply re-reading past
+  // debriefs inflated the counter -- about 750 views would have paused free
+  // practice for every user without a cent of real API spend behind it.
+  const tier = await getUserTier(admin, user.id);
+  const budget = await consumeGlobalBudget("feedback", tier);
+  if (budget.exceeded) return serviceBusyResponse(tier);
+  void recordUsage("feedback", user.id, request);
 
   const { object } = await generateObject({
     model: feedbackModel(),
