@@ -4,6 +4,7 @@ import { paypalConfigured, paypalFetch } from "@/lib/paypal/client";
 import { PRICING } from "@/lib/pricing";
 import { VIDEO_PACK_CREDITS } from "@/lib/tiers";
 import { checkIpRateLimit, checkRateLimit } from "@/lib/rate-limit";
+import { videoAvailable } from "@/lib/video/config";
 
 export const maxDuration = 30;
 
@@ -23,6 +24,14 @@ export async function POST(request: Request) {
   const { product } = await request.json().catch(() => ({}));
   if (product !== "video-pack") {
     return NextResponse.json({ error: "Unknown product" }, { status: 400 });
+  }
+  // Never take money for a switched-off feature. Every "Buy more" entry point
+  // is tier-blind, so this is the one place that can refuse the sale.
+  if (!videoAvailable()) {
+    return NextResponse.json(
+      { error: "Video interviews are not available right now." },
+      { status: 409 }
+    );
   }
   if (!paypalConfigured()) {
     return NextResponse.json({ error: "Billing is not configured." }, { status: 501 });

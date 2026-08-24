@@ -14,11 +14,8 @@ export interface TierFeatures {
   label: string;
   /** Rounds this tier may start. */
   rounds: RoundType[];
-  /** Paid voice providers (ElevenLabs / realtime). Free gets standard voice. */
   /** Sessions per UTC day; null means uncapped. */
   dailySessions: number | null;
-  /** Video-avatar interviews per month, when that ships. */
-  videoSlots: number;
 }
 
 const FREE_DAILY = Number(process.env.FREE_DAILY_SESSION_LIMIT ?? 3);
@@ -38,30 +35,39 @@ export const PREMIUM_VIDEO_ALLOWANCE = Number(
 /** Credits added by a one-time video pack purchase. */
 export const VIDEO_PACK_CREDITS = Number(process.env.VIDEO_PACK_CREDITS ?? 3);
 
+/**
+ * Video access is deliberately NOT a field here.
+ *
+ * It used to be (`videoSlots`), and canUseVideo required both a non-zero slot
+ * count AND a credit. Since free and voice both had zero slots, anyone on those
+ * tiers who bought a video pack was charged for credits they could never spend:
+ * the credits landed, canUseVideo stayed false, and every video round was
+ * refused. Two production accounts were sitting on exactly that.
+ *
+ * Video credits ARE the entitlement. A plan grants them on renewal, a pack adds
+ * them on purchase, and holding one is what permits a video round. That way a
+ * credit someone paid for is always spendable, whatever tier they are on.
+ */
 export const TIERS: Record<Tier, TierFeatures> = {
   free: {
     label: "Free",
     rounds: ["behavioral"],
     dailySessions: FREE_DAILY,
-    videoSlots: 0,
   },
   voice: {
     label: "Voice",
     rounds: ["coding", "system_design", "behavioral"],
     dailySessions: null,
-    videoSlots: 0,
   },
   premium: {
     label: "Premium",
     rounds: ["coding", "system_design", "behavioral"],
     dailySessions: null,
-    videoSlots: PREMIUM_VIDEO_ALLOWANCE,
   },
   unlimited: {
     label: "Unlimited",
     rounds: ["coding", "system_design", "behavioral"],
     dailySessions: null,
-    videoSlots: PREMIUM_VIDEO_ALLOWANCE,
   },
 };
 
@@ -234,8 +240,9 @@ export async function getEntitlements(
     videoPlanAllowance: Number(data.video_plan_allowance ?? 0),
     videoCreditsResetAt: data.video_credits_reset_at ?? null,
     openReservationSessionId: data.video_reservation_session_id ?? null,
-    // Video is a Premium feature AND needs a credit. Both must hold.
-    canUseVideo: featuresFor(tier).videoSlots > 0 && remaining > 0,
+    // Holding a credit IS the entitlement -- see the note on TIERS. Anything
+    // stricter charges people for credits they cannot spend.
+    canUseVideo: remaining > 0,
   };
 }
 
