@@ -34,6 +34,11 @@ function loadSdk(clientId: string, subscription: boolean): Promise<PayPalSdk> {
       "client-id": clientId,
       currency: "USD",
       components: "buttons",
+      // Pay Later adds a third stacked button that most candidates will never
+      // use, and each extra funding source is another block with a gap around
+      // it. Card is deliberately kept: it is the guest-checkout path for
+      // anyone without a PayPal account, which the copy beside it promises.
+      "disable-funding": "paylater",
       ...(subscription
         ? { intent: "subscription", vault: "true" }
         : { intent: "capture" }),
@@ -75,7 +80,15 @@ export default function CheckoutButtons({
 
         paypal
           .Buttons({
-            style: { layout: "vertical", shape: "rect", label: "pay", height: 45 },
+            style: {
+              layout: "vertical",
+              shape: "rect",
+              label: "pay",
+              height: 45,
+              // Removes the "Powered by PayPal" strip under the stack, which
+              // added another band of empty space.
+              tagline: false,
+            },
 
             // Both flows create the object on OUR server, so the plan id,
             // amount and custom_id can never be set by the browser.
