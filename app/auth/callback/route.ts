@@ -25,9 +25,39 @@ export async function GET(request: Request) {
   const origin = resolveOrigin(request, requestOrigin);
 
   const code = searchParams.get("code");
-  // Only allow same-site paths, so the callback can't be used as an open redirect.
-  const requestedNext = searchParams.get("next") ?? "/dashboard";
-  const next = requestedNext.startsWith("/") ? requestedNext : "/dashboard";
+
+  // Where to land afterwards, preferring the query param but falling back to
+  // the cookie the login page set.
+  //
+  // Supabase drops a redirectTo that does not match its Redirect URLs
+  // allowlist and quietly substitutes the Site URL, which strips the query
+  // string this used to depend on entirely. The cookie survives that, so the
+  // "sign in, then continue to checkout" path no longer depends on a dashboard
+  // setting being exactly right.
+  const cookieNext = request.headers
+    .get("cookie")
+    ?.split(";")
+    .map((c) => c.trim())
+    .find((c) => c.startsWith("lr_next="))
+    ?.slice("lr_next=".length);
+
+  const requested =
+    searchParams.get("next") ??
+    (cookieNext ? decodeURIComponent(cookieNext) : null) ??
+    "/dashboard";
+
+  // Same-origin paths only, so the callback cannot be used as an open
+  // redirect. "//evil.com" starts with "/" but navigates off-site.
+  const next =
+    requested.startsWith("/") && !requested.startsWith("//")
+      ? requested
+      : "/dashboard";
+
+  /** Clears the one-shot destination cookie on the way out. */
+  const withCleared = (res: NextResponse) => {
+    if (cookieNext) res.cookies.set("lr_next", "", { path: "/", maxAge: 0 });
+    return res;
+  };
 
   const providerError =
     searchParams.get("error_description") ?? searchParams.get("error");
@@ -41,7 +71,7 @@ export async function GET(request: Request) {
     const supabase = await createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
-      return NextResponse.redirect(`${origin}${next}`);
+      return withCleared(NextResponse.redirect(`${origin}${next}`));
     }
     return NextResponse.redirect(
       `${origin}/login?error=${encodeURIComponent(error.message)}`

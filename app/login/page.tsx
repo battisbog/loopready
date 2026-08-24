@@ -50,6 +50,25 @@ export default function LoginPage() {
     setBusy(provider);
     setStatus(null);
     const supabase = createClient();
+
+    // The destination rides in a cookie, NOT only in redirectTo.
+    //
+    // Supabase validates redirectTo against its Redirect URLs allowlist and,
+    // when it does not match, silently substitutes the project's Site URL
+    // instead of failing. A callback URL carrying "?next=/checkout?plan=voice"
+    // is exactly the shape that fails to match, so the intent was dropped and
+    // the user landed on the dashboard -- signed in, on the free plan, with no
+    // payment taken and nothing to explain it.
+    //
+    // A cookie survives the round trip to the provider and back regardless of
+    // what the allowlist says. SameSite=Lax is correct here because the return
+    // leg is a top-level GET navigation.
+    if (next && next !== "/dashboard") {
+      document.cookie = `lr_next=${encodeURIComponent(next)}; path=/; max-age=600; SameSite=Lax${
+        location.protocol === "https:" ? "; Secure" : ""
+      }`;
+    }
+
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: { redirectTo: getAuthCallbackUrl(next) },
