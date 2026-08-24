@@ -9,7 +9,7 @@ import {
   type RoundType,
 } from "@/lib/interview/rounds";
 import { validatePlan } from "@/lib/interview/loop-plan";
-import { getEntitlements } from "@/lib/tiers";
+import { featuresFor, getEntitlements } from "@/lib/tiers";
 import { VIDEO_ENABLED_SERVER } from "@/lib/video/config";
 import { startSession } from "@/lib/interview/start";
 import {
@@ -64,8 +64,15 @@ export async function POST(request: Request) {
   const validated = validatePlan(plannedInput, {
     videoEnabled: VIDEO_ENABLED_SERVER && ent.canUseVideo,
     creditsAvailable: ent.videoCreditsRemaining,
+    // The paid rounds are a plan feature, not just a UI affordance: without
+    // this a crafted request started coding and system design on a free
+    // account, which is exactly what the Voice plan sells.
+    allowedRounds: featuresFor(ent.tier).rounds,
   });
   if (!validated.ok) {
+    const paymentRequired =
+      validated.problem.code === "not_enough_credits" ||
+      validated.problem.code === "round_not_in_tier";
     return NextResponse.json(
       {
         error: validated.problem.message,
@@ -77,8 +84,16 @@ export async function POST(request: Request) {
               buyMoreUrl: "/checkout?product=video-pack",
             }
           : {}),
+        ...(validated.problem.code === "round_not_in_tier"
+          ? {
+              upgradeRequired: true,
+              currentTier: ent.tier,
+              requiredTier: "voice",
+              upgradeUrl: "/pricing",
+            }
+          : {}),
       },
-      { status: validated.problem.code === "not_enough_credits" ? 402 : 400 }
+      { status: paymentRequired ? 402 : 400 }
     );
   }
 

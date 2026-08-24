@@ -45,6 +45,7 @@ export type PlanProblem =
   | { code: "too_many"; message: string }
   | { code: "too_many_of_type"; message: string }
   | { code: "unavailable_round"; message: string }
+  | { code: "round_not_in_tier"; message: string; roundType: RoundType }
   | { code: "video_disabled"; message: string }
   | { code: "not_enough_credits"; message: string; creditsNeeded: number; creditsAvailable: number };
 
@@ -53,10 +54,20 @@ export type PlanProblem =
  * disable the button early and explain why, and every check runs again on the
  * request. A crafted request must not be able to start six video rounds on one
  * credit.
+ *
+ * `allowedRounds` is REQUIRED rather than optional on purpose. The paid rounds
+ * were previously given away to free accounts for exactly one reason: the tier
+ * check lived in canUseRound() and no caller remembered to run it. A required
+ * argument cannot be forgotten.
  */
 export function validatePlan(
   rounds: unknown,
-  opts: { videoEnabled: boolean; creditsAvailable: number }
+  opts: {
+    videoEnabled: boolean;
+    creditsAvailable: number;
+    /** Round types the caller's tier includes. */
+    allowedRounds: readonly RoundType[];
+  }
 ): { ok: true; plan: PlannedRound[]; cost: PlanCost } | { ok: false; problem: PlanProblem } {
   if (!Array.isArray(rounds) || rounds.length === 0) {
     return { ok: false, problem: { code: "empty", message: "Choose at least one round." } };
@@ -82,6 +93,21 @@ export function validatePlan(
       return {
         ok: false,
         problem: { code: "unavailable_round", message: "That round is not available yet." },
+      };
+    }
+    if (!opts.allowedRounds.includes(roundType)) {
+      return {
+        ok: false,
+        problem: {
+          code: "round_not_in_tier",
+          message:
+            roundType === "coding"
+              ? "The coding round is part of the Voice plan. Upgrade to practise it."
+              : roundType === "system_design"
+                ? "The system design round is part of the Voice plan. Upgrade to practise it."
+                : "That round is not included in your plan.",
+          roundType,
+        },
       };
     }
     const n = (perType.get(roundType) ?? 0) + 1;

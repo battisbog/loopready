@@ -16,7 +16,7 @@ import {
   recordUsage,
   serviceBusyResponse,
 } from "@/lib/rate-limit";
-import { getUserTier } from "@/lib/tiers";
+import { canUseRound, getUserTier, upgradeRequired } from "@/lib/tiers";
 
 export const maxDuration = 60;
 
@@ -75,6 +75,16 @@ export async function POST(request: Request) {
       return NextResponse.json(
         { error: `${roundType} rounds aren't available yet` },
         { status: 501 }
+      );
+    }
+    // Same gate the loop route applies. This path creates a session directly,
+    // so without it the tier check could simply be walked around.
+    if (!canUseRound(tier, roundType)) {
+      return upgradeRequired(
+        roundType === "coding"
+          ? "The coding round is part of the Voice plan. Upgrade to practise it."
+          : "The system design round is part of the Voice plan. Upgrade to practise it.",
+        tier
       );
     }
     const quota = await checkDailySessionQuota(admin, user.id);
