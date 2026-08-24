@@ -27,6 +27,7 @@ import {
   VIDEO_WRAP_UP_MINUTES,
   videoAvailable,
 } from "@/lib/video/config";
+import { settleVideoSession } from "@/lib/video/settle";
 import { createConversation, endConversation } from "@/lib/video/tavus";
 import {
   DEMO_SECONDS,
@@ -122,18 +123,46 @@ export async function POST(request: Request) {
   ) {
     const { data: holder } = await admin
       .from("sessions")
-      .select("status, video_ended_at")
+      .select("id, status, video_ended_at, video_started_at, video_credit_state")
       .eq("id", ent.openReservationSessionId)
       .maybeSingle();
 
+    // A room cannot outlive the cap Tavus enforces on it, so once that much
+    // time has passed the session is over no matter what the row says.
+    //
+    // Without this clause a closed laptop was unrecoverable: pagehide never
+    // fires, so status stayed "active" and video_ended_at stayed null, the
+    // reservation was never considered stale, and the 409 below locked the
+    // candidate out of video permanently while holding their credit. The
+    // Tavus callback was supposed to cover this and could not -- it was being
+    // refused by the proxy -- and the "sweep" its comment defers to was never
+    // written.
+    const startedAt = holder?.video_started_at
+      ? new Date(holder.video_started_at).getTime()
+      : null;
+    const pastMaxDuration =
+      startedAt !== null &&
+      Date.now() - startedAt > (VIDEO_SESSION_MAX_MINUTES + 5) * 60_000;
+
     const stale =
-      !holder || holder.status !== "active" || Boolean(holder.video_ended_at);
+      !holder ||
+      holder.status !== "active" ||
+      Boolean(holder.video_ended_at) ||
+      pastMaxDuration;
 
     if (stale) {
       console.warn(
-        `[video] releasing stale reservation on ${ent.openReservationSessionId} for user=${user.id}`
+        `[video] recovering stale reservation on ${ent.openReservationSessionId} ` +
+          `for user=${user.id} (pastMaxDuration=${pastMaxDuration})`
       );
-      await releaseVideoCredit(admin, user.id, ent.openReservationSessionId);
+      if (holder) {
+        // Settle rather than blanket-release: a session that ran a full
+        // interview before the client vanished has been delivered, and
+        // handing the credit back would be giving it away.
+        await settleVideoSession(admin, user.id, holder, "abandoned");
+      } else {
+        await releaseVideoCredit(admin, user.id, ent.openReservationSessionId);
+      }
       ent.openReservationSessionId = null;
     }
   }
