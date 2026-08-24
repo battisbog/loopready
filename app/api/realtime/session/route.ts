@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getContext } from "@/lib/interview/companies";
+import { discardGeneratedOpening } from "@/lib/interview/start";
 import {
   checkIpRateLimit,
   checkRateLimit,
@@ -119,6 +120,10 @@ export async function POST(request: Request) {
   const rows = turns ?? [];
   // The interviewer owes an opening until the candidate has actually spoken.
   const greet = shouldGreet(rows);
+  // Nothing in the transcript is real until then, and the generated opening
+  // startSession stored is never spoken on this path -- the model greets from
+  // buildGreeting and the result is transcribed back as its own turn.
+  if (greet && rows.length) await discardGeneratedOpening(admin, sessionId);
   // When we are about to greet, the stored opening line was never delivered
   // aloud, so replaying it would make the model believe it had already spoken
   // and it would wait in silence. That was the silent-greeting bug.

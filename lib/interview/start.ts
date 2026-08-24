@@ -119,4 +119,38 @@ export async function startSession({
     questionCount,
   };
 }
+/**
+ * Discards the opening line startSession generated, for rounds that never speak it.
+ *
+ * startSession writes an LLM-generated greeting into `turns` because the TEXT
+ * path shows exactly that text as the interviewer's opening. The live paths do
+ * not: voice greets from buildGreeting and video from buildSpokenGreeting, and
+ * whatever is actually said comes back through transcription and is recorded as
+ * its own turn.
+ *
+ * So a voice or video round kept BOTH -- a greeting that was never spoken, from
+ * a differently-named interviewer, sitting above the real one. That is not just
+ * cosmetic: /api/feedback rebuilds the transcript from `turns`, so the debrief
+ * was being graded against a conversation that opened with two interviewers
+ * introducing themselves under different names.
+ *
+ * Safe to call only before the candidate has spoken (shouldGreet), because at
+ * that point nothing in the transcript is real yet.
+ */
+export async function discardGeneratedOpening(
+  admin: SupabaseClient,
+  sessionId: string
+): Promise<void> {
+  const { error } = await admin
+    .from("turns")
+    .delete()
+    .eq("session_id", sessionId)
+    .eq("role", "interviewer");
+  if (error) {
+    // Not fatal: a stale opening is worse than the alternative but not a reason
+    // to refuse the interview.
+    console.error("[interview] could not discard generated opening:", error.message);
+  }
+}
+
 export { MAX_DESIGN_TURNS } from "./length";

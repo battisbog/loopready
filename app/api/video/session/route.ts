@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getContext } from "@/lib/interview/companies";
+import { discardGeneratedOpening } from "@/lib/interview/start";
 import {
   checkIpRateLimit,
   checkRateLimit,
@@ -219,6 +220,9 @@ export async function POST(request: Request) {
     .order("created_at", { ascending: true });
   const rows = turns ?? [];
   const greet = shouldGreet(rows);
+  // Same as the voice path: the stored opening is never spoken here either,
+  // because Tavus reads custom_greeting instead.
+  if (greet && rows.length) await discardGeneratedOpening(admin, sessionId);
 
   const state = {
     questionIndex: session.question_index,
