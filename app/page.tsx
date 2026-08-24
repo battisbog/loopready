@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { Button } from "@/components/ui";
 import Image from "next/image";
-import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { COMPANY_PROFILES } from "@/lib/interview/companies";
 import { PRICING } from "@/lib/pricing";
@@ -18,19 +17,30 @@ export default async function Landing() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Signed-in users belong in the app, not the marketing pitch. Plans stay
-  // reachable at /pricing.
-  if (user) redirect("/dashboard");
+  /**
+   * Signed-in visitors see the marketing page too.
+   *
+   * This used to `redirect("/dashboard")` for anyone with a session, which is
+   * the opposite of how every other SaaS behaves and quietly broke the upgrade
+   * path: a signed-in user who opened loopready.io was teleported into the app
+   * and could never reach the "Get Voice" button on this page at all. From the
+   * outside that looks like the plan buttons skipping checkout.
+   *
+   * Nav already knew how to render for both states -- it takes `signedIn` and
+   * swaps "Sign in" for "Dashboard" -- the landing page just never told it the
+   * truth. The pricing CTAs point at /checkout either way, and /checkout is
+   * what requires an account, which is the one place the requirement belongs.
+   */
+  const signedIn = Boolean(user);
 
-  // Points at plans, not straight to sign-up: the Free tier is the first,
-  // most prominent card on /pricing (see (marketing)/pricing.tsx), so the
-  // "free" promise in the label is honoured the moment they land there.
-  const ctaHref = "/pricing";
-  const ctaLabel = "Start free";
+  // "Start free" is meaningless to someone who already has an account, so the
+  // primary CTA becomes the way back into the app for them.
+  const ctaHref = signedIn ? "/dashboard" : "/pricing";
+  const ctaLabel = signedIn ? "Go to dashboard" : "Start free";
 
   return (
     <div className="flex min-h-screen flex-col">
-      <Nav signedIn={false} />
+      <Nav signedIn={signedIn} />
 
       {/* ---------- Hero ---------- */}
       <header className="relative overflow-hidden">
