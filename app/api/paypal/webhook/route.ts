@@ -265,7 +265,52 @@ export async function POST(request: Request) {
       const isPremium = (await resolveTier(admin, userId, purpose)) === "premium";
       tier = isPremium ? "premium" : "voice";
       patch.subscription_status = "ACTIVE";
-      patch.paypal_subscription_id = resource.id;
+
+      /**
+       * Retire whatever subscription this one replaces.
+       *
+       * PayPal has no concept of an upgrade: subscribing to Premium while on
+       * Voice creates a SECOND subscription and leaves the first one billing.
+       * Nothing cancelled it, and the line below overwrote the only copy of its
+       * id we held, so /api/billing/cancel could no longer reach it either. The
+       * customer would have paid $19 AND $69 every month, forever, with no way
+       * to stop the first one from the UI -- triggered by the most valuable
+       * thing a Voice customer can do, which is give us more money.
+       *
+       * Cancelling here rather than before the new checkout is deliberate: the
+       * replacement is already ACTIVE by the time this fires, so there is no
+       * window where the customer has paid for nothing.
+       */
+      const newSubscriptionId = String(resource.id ?? "");
+      const { data: prior } = await admin
+        .from("profiles")
+        .select("paypal_subscription_id")
+        .eq("id", userId)
+        .maybeSingle();
+      const superseded = prior?.paypal_subscription_id;
+
+      if (superseded && superseded !== newSubscriptionId) {
+        try {
+          await paypalFetch(`/v1/billing/subscriptions/${superseded}/cancel`, {
+            method: "POST",
+            body: JSON.stringify({ reason: "Replaced by a new LoopReady plan" }),
+          });
+          console.log(
+            `[paypal] cancelled superseded subscription ${superseded} for user=${userId}`
+          );
+        } catch (e) {
+          // The new plan is live and must be recorded, so we cannot abort. But
+          // the old one is now unreachable from our UI, so this needs a human.
+          console.error(
+            `[paypal] ORPHANED SUBSCRIPTION: could not cancel ${superseded} for ` +
+              `user=${userId} while activating ${newSubscriptionId}. It is still ` +
+              `billing and must be cancelled by hand in the PayPal dashboard.`,
+            e
+          );
+        }
+      }
+
+      patch.paypal_subscription_id = newSubscriptionId;
       // Nothing wrote this before, so it was always null: the billing page's
       // renewal date never rendered, and a cancellation had no paid-through
       // date to honour.

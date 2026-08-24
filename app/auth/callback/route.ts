@@ -53,6 +53,15 @@ export async function GET(request: Request) {
       ? requested
       : "/dashboard";
 
+  // Which channel actually carried the destination. Logged because a sign-in
+  // that silently lands on /dashboard instead of checkout is otherwise
+  // impossible to diagnose after the fact -- the failure leaves no trace.
+  console.log(
+    `[auth] callback next=${JSON.stringify(next)} ` +
+      `via=${searchParams.get("next") ? "query" : cookieNext ? "cookie" : "default"} ` +
+      `queryPresent=${Boolean(searchParams.get("next"))} cookiePresent=${Boolean(cookieNext)}`
+  );
+
   /** Clears the one-shot destination cookie on the way out. */
   const withCleared = (res: NextResponse) => {
     if (cookieNext) res.cookies.set("lr_next", "", { path: "/", maxAge: 0 });

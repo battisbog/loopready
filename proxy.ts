@@ -79,6 +79,39 @@ export default async function proxy(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
+  /**
+   * Send an unauthenticated visitor to sign in, remembering where they were
+   * going -- server-side, in a cookie set on this very response.
+   *
+   * /checkout is a public path (it has to be, so a logged-out visitor can
+   * reach it from the pricing CTAs) and it does its own redirect to
+   * /login?next=... The problem is what happens next: /login is statically
+   * prerendered and CDN-cached, so recovering the destination depended
+   * entirely on client JS reading window.location.search on a cached page.
+   * The production logs show a sign-in where no /login request hit the server
+   * at all between /checkout and /auth/callback, and the callback resolved to
+   * /dashboard -- the destination never made it.
+   *
+   * Setting the cookie here removes every moving part: no client JS, no
+   * hydration, no cache. The redirect response that sends them to /login is
+   * the same response that carries the destination.
+   */
+  if (!user && pathname.startsWith("/checkout")) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/login";
+    const target = `${pathname}${request.nextUrl.search}`;
+    url.search = `?next=${encodeURIComponent(target)}`;
+
+    const res = NextResponse.redirect(url);
+    res.cookies.set("lr_next", target, {
+      path: "/",
+      maxAge: 600,
+      sameSite: "lax",
+      secure: request.nextUrl.protocol === "https:",
+    });
+    return res;
+  }
+
   if (!user && !isPublicPath(pathname)) {
     // API callers need JSON, not an HTML login page — a mid-interview fetch
     // that follows a redirect would fail to parse the response.
