@@ -350,16 +350,29 @@ export async function POST(request: Request) {
     // Renewal payments: keep the subscription alive.
     case "PAYMENT.SALE.COMPLETED": {
       if (resource.billing_agreement_id) {
+        const { data: prof } = await admin
+          .from("profiles")
+          .select("subscription_tier, subscription_status, video_plan_allowance")
+          .eq("id", userId)
+          .maybeSingle();
+
+        // Webhook ordering is not guaranteed, and a final payment can land
+        // after the cancellation that ended the subscription. Blindly setting
+        // ACTIVE here resurrected a subscription the customer had already
+        // cancelled, re-granting a paid tier and a fresh set of credits.
+        const terminal = ["CANCELLED", "EXPIRED", "SUSPENDED", "REFUNDED"];
+        if (terminal.includes(String(prof?.subscription_status))) {
+          console.warn(
+            `[paypal] ignoring renewal for user=${userId}: subscription is ` +
+              `${prof?.subscription_status}, not reviving it`
+          );
+          break;
+        }
+
         patch.subscription_status = "ACTIVE";
         // A renewal payment refreshes the cycle. Read the stored tier rather
         // than assuming: this event carries no plan information.
-        const { data: prof } = await admin
-          .from("profiles")
-          .select("subscription_tier, video_plan_allowance")
-          .eq("id", userId)
-          .maybeSingle();
-        const existing = prof?.subscription_tier;
-        tier = existing === "premium" ? "premium" : "voice";
+        tier = prof?.subscription_tier === "premium" ? "premium" : "voice";
         const allowance = Number(prof?.video_plan_allowance ?? 0);
         if (allowance > 0) {
           // Plan credits do not roll over: reset, never accumulate.
