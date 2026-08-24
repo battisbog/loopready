@@ -126,7 +126,73 @@ async function main() {
     );
     process.exit(1);
   }
-  console.log("\nOK: backup is configuration-identical and ready to take over.\n");
+  console.log("\n  configuration: identical");
+
+  // Configuration alone does NOT mean the account can run an interview.
+  //
+  // The first version of this script stopped above and reported "ready" for a
+  // backup that was out of conversational credits -- every field matched and
+  // every request 402'd. That is the exact failure you would otherwise discover
+  // mid-incident, so readiness is now proved by actually opening a room and
+  // closing it again. A refusal costs nothing; a success costs seconds.
+  if (process.argv.includes("--no-drill")) {
+    console.log(
+      "\n  drill SKIPPED (--no-drill): configuration checked, but capacity NOT proved.\n"
+    );
+    return;
+  }
+
+  const res = await fetch(`${BASE}/v2/conversations`, {
+    method: "POST",
+    headers: { "x-api-key": BACKUP.key, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      replica_id: BACKUP.replica,
+      persona_id: BACKUP.persona,
+      conversation_name: "loopready failover drill",
+      conversational_context: "Automated readiness check. Say nothing.",
+      properties: {
+        max_call_duration: 60,
+        participant_absent_timeout: 60,
+        enable_recording: false,
+        enable_transcription: false,
+      },
+    }),
+  });
+  const body = await res.json().catch(() => ({}) as Record<string, unknown>);
+
+  const message = String(body.message ?? "");
+  const outOfCredits = res.status === 402 || /credit/i.test(message);
+
+  if (outOfCredits) {
+    // The intended resting state: the failover is kept configured but unfunded,
+    // and credits are added at the moment it is needed. Reported clearly rather
+    // than as a failure, because nothing here is broken -- but never reported as
+    // "ready", because it cannot serve an interview in this state.
+    console.log("  capacity:      DORMANT — no conversational credits");
+    console.log(
+      "\nBackup is configuration-identical but UNFUNDED. Before switching:" +
+        "\n  1. add credits/a plan to the backup Tavus account" +
+        "\n  2. re-run this script to confirm it can open a room" +
+        "\n  3. set TAVUS_USE_BACKUP=true and redeploy\n"
+    );
+    return;
+  }
+
+  if (!res.ok || !body.conversation_id) {
+    console.error(
+      `\nFAIL: the backup cannot start a conversation (HTTP ${res.status}).` +
+        `\n  ${JSON.stringify(body).slice(0, 200)}\n`
+    );
+    process.exit(1);
+  }
+
+  await fetch(`${BASE}/v2/conversations/${body.conversation_id}/end`, {
+    method: "POST",
+    headers: { "x-api-key": BACKUP.key },
+  }).catch(() => {});
+
+  console.log("  capacity:      room opened and closed OK");
+  console.log("\nOK: backup is identical to production AND can serve an interview.\n");
 }
 
 await main();
