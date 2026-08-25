@@ -30,11 +30,13 @@ export type VideoStatus =
 export function useVideoTurn({
   sessionId,
   initialTurns,
+  getArtifactPatch,
   onDone,
   onLeave,
 }: {
   sessionId: string;
   initialTurns: Turn[];
+  getArtifactPatch?: () => object | undefined;
   onDone: (nextSessionId: string | null, loopId?: string | null) => void;
   /** Called when the candidate ends the whole interview. */
   onLeave: () => void;
@@ -182,6 +184,40 @@ export function useVideoTurn({
     [sessionId, onDone, settle]
   );
 
+  /**
+   * Pushes the current work surface (a system-design canvas) to the model
+   * without recording a turn.
+   *
+   * This did not exist at all. VideoRound in round-shell.tsx wired
+   * pushArtifact to a hardcoded no-op, so nothing about a video-mode system
+   * design round's diagram was EVER sent to the server -- not to update what
+   * the live interviewer could see, and not even to persist it. The diagram
+   * lived only in browser state: the interviewer was permanently blind to it,
+   * and the post-round feedback would have read "the canvas is still empty"
+   * for a candidate who fully diagrammed their design. Nothing prevented
+   * selecting System Design + Video from the UI, so this was reachable and
+   * spending a real video credit on a broken round, not a theoretical gap.
+   *
+   * Mirrors recordTurn's relay: post the patch, then push whatever
+   * instructions come back into the room over the data channel.
+   */
+  const pushArtifact = useCallback(async () => {
+    const patch = getArtifactPatch?.();
+    if (!patch || !aliveRef.current) return;
+    const result = await postTurn(sessionId, { artifactOnly: true, artifact: patch });
+    if (
+      result.data?.instructions &&
+      aliveRef.current &&
+      callRef.current &&
+      conversationIdRef.current
+    ) {
+      callRef.current.sendAppMessage(
+        contextUpdateMessage(conversationIdRef.current, result.data.instructions),
+        "*"
+      );
+    }
+  }, [sessionId, getArtifactPatch]);
+
   /** Tavus reports transcript and speaking state over the data channel. */
   const onAppMessage = useCallback(
     (raw: unknown) => {
@@ -242,6 +278,7 @@ export function useVideoTurn({
     elapsed,
     room,
     endEarly,
+    pushArtifact,
     onAppMessage,
     onJoined: (call: DailyCall) => {
       callRef.current = call;

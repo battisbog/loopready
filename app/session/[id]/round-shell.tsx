@@ -272,6 +272,7 @@ function VideoRound({
   header,
   questionIndex = 0,
   questionCount = 0,
+  getArtifactPatch,
   renderSurface,
   stream,
 }: RoundProps) {
@@ -284,11 +285,12 @@ function VideoRound({
     elapsed,
     room,
     endEarly,
+    pushArtifact,
     onAppMessage,
     onJoined,
     onVideoError,
     onNaturalEnd,
-  } = useVideoTurn({ sessionId, initialTurns, onDone, onLeave });
+  } = useVideoTurn({ sessionId, initialTurns, getArtifactPatch, onDone, onLeave });
 
   return (
     <InterviewShell
@@ -327,7 +329,7 @@ function VideoRound({
             }
           : null
       }
-      surface={renderSurface?.({ pushArtifact: () => {} })}
+      surface={renderSurface?.({ pushArtifact: () => void pushArtifact() })}
     />
   );
 }
