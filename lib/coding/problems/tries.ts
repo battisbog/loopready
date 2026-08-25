@@ -71,4 +71,80 @@ export const TRIES: Problem[] = [
     strongAnswerCovers:
       "Backtracking per word is the baseline. The strong answer builds a trie of the words and walks the grid once, pruning branches no word can extend.",
   },
+  {
+    id: "word-search-wildcard",
+    pattern: "tries",
+    tiers: ["mid"],
+    title: "Add and Search Words With Wildcards",
+    fn: "search_words",
+    companies: ["Google", "Meta", "Amazon"],
+    statement:
+      "First add every word in words_to_add to a dictionary. Then answer each query: a query may contain '.', which matches any single character. Return, in order, whether each query matches a word in the dictionary.",
+    example:
+      'add ["bad","dad","mad"], query ".ad" -> true (matches "bad", "dad" or "mad")',
+    signatures: {
+      python: "def search_words(words_to_add, queries):\n    # your code here\n    pass\n",
+      javascript: "function search_words(words_to_add, queries) {\n  // your code here\n}\n",
+    },
+    tests: [
+      {
+        args: [["bad", "dad", "mad"], ["pad", ".ad", "b..", "bad"]],
+        expected: [false, true, true, true],
+      },
+      { args: [["a"], ["a", ".", "aa", "a."]], expected: [true, true, false, false] },
+    ],
+    strongAnswerCovers:
+      "A trie plus DFS that branches over every child on a '.' is the expected shape. Watch for the base case: a query only matches if the DFS reaches the exact end of the word AND that node is marked as a real word ending, not just any node that happens to exist along the path.",
+  },
+  {
+    id: "replace-words-with-roots",
+    pattern: "tries",
+    tiers: ["junior"],
+    title: "Replace Words With Their Shortest Root",
+    fn: "replace_words",
+    companies: ["Google", "Amazon"],
+    statement:
+      "Given a list of root words and a sentence, replace every word in the sentence with the shortest root that is a prefix of it. If no root matches, leave the word unchanged. Words are separated by single spaces.",
+    example:
+      'roots ["cat","bat","rat"], sentence "the cattle was rattled by the battery" -> "the cat was rat by the bat"',
+    signatures: {
+      python: "def replace_words(roots, sentence):\n    # your code here\n    pass\n",
+      javascript: "function replace_words(roots, sentence) {\n  // your code here\n}\n",
+    },
+    tests: [
+      {
+        args: [["cat", "bat", "rat"], "the cattle was rattled by the battery"],
+        expected: "the cat was rat by the bat",
+      },
+      {
+        args: [["a", "b", "c"], "aadsfasf absfasf acbfnasv acbfnasv"],
+        expected: "a a a a",
+      },
+    ],
+    strongAnswerCovers:
+      "A trie of the roots, walked one character at a time per word until a node marked as a root-end is found, is the intended shape. A plain prefix scan over a set of roots is a legitimate O(word length squared) alternative for a small root list -- ask what changes if the root dictionary has a million entries instead of three.",
+  },
+  {
+    id: "maximum-xor-pair",
+    pattern: "tries",
+    tiers: ["senior"],
+    title: "Maximum XOR of Two Numbers",
+    fn: "max_xor",
+    companies: ["Google"],
+    statement:
+      "Given an array of non-negative integers, return the maximum value of nums[i] XOR nums[j] over any pair of elements (i can equal j is not required; any two elements, possibly the same value from different indices).",
+    example: "[3,10,5,25,2,8] -> 28 (5 XOR 25 = 28)",
+    signatures: {
+      python: "def max_xor(nums):\n    # your code here\n    pass\n",
+      javascript: "function max_xor(nums) {\n  // your code here\n}\n",
+    },
+    tests: [
+      { args: [[3, 10, 5, 25, 2, 8]], expected: 28 },
+      { args: [[14, 70, 53, 83, 49, 91, 36, 80, 92, 51, 66, 70]], expected: 127 },
+      { args: [[0]], expected: 0 },
+      { args: [[0, 0]], expected: 0 },
+    ],
+    strongAnswerCovers:
+      "This is the same trie shape as the string problems, just over bits instead of characters: insert every number's binary representation, then for each number walk the trie greedily choosing the opposite bit whenever it exists. The brute-force O(n^2) pairwise check is a fine starting point, but they should recognize the bit-trie gets it to O(n * bit width) and explain WHY greedily taking the opposite bit at each level maximizes the result.",
+  },
 ];

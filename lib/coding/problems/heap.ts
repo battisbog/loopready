@@ -71,4 +71,74 @@ export const HEAP: Problem[] = [
     strongAnswerCovers:
       "The counting formula is the elegant answer; a greedy heap simulation also works. Ask them to justify the max against len(tasks), which is the case where no idling is needed.",
   },
+  {
+    id: "kth-smallest-matrix",
+    pattern: "heap",
+    tiers: ["mid"],
+    title: "Kth Smallest in a Sorted Matrix",
+    fn: "kth_smallest_matrix",
+    companies: ["Google", "Amazon", "Bloomberg"],
+    statement:
+      "Given an n x n matrix where every row and every column is sorted in ascending order, return the kth smallest element in the matrix.",
+    example: "[[1,5,9],[10,11,13],[12,13,15]], k = 8 -> 13",
+    signatures: {
+      python: "def kth_smallest_matrix(matrix, k):\n    # your code here\n    pass\n",
+      javascript: "function kth_smallest_matrix(matrix, k) {\n  // your code here\n}\n",
+    },
+    tests: [
+      { args: [[[1, 5, 9], [10, 11, 13], [12, 13, 15]], 8], expected: 13 },
+      { args: [[[-5]], 1], expected: -5 },
+      { args: [[[1, 2], [1, 3]], 2], expected: 1 },
+    ],
+    strongAnswerCovers:
+      "Binary search on value range is the O(n log(max-min)) answer; a min-heap seeded with the first row, popping and pushing the cell below, is the more common O(k log n) one. Either is fine, but they should name the row/column sortedness as what makes the heap approach only need to look at n candidates at a time instead of all n^2 cells.",
+  },
+  {
+    id: "top-k-frequent-words",
+    pattern: "heap",
+    tiers: ["mid"],
+    title: "Top K Frequent Words",
+    fn: "top_k_frequent_words",
+    companies: ["Amazon", "Bloomberg"],
+    statement:
+      "Given a list of words and a number k, return the k most frequent words, ordered by frequency (highest first). Break ties alphabetically.",
+    example: '["i","love","leetcode","i","love","coding"], k = 2 -> ["i","love"]',
+    signatures: {
+      python: "def top_k_frequent_words(words, k):\n    # your code here\n    pass\n",
+      javascript: "function top_k_frequent_words(words, k) {\n  // your code here\n}\n",
+    },
+    tests: [
+      { args: [["i", "love", "leetcode", "i", "love", "coding"], 2], expected: ["i", "love"] },
+      {
+        args: [["the", "day", "is", "sunny", "the", "the", "the", "sunny", "is", "is"], 4],
+        expected: ["the", "is", "sunny", "day"],
+      },
+      { args: [["a", "b", "a"], 1], expected: ["a"] },
+    ],
+    strongAnswerCovers:
+      "The tie-break is the part people skip: sorting or heap comparisons must order by (-count, word) together, not count alone, or ties come out in whatever order the language's sort happens to preserve. Bucket sort by frequency avoids a heap entirely and is worth asking about as the O(n) alternative.",
+  },
+  {
+    id: "meeting-rooms-ii",
+    pattern: "heap",
+    tiers: ["mid"],
+    title: "Minimum Meeting Rooms",
+    fn: "min_meeting_rooms",
+    companies: ["Google", "Meta", "Amazon"],
+    statement:
+      "Given a list of [start, end] meeting intervals, return the minimum number of rooms required so that no two meetings needing the same room overlap.",
+    example: "[[0,30],[5,10],[15,20]] -> 2",
+    signatures: {
+      python: "def min_meeting_rooms(intervals):\n    # your code here\n    pass\n",
+      javascript: "function min_meeting_rooms(intervals) {\n  // your code here\n}\n",
+    },
+    tests: [
+      { args: [[[0, 30], [5, 10], [15, 20]]], expected: 2 },
+      { args: [[[7, 10], [2, 4]]], expected: 1 },
+      { args: [[]], expected: 0 },
+      { args: [[[1, 5], [1, 5], [1, 5]]], expected: 3 },
+    ],
+    strongAnswerCovers:
+      "Sorting start times and end times separately and sweeping both with two pointers is the clean answer; a min-heap of active end times is the more commonly cited one and works the same way. The touching case [[7,10],[2,4]] not needing a second room (10 does not overlap a meeting starting at, say, 10) is the boundary worth probing.",
+  },
 ];
