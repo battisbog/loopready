@@ -61,8 +61,8 @@ export default function OgImage() {
             maxWidth: 900,
           }}
         >
-          Voice mock interviews calibrated to your target company and level,
-          with feedback that tells you where you would get dinged.
+          Voice and video mock interviews calibrated to your target company
+          and level, with feedback that tells you where you would get dinged.
         </div>
       </div>
     ),

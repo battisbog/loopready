@@ -29,18 +29,33 @@ export const metadata: Metadata = {
     "Amazon Leadership Principles",
     "system design interview",
   ],
+  /**
+   * og:title used to be word-for-word the same headline already baked into
+   * opengraph-image.tsx's PNG ("Pass your loop, not just your mock"). A
+   * platform that renders the image with the title as a caption underneath
+   * it -- which is the normal card layout -- showed that sentence twice: once
+   * as pixels, once as text. The fix is that og:title now says something the
+   * image itself doesn't, so a caption is a caption, not an echo.
+   *
+   * 58 characters. Confirmed against current guidance rather than assumed:
+   * X/Twitter's documented max is 70 (their own "optimal single line" figure
+   * is 55, so this may wrap to two lines on X specifically, but will not
+   * truncate). Facebook/LinkedIn truncate in the 88-95 character range, so
+   * this clears their hard limit with room to spare, though mobile OG
+   * surfaces that only show ~40-50 characters may still wrap it.
+   */
   openGraph: {
-    title: "LoopReady: Pass your loop, not just your mock",
+    title: "LoopReady: an AI interviewer that probes like a real human",
     description:
-      "Voice mock interviews calibrated to your target company and level, with feedback that tells you where you'd get dinged.",
+      "Calibrated to your target company and level, with feedback that tells you where you'd get dinged.",
     type: "website",
     siteName: "LoopReady",
   },
   twitter: {
     card: "summary_large_image",
-    title: "LoopReady: Pass your loop, not just your mock",
+    title: "LoopReady: an AI interviewer that probes like a real human",
     description:
-      "Voice mock interviews calibrated to your target company and level.",
+      "Calibrated to your target company and level, with feedback that tells you where you'd get dinged.",
   },
 };
 
