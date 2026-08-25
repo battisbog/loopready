@@ -106,7 +106,32 @@ function useLeaveToDashboard() {
 
 function useDoneRouting(sessionId: string) {
   const router = useRouter();
-  return (next: string | null, loopId?: string | null) =>
+  return (next: string | null, loopId?: string | null) => {
+    /**
+     * Grade the round that just ended, whatever happens next.
+     *
+     * /api/feedback is only ever triggered by visiting a session's feedback
+     * page, and a round inside a loop routes straight to the NEXT round -- so
+     * intermediate rounds were never graded at all. Production had 15
+     * completed loop rounds with real candidate answers and no debrief, while
+     * standalone sessions had one every time. /api/loop/summary then built its
+     * verdict from whatever feedback happened to exist, which for a full loop
+     * was usually nothing.
+     *
+     * keepalive matters: this fires immediately before a navigation, and
+     * without it the browser cancels the request in flight. The endpoint is
+     * idempotent, so the feedback page asking again later is free.
+     */
+    void fetch("/api/feedback", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sessionId }),
+      keepalive: true,
+    }).catch(() => {
+      // The feedback page regenerates on demand, so a failure here only costs
+      // time, never the debrief itself.
+    });
+
     router.push(
       next
         ? `/session/${next}`
@@ -114,6 +139,7 @@ function useDoneRouting(sessionId: string) {
           ? `/loop/${loopId}`
           : `/session/${sessionId}/feedback`
     );
+  };
 }
 
 function LiveRound({
