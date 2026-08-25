@@ -33,9 +33,12 @@ export default function StartPage() {
   const [level, setLevel] = useState(
     () => Object.keys(COMPANY_PROFILES[DEFAULT_COMPANY].levels)[0]
   );
-  const [plan, setPlan] = useState<PlannedRound[]>([
-    { roundType: "behavioral", mode: "voice" },
-  ]);
+  // Deliberately empty: nothing is preselected, so the rounds a candidate
+  // runs are always ones they chose. A prefilled "1 behavioral, voice" is easy
+  // to start without noticing, which is how someone ends up practising a round
+  // they did not mean to. The Start button stays disabled until something is
+  // picked, and the submit handler guards it too.
+  const [plan, setPlan] = useState<PlannedRound[]>([]);
   const [credits, setCredits] = useState(0);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
