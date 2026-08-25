@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Button } from "@/components/ui";
 
 /**
@@ -11,7 +12,16 @@ import { Button } from "@/components/ui";
  * loads it. `preload="none"` on top of that means even the poster-adjacent
  * metadata fetch waits for the click, not just the mount.
  */
-export default function DemoVideoModal({ ctaHref }: { ctaHref: string }) {
+export default function DemoVideoModal({
+  ctaHref,
+  ctaLabel = "Start free",
+}: {
+  ctaHref: string;
+  /** Matches whatever the page's own primary CTA says (e.g. "Go to
+   *  dashboard" for a signed-in visitor), so the modal never promises a
+   *  different next step than the button that opened it. */
+  ctaLabel?: string;
+}) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -24,7 +34,13 @@ export default function DemoVideoModal({ ctaHref }: { ctaHref: string }) {
       >
         Watch it in action
       </Button>
-      {open && <Lightbox onClose={() => setOpen(false)} ctaHref={ctaHref} />}
+      {open && (
+        <Lightbox
+          onClose={() => setOpen(false)}
+          ctaHref={ctaHref}
+          ctaLabel={ctaLabel}
+        />
+      )}
     </>
   );
 }
@@ -32,9 +48,11 @@ export default function DemoVideoModal({ ctaHref }: { ctaHref: string }) {
 function Lightbox({
   onClose,
   ctaHref,
+  ctaLabel,
 }: {
   onClose: () => void;
   ctaHref: string;
+  ctaLabel: string;
 }) {
   const [playing, setPlaying] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -52,12 +70,12 @@ function Lightbox({
     };
   }, [onClose]);
 
-  return (
+  const modal = (
     <div
       role="dialog"
       aria-modal="true"
       aria-label="LoopReady demo video"
-      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 p-4 sm:p-8"
+      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/85 p-4 backdrop-blur-sm sm:p-8"
       onClick={onClose}
     >
       <button
@@ -108,15 +126,35 @@ function Lightbox({
           )}
         </div>
 
-        <div className="flex flex-col items-center gap-3 border-t border-line px-6 py-5 text-center sm:flex-row sm:justify-between sm:text-left">
-          <p className="text-sm text-secondary">
-            Ready to try it?
-          </p>
-          <Button href={ctaHref} size="md">
-            Start free
+        {/* One action only: whatever "Start free" / "Go to dashboard" means
+            on this page for this visitor. Generous padding on every side and
+            real vertical rhythm between the label and the button, rather than
+            the video, text, and button all sharing one tight row against the
+            card edge. */}
+        <div className="flex flex-col items-center gap-4 px-6 py-8 text-center sm:px-8">
+          <p className="text-sm text-secondary">Ready to try it?</p>
+          <Button href={ctaHref} size="lg" className="w-full sm:w-auto">
+            {ctaLabel}
           </Button>
         </div>
       </div>
     </div>
   );
+
+  /**
+   * Rendered via a portal straight onto <body>, escaping the hero's `.rise`
+   * animation wrapper.
+   *
+   * `.rise` ends its animation on `transform: translateY(0)` with
+   * `animation-fill-mode: both`, so that transform value persists after the
+   * animation finishes -- and per the CSS spec, ANY non-`none` transform on
+   * an ancestor (even a no-op translateY(0)) creates a new containing block
+   * for `position: fixed` descendants. Without the portal, this modal's
+   * `fixed inset-0` was sizing itself to that small hero column instead of
+   * the viewport: a small floating box with the real page bleeding through
+   * around it, and the page's own hero buttons sitting a few pixels outside
+   * it looking like they belonged to the modal. The portal makes the modal a
+   * sibling of that entire subtree, so `fixed` means the viewport again.
+   */
+  return createPortal(modal, document.body);
 }

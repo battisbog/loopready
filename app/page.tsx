@@ -79,7 +79,7 @@ export default async function Landing() {
                 <Button href={ctaHref} size="lg">
                   {ctaLabel}
                 </Button>
-                <DemoVideoModal ctaHref={ctaHref} />
+                <DemoVideoModal ctaHref={ctaHref} ctaLabel={ctaLabel} />
               </div>
 
               <p className="mt-4 text-xs text-muted">
