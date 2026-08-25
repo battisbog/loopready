@@ -1539,6 +1539,697 @@ def min_stack_results(ops):
 )
 
 
+# ─────────────────────────────────────────────── heap / tries backfill
+# These 6 were added directly to the .ts files in an earlier session before
+# build-problems.py was discovered as the actual source of truth. Backfilled
+# here so `python3 scripts/build-problems.py` (which overwrites every .ts
+# file from P) does not silently delete them.
+problem(
+    id="kth-smallest-matrix", pattern="heap", tiers=["mid"], title="Kth Smallest in a Sorted Matrix",
+    fn="kth_smallest_matrix", companies=["Google", "Amazon", "Bloomberg"],
+    statement="Given an n x n matrix where every row and every column is sorted in ascending order, return the kth smallest element in the matrix.",
+    example="[[1,5,9],[10,11,13],[12,13,15]], k = 8 -> 13",
+    params="matrix, k",
+    tests=[
+        [[[1,5,9],[10,11,13],[12,13,15]], 8],
+        [[[-5]], 1],
+        [[[1,2],[1,3]], 2],
+    ],
+    solution="""
+def kth_smallest_matrix(matrix, k):
+    import heapq
+    n = len(matrix)
+    heap = [(matrix[0][j], 0, j) for j in range(min(n, k))]
+    heapq.heapify(heap)
+    for _ in range(k - 1):
+        val, r, c = heapq.heappop(heap)
+        if r + 1 < n:
+            heapq.heappush(heap, (matrix[r + 1][c], r + 1, c))
+    return heap[0][0]
+""",
+    covers="Binary search on value range is the O(n log(max-min)) answer; a min-heap seeded with the first row is the more common O(k log n) one. They should name the row/column sortedness as what lets the heap only ever consider n candidates instead of all n^2 cells.",
+)
+problem(
+    id="top-k-frequent-words", pattern="heap", tiers=["mid"], title="Top K Frequent Words",
+    fn="top_k_frequent_words", companies=["Amazon", "Bloomberg"],
+    statement="Given a list of words and a number k, return the k most frequent words, ordered by frequency (highest first). Break ties alphabetically.",
+    example='["i","love","leetcode","i","love","coding"], k = 2 -> ["i","love"]',
+    params="words, k",
+    tests=[
+        [["i","love","leetcode","i","love","coding"], 2],
+        [["the","day","is","sunny","the","the","the","sunny","is","is"], 4],
+        [["a","b","a"], 1],
+    ],
+    solution="""
+def top_k_frequent_words(words, k):
+    from collections import Counter
+    items = list(Counter(words).items())
+    items.sort(key=lambda x: (-x[1], x[0]))
+    return [w for w, c in items[:k]]
+""",
+    covers="The tie-break is the part people skip: sorting or heap comparisons must order by (-count, word) together, not count alone. Bucket sort by frequency avoids a heap entirely and is worth asking about as the O(n) alternative.",
+)
+problem(
+    id="find-median-stream", pattern="heap", tiers=["senior"], title="Running Median of a Number Stream",
+    fn="find_medians", companies=["Amazon", "Google", "Meta"],
+    statement="Numbers arrive one at a time. After each one is added, return the median of every number seen so far. Return the list of running medians, in the order the numbers arrived.",
+    example="[5, 15, 1] -> [5.0, 10.0, 5.0]",
+    params="nums",
+    tests=[
+        [[5]],
+        [[5, 15]],
+        [[1, 2, 3]],
+        [[]],
+        [[6, 10, 2, 6, 5, 0]],
+    ],
+    solution="""
+def find_medians(nums):
+    import heapq
+    small, large = [], []
+    res = []
+    for num in nums:
+        heapq.heappush(small, -num)
+        heapq.heappush(large, -heapq.heappop(small))
+        if len(large) > len(small):
+            heapq.heappush(small, -heapq.heappop(large))
+        if len(small) > len(large):
+            res.append(float(-small[0]))
+        else:
+            res.append((-small[0] + large[0]) / 2.0)
+    return res
+""",
+    covers="Two heaps -- a max-heap for the lower half, a min-heap for the upper half, rebalanced after every insert -- is the expected shape. The median is the top of the larger half, or the average of both tops when equal in size. Sorting on every insert is the naive answer worth naming and rejecting first.",
+)
+problem(
+    id="word-search-wildcard", pattern="tries", tiers=["mid"], title="Add and Search Words With Wildcards",
+    fn="search_words", companies=["Google", "Meta", "Amazon"],
+    statement="First add every word in words_to_add to a dictionary. Then answer each query: a query may contain '.', which matches any single character. Return, in order, whether each query matches a word in the dictionary.",
+    example='add ["bad","dad","mad"], query ".ad" -> true',
+    params="words_to_add, queries",
+    tests=[
+        [["bad","dad","mad"], ["pad",".ad","b..","bad"]],
+        [["a"], ["a",".","aa","a."]],
+    ],
+    solution="""
+def search_words(words_to_add, queries):
+    trie = {}
+    END = "$"
+    for w in words_to_add:
+        node = trie
+        for ch in w:
+            node = node.setdefault(ch, {})
+        node[END] = True
+    def dfs(node, i, q):
+        if i == len(q):
+            return END in node
+        ch = q[i]
+        if ch == ".":
+            return any(k != END and dfs(v, i + 1, q) for k, v in node.items())
+        return ch in node and dfs(node[ch], i + 1, q)
+    return [dfs(trie, 0, q) for q in queries]
+""",
+    covers="A trie plus DFS that branches over every child on a '.' is the expected shape. A query only matches if the DFS reaches the exact end of the word AND that node is marked as a real word ending, not just any node that exists along the path.",
+)
+problem(
+    id="replace-words-with-roots", pattern="tries", tiers=["junior"], title="Replace Words With Their Shortest Root",
+    fn="replace_words", companies=["Google", "Amazon"],
+    statement="Given a list of root words and a sentence, replace every word in the sentence with the shortest root that is a prefix of it. If no root matches, leave the word unchanged. Words are separated by single spaces.",
+    example='roots ["cat","bat","rat"], sentence "the cattle was rattled by the battery" -> "the cat was rat by the bat"',
+    params="roots, sentence",
+    tests=[
+        [["cat","bat","rat"], "the cattle was rattled by the battery"],
+        [["a","b","c"], "aadsfasf absfasf acbfnasv acbfnasv"],
+    ],
+    solution="""
+def replace_words(roots, sentence):
+    root_set = set(roots)
+    def shortest(word):
+        for i in range(1, len(word) + 1):
+            if word[:i] in root_set:
+                return word[:i]
+        return word
+    return " ".join(shortest(w) for w in sentence.split(" "))
+""",
+    covers="A trie of the roots, walked one character at a time until a root-end node is found, is the intended shape. A plain prefix scan over a small root set is a legitimate alternative -- ask what changes with a million-entry root dictionary.",
+)
+problem(
+    id="maximum-xor-pair", pattern="tries", tiers=["senior"], title="Maximum XOR of Two Numbers",
+    fn="max_xor", companies=["Google"],
+    statement="Given an array of non-negative integers, return the maximum value of nums[i] XOR nums[j] over any pair of elements.",
+    example="[3,10,5,25,2,8] -> 28",
+    params="nums",
+    tests=[
+        [[3, 10, 5, 25, 2, 8]],
+        [[14, 70, 53, 83, 49, 91, 36, 80, 92, 51, 66, 70]],
+        [[0]],
+        [[0, 0]],
+    ],
+    solution="""
+def max_xor(nums):
+    if len(nums) < 2:
+        return 0
+    L = max(nums).bit_length() or 1
+    root = {}
+    for n in nums:
+        node = root
+        for i in range(L - 1, -1, -1):
+            b = (n >> i) & 1
+            node = node.setdefault(b, {})
+    best = 0
+    for n in nums:
+        node = root
+        x = 0
+        for i in range(L - 1, -1, -1):
+            b = (n >> i) & 1
+            t = 1 - b
+            if t in node:
+                x |= (1 << i)
+                node = node[t]
+            else:
+                node = node[b]
+        best = max(best, x)
+    return best
+""",
+    covers="Same trie shape as the string problems, over bits instead of characters: insert every number's binary representation, then greedily walk toward the opposite bit at each level. The O(n^2) pairwise check is a fine starting point, but they should explain WHY the greedy opposite-bit choice maximizes the result.",
+)
+
+# ─────────────────────────────────────────────── matrix (new pattern)
+problem(
+    id="rotate-image", pattern="matrix", tiers=["mid"], title="Rotate Image 90 Degrees",
+    fn="rotate_image", companies=["Amazon", "Microsoft", "Apple"],
+    statement="Given an n x n matrix, return a new matrix rotated 90 degrees clockwise.",
+    example="[[1,2,3],[4,5,6],[7,8,9]] -> [[7,4,1],[8,5,2],[9,6,3]]",
+    params="matrix",
+    tests=[
+        [[[1,2,3],[4,5,6],[7,8,9]]],
+        [[[1]]],
+        [[[1,2],[3,4]]],
+    ],
+    solution="""
+def rotate_image(matrix):
+    n = len(matrix)
+    return [[matrix[n - 1 - c][r] for c in range(n)] for r in range(n)]
+""",
+    covers="The in-place version (transpose then reverse each row, or four-way swap by layer) is what a strong candidate reaches for when told to do it without extra memory. Ask them to derive the index formula rather than recite it.",
+)
+problem(
+    id="spiral-matrix", pattern="matrix", tiers=["mid"], title="Spiral Matrix Traversal",
+    fn="spiral_order", companies=["Google", "Microsoft", "Amazon"],
+    statement="Given an m x n matrix, return all elements in spiral order, starting from the top-left and moving right.",
+    example="[[1,2,3],[4,5,6],[7,8,9]] -> [1,2,3,6,9,8,7,4,5]",
+    params="matrix",
+    tests=[
+        [[[1,2,3],[4,5,6],[7,8,9]]],
+        [[[1,2,3,4],[5,6,7,8],[9,10,11,12]]],
+        [[[1]]],
+        [[[1,2],[3,4]]],
+    ],
+    solution="""
+def spiral_order(matrix):
+    res = []
+    if not matrix:
+        return res
+    top, bottom = 0, len(matrix) - 1
+    left, right = 0, len(matrix[0]) - 1
+    while top <= bottom and left <= right:
+        for c in range(left, right + 1):
+            res.append(matrix[top][c])
+        top += 1
+        for r in range(top, bottom + 1):
+            res.append(matrix[r][right])
+        right -= 1
+        if top <= bottom:
+            for c in range(right, left - 1, -1):
+                res.append(matrix[bottom][c])
+            bottom -= 1
+        if left <= right:
+            for r in range(bottom, top - 1, -1):
+                res.append(matrix[r][left])
+            left += 1
+    return res
+""",
+    covers="Four shrinking boundaries (top/bottom/left/right) walked in order is the clean answer. The two guard checks before the bottom row and left column are the part people forget, and a non-square input is the case that catches a version without them.",
+)
+problem(
+    id="set-matrix-zeroes", pattern="matrix", tiers=["mid"], title="Set Matrix Zeroes",
+    fn="set_zeroes", companies=["Microsoft", "Amazon"],
+    statement="Given an m x n matrix, return a new matrix where any row or column that contained a 0 in the original is entirely zeroed out.",
+    example="[[1,1,1],[1,0,1],[1,1,1]] -> [[1,0,1],[0,0,0],[1,0,1]]",
+    params="matrix",
+    tests=[
+        [[[1,1,1],[1,0,1],[1,1,1]]],
+        [[[0,1,2,0],[3,4,5,2],[1,3,1,5]]],
+        [[[1]]],
+        [[[1,0]]],
+    ],
+    solution="""
+def set_zeroes(matrix):
+    rows, cols = set(), set()
+    for i, row in enumerate(matrix):
+        for j, v in enumerate(row):
+            if v == 0:
+                rows.add(i)
+                cols.add(j)
+    return [
+        [0 if (i in rows or j in cols) else v for j, v in enumerate(row)]
+        for i, row in enumerate(matrix)
+    ]
+""",
+    covers="A first pass to record which rows/columns contain a zero, then a second pass to zero them, avoids the bug of zeroing a cell and then reading that zero as a NEW trigger later in the same pass. The O(1)-extra-space version stores the flags in the matrix's own first row and column instead of two sets.",
+)
+
+# ─────────────────────────────────────────────── two-pointers / arrays additions
+problem(
+    id="trapping-rain-water", pattern="two-pointers", tiers=["mid"], title="Trapping Rain Water",
+    fn="trap", companies=["Google", "Amazon", "Apple", "Microsoft", "Netflix"],
+    statement="Given a list of non-negative integers representing an elevation map where each bar has width 1, return how much water it can trap after raining.",
+    example="[0,1,0,2,1,0,1,3,2,1,2,1] -> 6",
+    params="heights",
+    tests=[
+        [[0,1,0,2,1,0,1,3,2,1,2,1]],
+        [[4,2,0,3,2,5]],
+        [[]],
+        [[1,1]],
+        [[5,4,1,2]],
+    ],
+    solution="""
+def trap(heights):
+    if not heights:
+        return 0
+    l, r = 0, len(heights) - 1
+    left_max, right_max = heights[l], heights[r]
+    water = 0
+    while l < r:
+        if left_max <= right_max:
+            l += 1
+            left_max = max(left_max, heights[l])
+            water += left_max - heights[l]
+        else:
+            r -= 1
+            right_max = max(right_max, heights[r])
+            water += right_max - heights[r]
+    return water
+""",
+    covers="Two pointers closing from both ends, each tracking the max seen on its own side, is the O(1)-space answer. The insight to press for: water above any bar is bounded by the SMALLER of the two side maxima, which is exactly why the pointer on the smaller-max side is the one that's safe to advance.",
+)
+problem(
+    id="next-permutation", pattern="arrays-hashing", tiers=["mid"], title="Next Lexicographic Permutation",
+    fn="next_permutation", companies=["Meta", "Microsoft"],
+    statement="Given a list of numbers representing a permutation, return the next permutation in lexicographic order. If it is already the highest possible, return the lowest (sorted ascending).",
+    example="[1,2,3] -> [1,3,2]",
+    params="nums",
+    tests=[
+        [[1,2,3]],
+        [[3,2,1]],
+        [[1,1,5]],
+        [[1]],
+    ],
+    solution="""
+def next_permutation(nums):
+    nums = nums[:]
+    n = len(nums)
+    i = n - 2
+    while i >= 0 and nums[i] >= nums[i + 1]:
+        i -= 1
+    if i >= 0:
+        j = n - 1
+        while nums[j] <= nums[i]:
+            j -= 1
+        nums[i], nums[j] = nums[j], nums[i]
+    nums[i + 1:] = reversed(nums[i + 1:])
+    return nums
+""",
+    covers="Find the rightmost ascent, swap it with the smallest element to its right that's still bigger than it, then reverse everything after that point. Each of those three steps has a reason; ask them to justify the reverse specifically (the suffix is descending at that point, so reversing it is what makes it the smallest possible arrangement).",
+)
+problem(
+    id="letter-combinations-phone", pattern="backtracking", tiers=["mid"], title="Letter Combinations of a Phone Number",
+    fn="letter_combinations", companies=["Meta", "Microsoft"],
+    statement="Given a string of digits 2-9, return every possible letter combination the digits could represent on a phone keypad, in any order.",
+    example='"23" -> ["ad","ae","af","bd","be","bf","cd","ce","cf"]',
+    params="digits",
+    unordered=True,
+    tests=[
+        ["23"],
+        [""],
+        ["2"],
+    ],
+    solution="""
+def letter_combinations(digits):
+    if not digits:
+        return []
+    m = {"2":"abc","3":"def","4":"ghi","5":"jkl","6":"mno","7":"pqrs","8":"tuv","9":"wxyz"}
+    res = []
+    def bt(i, path):
+        if i == len(digits):
+            res.append("".join(path))
+            return
+        for ch in m[digits[i]]:
+            path.append(ch)
+            bt(i + 1, path)
+            path.pop()
+    bt(0, [])
+    return res
+""",
+    covers="Standard backtracking: one recursive call per digit, branching over that digit's letters. The empty-string edge case (return [], not ['']) is the one people get backwards.",
+)
+problem(
+    id="word-search", pattern="backtracking", tiers=["mid"], title="Find a Single Word in a Letter Grid",
+    fn="word_exists", companies=["Amazon", "Microsoft", "Netflix"],
+    statement="Given a grid of letters and a single target word, return whether the word can be spelled by walking between horizontally or vertically adjacent cells without reusing a cell.",
+    example='[["A","B","C","E"],["S","F","C","S"],["A","D","E","E"]], "ABCCED" -> true',
+    params="grid, word",
+    tests=[
+        [[["A","B","C","E"],["S","F","C","S"],["A","D","E","E"]], "ABCCED"],
+        [[["A","B","C","E"],["S","F","C","S"],["A","D","E","E"]], "SEE"],
+        [[["A","B","C","E"],["S","F","C","S"],["A","D","E","E"]], "ABCB"],
+        [[["A"]], "A"],
+    ],
+    solution="""
+def word_exists(grid, word):
+    if not grid or not grid[0]:
+        return False
+    rows, cols = len(grid), len(grid[0])
+    def dfs(r, c, i):
+        if i == len(word):
+            return True
+        if r < 0 or c < 0 or r >= rows or c >= cols or grid[r][c] != word[i]:
+            return False
+        tmp = grid[r][c]
+        grid[r][c] = "#"
+        found = dfs(r+1,c,i+1) or dfs(r-1,c,i+1) or dfs(r,c+1,i+1) or dfs(r,c-1,i+1)
+        grid[r][c] = tmp
+        return found
+    for r in range(rows):
+        for c in range(cols):
+            if dfs(r, c, 0):
+                return True
+    return False
+""",
+    covers="Backtracking DFS with a visited-marker swapped in and restored on the cell itself (rather than a separate visited set) is the space-efficient version. This is the single-word sibling of Word Search II -- ask when a trie-based multi-word search would be worth the setup cost over running this once per word.",
+)
+
+# ─────────────────────────────────────────────── dynamic programming additions
+problem(
+    id="decode-ways", pattern="dynamic-programming", tiers=["mid"], title="Count Ways to Decode a Digit String",
+    fn="num_decodings", companies=["Meta", "Amazon"],
+    statement="A string of digits was encoded from letters A-Z using 1=A ... 26=Z. Return the number of ways it could have been decoded. A leading zero in any group makes that decoding invalid.",
+    example='"226" -> 3',
+    params="s",
+    tests=[
+        ["12"],
+        ["226"],
+        ["06"],
+        ["0"],
+        ["10"],
+        ["27"],
+    ],
+    solution="""
+def num_decodings(s):
+    if not s or s[0] == "0":
+        return 0
+    n = len(s)
+    dp = [0] * (n + 1)
+    dp[0] = 1
+    dp[1] = 1
+    for i in range(2, n + 1):
+        one = int(s[i-1:i])
+        two = int(s[i-2:i])
+        if one >= 1:
+            dp[i] += dp[i-1]
+        if 10 <= two <= 26:
+            dp[i] += dp[i-2]
+    return dp[n]
+""",
+    covers="1-D DP where dp[i] depends on whether the last one or two digits form a valid group. The leading-zero trap ('06' can't be F, only 0-prefixed nothing) is the boundary worth probing, plus a string of all zeros.",
+)
+problem(
+    id="maximum-product-subarray", pattern="dynamic-programming", tiers=["mid"], title="Maximum Product Subarray",
+    fn="max_product", companies=["Amazon"],
+    statement="Given an array of integers, return the largest product of any contiguous subarray.",
+    example="[2,3,-2,4] -> 6",
+    params="nums",
+    tests=[
+        [[2,3,-2,4]],
+        [[-2,0,-1]],
+        [[-2,3,-4]],
+        [[0]],
+        [[2,-5,-2,-4,3]],
+    ],
+    solution="""
+def max_product(nums):
+    if not nums:
+        return 0
+    res = nums[0]
+    cur_max = cur_min = nums[0]
+    for n in nums[1:]:
+        candidates = (n, cur_max * n, cur_min * n)
+        cur_max = max(candidates)
+        cur_min = min(candidates)
+        res = max(res, cur_max)
+    return res
+""",
+    covers="The twist over Maximum Subarray: a negative number can turn the smallest running product into the largest, so both a running max AND a running min must be tracked. Losing the running min is the near-universal bug on a first attempt.",
+)
+
+# ─────────────────────────────────────────────── linked-list / two-pointers additions
+problem(
+    id="merge-sorted-array", pattern="two-pointers", tiers=["junior"], title="Merge Two Sorted Arrays",
+    fn="merge_sorted", companies=["Microsoft"],
+    statement="Given two arrays already sorted in ascending order, return one merged array in ascending order.",
+    example="[1,2,3], [2,5,6] -> [1,2,2,3,5,6]",
+    params="nums1, nums2",
+    tests=[
+        [[1,2,3],[2,5,6]],
+        [[],[1]],
+        [[1],[]],
+        [[4,5,6],[1,2,3]],
+    ],
+    solution="""
+def merge_sorted(nums1, nums2):
+    i = j = 0
+    res = []
+    while i < len(nums1) and j < len(nums2):
+        if nums1[i] <= nums2[j]:
+            res.append(nums1[i]); i += 1
+        else:
+            res.append(nums2[j]); j += 1
+    res.extend(nums1[i:])
+    res.extend(nums2[j:])
+    return res
+""",
+    covers="The linear two-pointer merge is the O(m+n) answer and the actual building block of merge sort. Ask what changes if this had to merge in place into the first array with only its own trailing capacity to work with -- that's the version this is adapted from.",
+)
+problem(
+    id="sort-colors", pattern="two-pointers", tiers=["mid"], title="Sort an Array of Three Values",
+    fn="sort_colors", companies=["Microsoft"],
+    statement="Given an array containing only the values 0, 1 and 2, return it sorted in a single pass without using a separate counting or sorting step.",
+    example="[2,0,2,1,1,0] -> [0,0,1,1,2,2]",
+    params="nums",
+    tests=[
+        [[2,0,2,1,1,0]],
+        [[2,0,1]],
+        [[0]],
+        [[1,2,0]],
+    ],
+    solution="""
+def sort_colors(nums):
+    nums = nums[:]
+    low, mid, high = 0, 0, len(nums) - 1
+    while mid <= high:
+        if nums[mid] == 0:
+            nums[low], nums[mid] = nums[mid], nums[low]
+            low += 1; mid += 1
+        elif nums[mid] == 1:
+            mid += 1
+        else:
+            nums[mid], nums[high] = nums[high], nums[mid]
+            high -= 1
+    return nums
+""",
+    covers="The Dutch national flag three-way partition, in one pass with three pointers. The trap is advancing mid after a swap with high -- that swap can bring in an unexamined 0, so mid must NOT advance in that branch, unlike the swap-with-low branch where it's safe to.",
+)
+problem(
+    id="first-missing-positive", pattern="arrays-hashing", tiers=["senior"], title="First Missing Positive Integer",
+    fn="first_missing_positive", companies=["Meta", "Microsoft"],
+    statement="Given an unsorted array of integers, return the smallest positive integer that does not appear in it. Must run in O(n) time and O(1) extra space.",
+    example="[3,4,-1,1] -> 2",
+    params="nums",
+    tests=[
+        [[1,2,0]],
+        [[3,4,-1,1]],
+        [[7,8,9,11,12]],
+        [[]],
+        [[1]],
+    ],
+    solution="""
+def first_missing_positive(nums):
+    nums = nums[:]
+    n = len(nums)
+    for i in range(n):
+        while 1 <= nums[i] <= n and nums[nums[i] - 1] != nums[i]:
+            j = nums[i] - 1
+            nums[i], nums[j] = nums[j], nums[i]
+    for i in range(n):
+        if nums[i] != i + 1:
+            return i + 1
+    return n + 1
+""",
+    covers="The O(1)-space trick: the answer must be between 1 and n+1, so each value can be placed at its own index (cyclic sort) using the array itself as the hash set. A hash-set solution is O(n) space and a fine warm-up, but the constraint is specifically there to push past it.",
+)
+problem(
+    id="add-two-numbers", pattern="linked-list", tiers=["junior"], title="Add Two Numbers as Linked Lists",
+    fn="add_two_numbers", companies=["Microsoft"],
+    statement="Two non-negative integers are given as lists of digits in reverse order (least significant digit first), one digit per node. Return their sum in the same reverse-digit-order form.",
+    example="[2,4,3] + [5,6,4] -> [7,0,8]  (342 + 465 = 807)",
+    params="l1, l2",
+    tests=[
+        [[2,4,3],[5,6,4]],
+        [[0],[0]],
+        [[9,9,9,9,9,9,9],[9,9,9,9]],
+        [[5],[5]],
+    ],
+    solution="""
+def add_two_numbers(l1, l2):
+    carry = 0
+    res = []
+    i = j = 0
+    while i < len(l1) or j < len(l2) or carry:
+        a = l1[i] if i < len(l1) else 0
+        b = l2[j] if j < len(l2) else 0
+        total = a + b + carry
+        carry = total // 10
+        res.append(total % 10)
+        i += 1; j += 1
+    return res
+""",
+    covers="Simulated grade-school addition, one digit at a time with a carry, stopping only when both lists AND the carry are exhausted -- the carry-after-both-lists-end case (999...+9999) is what a version that stops too early misses.",
+)
+
+# ─────────────────────────────────────────────── tree additions
+problem(
+    id="symmetric-tree", pattern="trees", tiers=["junior"], title="Symmetric Binary Tree",
+    fn="is_symmetric", companies=["Microsoft"],
+    statement="A binary tree is given as a level-order array where null marks a missing child. Return true if it is a mirror of itself around its center.",
+    example="[1,2,2,3,4,4,3] -> true",
+    params="tree",
+    tests=[
+        [[1,2,2,3,4,4,3]],
+        [[1,2,2,None,3,None,3]],
+        [[]],
+        [[1]],
+    ],
+    solution=TREE_HELPERS + """
+def is_symmetric(tree):
+    root = _build(tree)
+    def mirror(a, b):
+        if not a and not b:
+            return True
+        if not a or not b or a.val != b.val:
+            return False
+        return mirror(a.left, b.right) and mirror(a.right, b.left)
+    return mirror(root.left, root.right) if root else True
+""",
+    covers="A recursive mirror check comparing the outer pair and inner pair of grandchildren at each level. Ask for the iterative version with an explicit queue holding pairs of nodes to compare.",
+)
+problem(
+    id="lowest-common-ancestor-tree", pattern="trees", tiers=["mid"], title="Lowest Common Ancestor in a Binary Tree",
+    fn="lca_general", companies=["Meta", "Apple"],
+    statement="A binary tree (not necessarily a search tree) is given as a level-order array where null marks a missing child, along with two values present in it, assumed unique. Return the value of the deepest node that has both as descendants, where a node may be its own descendant.",
+    example="[3,5,1,6,2,0,8,null,null,7,4], p = 5, q = 1 -> 3",
+    params="tree, p, q",
+    tests=[
+        [[3,5,1,6,2,0,8,None,None,7,4],5,1],
+        [[3,5,1,6,2,0,8,None,None,7,4],5,4],
+        [[1,2],1,2],
+    ],
+    solution=TREE_HELPERS + """
+def lca_general(tree, p, q):
+    root = _build(tree)
+    def find(n):
+        if not n or n.val == p or n.val == q:
+            return n
+        l = find(n.left)
+        r = find(n.right)
+        if l and r:
+            return n
+        return l or r
+    res = find(root)
+    return res.val if res else None
+""",
+    covers="Without the BST ordering to exploit, this is a postorder search: return the node itself if found, otherwise whichever side returned something, or both if this node is the split point. The sibling problem lowest-common-ancestor-bst is the special case worth contrasting -- ask what shortcut the ordering enabled there that doesn't exist here.",
+)
+problem(
+    id="binary-tree-max-path-sum", pattern="trees", tiers=["senior"], title="Maximum Path Sum in a Binary Tree",
+    fn="max_path_sum", companies=["Google"],
+    statement="A binary tree is given as a level-order array where null marks a missing child. A path is any sequence of nodes connected by edges, not necessarily passing through the root, and does not need to include the whole tree. Return the largest sum of node values along any path.",
+    example="[-10,9,20,null,null,15,7] -> 42",
+    params="tree",
+    tests=[
+        [[1,2,3]],
+        [[-10,9,20,None,None,15,7]],
+        [[2,-1]],
+        [[-3]],
+    ],
+    solution=TREE_HELPERS + """
+def max_path_sum(tree):
+    root = _build(tree)
+    best = [float("-inf")]
+    def dfs(n):
+        if not n:
+            return 0
+        l = max(dfs(n.left), 0)
+        r = max(dfs(n.right), 0)
+        best[0] = max(best[0], n.val + l + r)
+        return n.val + max(l, r)
+    dfs(root)
+    return best[0]
+""",
+    covers="Two different things are computed at each node: the best path THROUGH it (which can use both children, updates the global answer, but can never be returned upward) and the best path EXTENDING from it upward (which can only use one child, since a path can't branch). Negative subtree contributions get clamped to zero rather than subtracted.",
+)
+problem(
+    id="construct-tree-preorder-inorder", pattern="trees", tiers=["senior"], title="Build a Tree From Preorder and Inorder Traversals",
+    fn="build_tree", companies=["Microsoft"],
+    statement="Given the preorder and inorder traversals of a binary tree with unique values, reconstruct the tree. Return it as a level-order array with trailing nulls removed.",
+    example="preorder [3,9,20,15,7], inorder [9,3,15,20,7] -> [3,9,20,null,null,15,7]",
+    params="preorder, inorder",
+    tests=[
+        [[3,9,20,15,7],[9,3,15,20,7]],
+        [[-1],[-1]],
+        [[1,2],[2,1]],
+    ],
+    solution=TREE_HELPERS + """
+def build_tree(preorder, inorder):
+    if not preorder:
+        return []
+    idx = {v: i for i, v in enumerate(inorder)}
+    pre_iter = iter(preorder)
+    def helper(lo, hi):
+        if lo > hi:
+            return None
+        val = next(pre_iter)
+        node = _N(val)
+        mid = idx[val]
+        node.left = helper(lo, mid - 1)
+        node.right = helper(mid + 1, hi)
+        return node
+    root = helper(0, len(inorder) - 1)
+    if not root:
+        return []
+    out = []
+    q = [root]
+    while q:
+        n = q.pop(0)
+        if n is None:
+            out.append(None); continue
+        out.append(n.val); q.append(n.left); q.append(n.right)
+    while out and out[-1] is None:
+        out.pop()
+    return out
+""",
+    covers="Preorder gives roots in the order to build them; inorder gives, for a known root, exactly which values fall in its left versus right subtree. A hash map from value to inorder index turns the naive O(n) subtree search into O(1), which is the difference between an O(n^2) and an O(n) solution.",
+)
+
+
 # ───────────────────────────────────────────────────────── verification
 def verify():
     fails = []
@@ -1582,7 +2273,7 @@ def ts_value(v):
 PATTERNS = [
     "arrays-hashing", "two-pointers", "sliding-window", "stack", "binary-search",
     "linked-list", "trees", "tries", "heap", "backtracking", "graphs",
-    "dynamic-programming", "intervals", "greedy",
+    "dynamic-programming", "intervals", "greedy", "matrix",
 ]
 
 

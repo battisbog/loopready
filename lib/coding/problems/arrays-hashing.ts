@@ -167,4 +167,51 @@ export const ARRAYS_HASHING: Problem[] = [
     strongAnswerCovers:
       "Sees that only run-starts need expanding, which is what makes it O(n) rather than O(n^2). Sorting is an acceptable first answer but should be improved on.",
   },
+  {
+    id: "next-permutation",
+    pattern: "arrays-hashing",
+    tiers: ["mid"],
+    title: "Next Lexicographic Permutation",
+    fn: "next_permutation",
+    companies: ["Meta", "Microsoft"],
+    statement:
+      "Given a list of numbers representing a permutation, return the next permutation in lexicographic order. If it is already the highest possible, return the lowest (sorted ascending).",
+    example: "[1,2,3] -> [1,3,2]",
+    signatures: {
+      python: "def next_permutation(nums):\n    # your code here\n    pass\n",
+      javascript: "function next_permutation(nums) {\n  // your code here\n}\n",
+    },
+    tests: [
+      { args: [[1, 2, 3]], expected: [1, 3, 2] },
+      { args: [[3, 2, 1]], expected: [1, 2, 3] },
+      { args: [[1, 1, 5]], expected: [1, 5, 1] },
+      { args: [[1]], expected: [1] },
+    ],
+    strongAnswerCovers:
+      "Find the rightmost ascent, swap it with the smallest element to its right that's still bigger than it, then reverse everything after that point. Each of those three steps has a reason; ask them to justify the reverse specifically (the suffix is descending at that point, so reversing it is what makes it the smallest possible arrangement).",
+  },
+  {
+    id: "first-missing-positive",
+    pattern: "arrays-hashing",
+    tiers: ["senior"],
+    title: "First Missing Positive Integer",
+    fn: "first_missing_positive",
+    companies: ["Meta", "Microsoft"],
+    statement:
+      "Given an unsorted array of integers, return the smallest positive integer that does not appear in it. Must run in O(n) time and O(1) extra space.",
+    example: "[3,4,-1,1] -> 2",
+    signatures: {
+      python: "def first_missing_positive(nums):\n    # your code here\n    pass\n",
+      javascript: "function first_missing_positive(nums) {\n  // your code here\n}\n",
+    },
+    tests: [
+      { args: [[1, 2, 0]], expected: 3 },
+      { args: [[3, 4, -1, 1]], expected: 2 },
+      { args: [[7, 8, 9, 11, 12]], expected: 1 },
+      { args: [[]], expected: 1 },
+      { args: [[1]], expected: 2 },
+    ],
+    strongAnswerCovers:
+      "The O(1)-space trick: the answer must be between 1 and n+1, so each value can be placed at its own index (cyclic sort) using the array itself as the hash set. A hash-set solution is O(n) space and a fine warm-up, but the constraint is specifically there to push past it.",
+  },
 ];

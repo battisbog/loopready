@@ -12,7 +12,8 @@ export type Pattern =
   | "graphs"
   | "dynamic-programming"
   | "intervals"
-  | "greedy";
+  | "greedy"
+  | "matrix";
 
 export type Tier = "junior" | "mid" | "senior";
 

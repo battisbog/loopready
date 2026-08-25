@@ -94,4 +94,49 @@ export const BACKTRACKING: Problem[] = [
     strongAnswerCovers:
       "Building only valid strings beats generating all and filtering. The two invariants (open <= n, close < open) are the whole insight.",
   },
+  {
+    id: "letter-combinations-phone",
+    pattern: "backtracking",
+    tiers: ["mid"],
+    title: "Letter Combinations of a Phone Number",
+    fn: "letter_combinations",
+    companies: ["Meta", "Microsoft"],
+    statement:
+      "Given a string of digits 2-9, return every possible letter combination the digits could represent on a phone keypad, in any order.",
+    example: "\"23\" -> [\"ad\",\"ae\",\"af\",\"bd\",\"be\",\"bf\",\"cd\",\"ce\",\"cf\"]",
+    signatures: {
+      python: "def letter_combinations(digits):\n    # your code here\n    pass\n",
+      javascript: "function letter_combinations(digits) {\n  // your code here\n}\n",
+    },
+    tests: [
+      { args: ["23"], expected: ["ad", "ae", "af", "bd", "be", "bf", "cd", "ce", "cf"], unordered: true },
+      { args: [""], expected: [], unordered: true },
+      { args: ["2"], expected: ["a", "b", "c"], unordered: true },
+    ],
+    strongAnswerCovers:
+      "Standard backtracking: one recursive call per digit, branching over that digit's letters. The empty-string edge case (return [], not ['']) is the one people get backwards.",
+  },
+  {
+    id: "word-search",
+    pattern: "backtracking",
+    tiers: ["mid"],
+    title: "Find a Single Word in a Letter Grid",
+    fn: "word_exists",
+    companies: ["Amazon", "Microsoft", "Netflix"],
+    statement:
+      "Given a grid of letters and a single target word, return whether the word can be spelled by walking between horizontally or vertically adjacent cells without reusing a cell.",
+    example: "[[\"A\",\"B\",\"C\",\"E\"],[\"S\",\"F\",\"C\",\"S\"],[\"A\",\"D\",\"E\",\"E\"]], \"ABCCED\" -> true",
+    signatures: {
+      python: "def word_exists(grid, word):\n    # your code here\n    pass\n",
+      javascript: "function word_exists(grid, word) {\n  // your code here\n}\n",
+    },
+    tests: [
+      { args: [[["A", "B", "C", "E"], ["S", "F", "C", "S"], ["A", "D", "E", "E"]], "ABCCED"], expected: true },
+      { args: [[["A", "B", "C", "E"], ["S", "F", "C", "S"], ["A", "D", "E", "E"]], "SEE"], expected: true },
+      { args: [[["A", "B", "C", "E"], ["S", "F", "C", "S"], ["A", "D", "E", "E"]], "ABCB"], expected: false },
+      { args: [[["A"]], "A"], expected: true },
+    ],
+    strongAnswerCovers:
+      "Backtracking DFS with a visited-marker swapped in and restored on the cell itself (rather than a separate visited set) is the space-efficient version. This is the single-word sibling of Word Search II -- ask when a trie-based multi-word search would be worth the setup cost over running this once per word.",
+  },
 ];

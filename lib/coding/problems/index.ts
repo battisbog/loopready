@@ -24,6 +24,7 @@ import { GRAPHS } from "./graphs";
 import { DYNAMIC_PROGRAMMING } from "./dynamic-programming";
 import { INTERVALS } from "./intervals";
 import { GREEDY } from "./greedy";
+import { MATRIX } from "./matrix";
 import type { Pattern, Problem, Tier } from "./types";
 
 export type { Pattern, Problem, Tier, TestCase } from "./types";
@@ -43,6 +44,7 @@ export const PROBLEMS: Problem[] = [
   ...DYNAMIC_PROGRAMMING,
   ...INTERVALS,
   ...GREEDY,
+  ...MATRIX,
 ];
 
 /**

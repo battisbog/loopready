@@ -167,4 +167,27 @@ export const LINKED_LIST: Problem[] = [
     strongAnswerCovers:
       "The canonical answer is a hash map plus a doubly linked list giving O(1) get and put. Ask them why a plain list or array makes eviction O(n), and confirm that a get counts as a use.",
   },
+  {
+    id: "add-two-numbers",
+    pattern: "linked-list",
+    tiers: ["junior"],
+    title: "Add Two Numbers as Linked Lists",
+    fn: "add_two_numbers",
+    companies: ["Microsoft"],
+    statement:
+      "Two non-negative integers are given as lists of digits in reverse order (least significant digit first), one digit per node. Return their sum in the same reverse-digit-order form.",
+    example: "[2,4,3] + [5,6,4] -> [7,0,8]  (342 + 465 = 807)",
+    signatures: {
+      python: "def add_two_numbers(l1, l2):\n    # your code here\n    pass\n",
+      javascript: "function add_two_numbers(l1, l2) {\n  // your code here\n}\n",
+    },
+    tests: [
+      { args: [[2, 4, 3], [5, 6, 4]], expected: [7, 0, 8] },
+      { args: [[0], [0]], expected: [0] },
+      { args: [[9, 9, 9, 9, 9, 9, 9], [9, 9, 9, 9]], expected: [8, 9, 9, 9, 0, 0, 0, 1] },
+      { args: [[5], [5]], expected: [0, 1] },
+    ],
+    strongAnswerCovers:
+      "Simulated grade-school addition, one digit at a time with a carry, stopping only when both lists AND the carry are exhausted -- the carry-after-both-lists-end case (999...+9999) is what a version that stops too early misses.",
+  },
 ];

@@ -170,4 +170,53 @@ export const DYNAMIC_PROGRAMMING: Problem[] = [
     strongAnswerCovers:
       "A genuinely hard two-dimensional DP. Look for a clear table definition and correct base cases before any code. The rolling-array space optimisation is a bonus.",
   },
+  {
+    id: "decode-ways",
+    pattern: "dynamic-programming",
+    tiers: ["mid"],
+    title: "Count Ways to Decode a Digit String",
+    fn: "num_decodings",
+    companies: ["Meta", "Amazon"],
+    statement:
+      "A string of digits was encoded from letters A-Z using 1=A ... 26=Z. Return the number of ways it could have been decoded. A leading zero in any group makes that decoding invalid.",
+    example: "\"226\" -> 3",
+    signatures: {
+      python: "def num_decodings(s):\n    # your code here\n    pass\n",
+      javascript: "function num_decodings(s) {\n  // your code here\n}\n",
+    },
+    tests: [
+      { args: ["12"], expected: 2 },
+      { args: ["226"], expected: 3 },
+      { args: ["06"], expected: 0 },
+      { args: ["0"], expected: 0 },
+      { args: ["10"], expected: 1 },
+      { args: ["27"], expected: 1 },
+    ],
+    strongAnswerCovers:
+      "1-D DP where dp[i] depends on whether the last one or two digits form a valid group. The leading-zero trap ('06' can't be F, only 0-prefixed nothing) is the boundary worth probing, plus a string of all zeros.",
+  },
+  {
+    id: "maximum-product-subarray",
+    pattern: "dynamic-programming",
+    tiers: ["mid"],
+    title: "Maximum Product Subarray",
+    fn: "max_product",
+    companies: ["Amazon"],
+    statement:
+      "Given an array of integers, return the largest product of any contiguous subarray.",
+    example: "[2,3,-2,4] -> 6",
+    signatures: {
+      python: "def max_product(nums):\n    # your code here\n    pass\n",
+      javascript: "function max_product(nums) {\n  // your code here\n}\n",
+    },
+    tests: [
+      { args: [[2, 3, -2, 4]], expected: 6 },
+      { args: [[-2, 0, -1]], expected: 0 },
+      { args: [[-2, 3, -4]], expected: 24 },
+      { args: [[0]], expected: 0 },
+      { args: [[2, -5, -2, -4, 3]], expected: 24 },
+    ],
+    strongAnswerCovers:
+      "The twist over Maximum Subarray: a negative number can turn the smallest running product into the largest, so both a running max AND a running min must be tracked. Losing the running min is the near-universal bug on a first attempt.",
+  },
 ];

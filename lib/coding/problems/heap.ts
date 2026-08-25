@@ -91,7 +91,7 @@ export const HEAP: Problem[] = [
       { args: [[[1, 2], [1, 3]], 2], expected: 1 },
     ],
     strongAnswerCovers:
-      "Binary search on value range is the O(n log(max-min)) answer; a min-heap seeded with the first row, popping and pushing the cell below, is the more common O(k log n) one. Either is fine, but they should name the row/column sortedness as what makes the heap approach only need to look at n candidates at a time instead of all n^2 cells.",
+      "Binary search on value range is the O(n log(max-min)) answer; a min-heap seeded with the first row is the more common O(k log n) one. They should name the row/column sortedness as what lets the heap only ever consider n candidates instead of all n^2 cells.",
   },
   {
     id: "top-k-frequent-words",
@@ -102,29 +102,20 @@ export const HEAP: Problem[] = [
     companies: ["Amazon", "Bloomberg"],
     statement:
       "Given a list of words and a number k, return the k most frequent words, ordered by frequency (highest first). Break ties alphabetically.",
-    example: '["i","love","leetcode","i","love","coding"], k = 2 -> ["i","love"]',
+    example: "[\"i\",\"love\",\"leetcode\",\"i\",\"love\",\"coding\"], k = 2 -> [\"i\",\"love\"]",
     signatures: {
       python: "def top_k_frequent_words(words, k):\n    # your code here\n    pass\n",
       javascript: "function top_k_frequent_words(words, k) {\n  // your code here\n}\n",
     },
     tests: [
       { args: [["i", "love", "leetcode", "i", "love", "coding"], 2], expected: ["i", "love"] },
-      {
-        args: [["the", "day", "is", "sunny", "the", "the", "the", "sunny", "is", "is"], 4],
-        expected: ["the", "is", "sunny", "day"],
-      },
+      { args: [["the", "day", "is", "sunny", "the", "the", "the", "sunny", "is", "is"], 4], expected: ["the", "is", "sunny", "day"] },
       { args: [["a", "b", "a"], 1], expected: ["a"] },
     ],
     strongAnswerCovers:
-      "The tie-break is the part people skip: sorting or heap comparisons must order by (-count, word) together, not count alone, or ties come out in whatever order the language's sort happens to preserve. Bucket sort by frequency avoids a heap entirely and is worth asking about as the O(n) alternative.",
+      "The tie-break is the part people skip: sorting or heap comparisons must order by (-count, word) together, not count alone. Bucket sort by frequency avoids a heap entirely and is worth asking about as the O(n) alternative.",
   },
   {
-    // NOT "Minimum Meeting Rooms" (LeetCode 253): that problem already exists
-    // as id "meeting-rooms" in intervals.ts, under fn min_rooms. This one is
-    // the actual Blind-75 heap gap -- Find Median From a Data Stream --
-    // adapted to the function-call harness by returning the running median
-    // after each number is added, rather than a stateful class with a
-    // separate addNum/findMedian API.
     id: "find-median-stream",
     pattern: "heap",
     tiers: ["senior"],
@@ -146,6 +137,6 @@ export const HEAP: Problem[] = [
       { args: [[6, 10, 2, 6, 5, 0]], expected: [6.0, 8.0, 6.0, 6.0, 6.0, 5.5] },
     ],
     strongAnswerCovers:
-      "Two heaps -- a max-heap for the lower half, a min-heap for the upper half, rebalanced after every insert so their sizes never differ by more than one -- is the expected shape. The median is then either the top of the larger half, or the average of both tops when they're equal in size. Sorting on every insert (O(n log n) each) is the naive answer worth naming and rejecting before getting to the O(log n)-per-insert one.",
+      "Two heaps -- a max-heap for the lower half, a min-heap for the upper half, rebalanced after every insert -- is the expected shape. The median is the top of the larger half, or the average of both tops when equal in size. Sorting on every insert is the naive answer worth naming and rejecting first.",
   },
 ];
