@@ -119,26 +119,33 @@ export const HEAP: Problem[] = [
       "The tie-break is the part people skip: sorting or heap comparisons must order by (-count, word) together, not count alone, or ties come out in whatever order the language's sort happens to preserve. Bucket sort by frequency avoids a heap entirely and is worth asking about as the O(n) alternative.",
   },
   {
-    id: "meeting-rooms-ii",
+    // NOT "Minimum Meeting Rooms" (LeetCode 253): that problem already exists
+    // as id "meeting-rooms" in intervals.ts, under fn min_rooms. This one is
+    // the actual Blind-75 heap gap -- Find Median From a Data Stream --
+    // adapted to the function-call harness by returning the running median
+    // after each number is added, rather than a stateful class with a
+    // separate addNum/findMedian API.
+    id: "find-median-stream",
     pattern: "heap",
-    tiers: ["mid"],
-    title: "Minimum Meeting Rooms",
-    fn: "min_meeting_rooms",
-    companies: ["Google", "Meta", "Amazon"],
+    tiers: ["senior"],
+    title: "Running Median of a Number Stream",
+    fn: "find_medians",
+    companies: ["Amazon", "Google", "Meta"],
     statement:
-      "Given a list of [start, end] meeting intervals, return the minimum number of rooms required so that no two meetings needing the same room overlap.",
-    example: "[[0,30],[5,10],[15,20]] -> 2",
+      "Numbers arrive one at a time. After each one is added, return the median of every number seen so far. Return the list of running medians, in the order the numbers arrived.",
+    example: "[5, 15, 1] -> [5.0, 10.0, 5.0]",
     signatures: {
-      python: "def min_meeting_rooms(intervals):\n    # your code here\n    pass\n",
-      javascript: "function min_meeting_rooms(intervals) {\n  // your code here\n}\n",
+      python: "def find_medians(nums):\n    # your code here\n    pass\n",
+      javascript: "function find_medians(nums) {\n  // your code here\n}\n",
     },
     tests: [
-      { args: [[[0, 30], [5, 10], [15, 20]]], expected: 2 },
-      { args: [[[7, 10], [2, 4]]], expected: 1 },
-      { args: [[]], expected: 0 },
-      { args: [[[1, 5], [1, 5], [1, 5]]], expected: 3 },
+      { args: [[5]], expected: [5.0] },
+      { args: [[5, 15]], expected: [5.0, 10.0] },
+      { args: [[1, 2, 3]], expected: [1.0, 1.5, 2.0] },
+      { args: [[]], expected: [] },
+      { args: [[6, 10, 2, 6, 5, 0]], expected: [6.0, 8.0, 6.0, 6.0, 6.0, 5.5] },
     ],
     strongAnswerCovers:
-      "Sorting start times and end times separately and sweeping both with two pointers is the clean answer; a min-heap of active end times is the more commonly cited one and works the same way. The touching case [[7,10],[2,4]] not needing a second room (10 does not overlap a meeting starting at, say, 10) is the boundary worth probing.",
+      "Two heaps -- a max-heap for the lower half, a min-heap for the upper half, rebalanced after every insert so their sizes never differ by more than one -- is the expected shape. The median is then either the top of the larger half, or the average of both tops when they're equal in size. Sorting on every insert (O(n log n) each) is the naive answer worth naming and rejecting before getting to the O(log n)-per-insert one.",
   },
 ];
