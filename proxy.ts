@@ -128,6 +128,12 @@ export default async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    // _vercel is Vercel's own infra path (Analytics beacons, Speed Insights).
+    // Without this exclusion those requests ran through the auth check like
+    // any other route, so a logged-out visitor's page-view beacon -- which is
+    // most traffic, since it fires from the marketing pages -- got redirected
+    // to /login instead of recorded. Silent: analytics just under-counts, with
+    // nothing to signal why.
+    "/((?!_next/static|_next/image|_vercel|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import { getSiteUrl } from "@/lib/site-url";
 import "./globals.css";
 
@@ -51,6 +52,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="min-h-full flex flex-col bg-base text-primary">
         {children}
+        {/* Renders nothing visible; tracks page views for every route from
+            this one place rather than needing to be added per-page. */}
+        <Analytics />
       </body>
     </html>
   );
