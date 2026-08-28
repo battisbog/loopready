@@ -143,21 +143,41 @@ function callToAction(
 export default function Pricing({
   signedIn = false,
   currentTier,
+  compact = false,
 }: {
   signedIn?: boolean;
   /** The viewer's tier, so their existing plan is marked as theirs. */
   currentTier?: string;
+  /** Reduces top padding to pt-16, matching the hero's own spacing under the
+   *  nav. The homepage embeds this section mid-scroll after a hero, where
+   *  the full py-24 rhythm matches every other section; the standalone
+   *  /pricing route has nothing above this but the nav, where that same
+   *  padding reads as a dead zone rather than a section boundary. */
+  compact?: boolean;
 } = {}) {
   return (
     <section id="pricing" className="border-t border-line">
-      <div className="mx-auto w-full max-w-6xl px-6 py-24">
+      <div
+        className={cn(
+          "mx-auto w-full max-w-6xl px-6 pb-24",
+          compact ? "pt-16" : "pt-24"
+        )}
+      >
         <div className="max-w-3xl">
           <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
             Pricing
           </h2>
+          {/* Forced break at the sentence boundary rather than letting the
+              browser wrap on whatever word happens to hit the container edge
+              -- two full sentences at this width were wrapping mid-second-
+              sentence ("...cheapest part of the" / "process." alone on its
+              own line), which reads worse than a deliberate break at the
+              actual clause boundary. Matches the hero H1's own <br/> pattern
+              for the same reason. */}
           <p className="mt-5 text-lg leading-relaxed text-secondary">
-            One failed loop costs you a year of compounding. Practice is the
-            cheapest part of the process.
+            One failed loop costs you a year of compounding.
+            <br className="hidden sm:block" /> Practice is the cheapest part
+            of the process.
           </p>
         </div>
 
