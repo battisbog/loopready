@@ -13,6 +13,8 @@ import SessionMockup from "./(marketing)/session-mockup";
 import DashboardMockup from "./(marketing)/dashboard-mockup";
 import { Reveal } from "./(marketing)/reveal";
 import ScrollCue from "./(marketing)/scroll-cue";
+import HowItWorks from "./(marketing)/how-it-works";
+import RoundsShowcase from "./(marketing)/rounds-showcase";
 
 const COMPANIES = ["amazon", "google", "meta", "microsoft", "apple", "netflix"];
 
@@ -192,38 +194,7 @@ export default async function Landing() {
             </p>
           </div>
 
-          <div className="mt-12 grid gap-5 md:grid-cols-3">
-            <RoundCard
-              status="live"
-              title="Coding"
-              body="A live editor the interviewer reads as you type, running your code against real test cases, with the same questions about approach and complexity you get on the day."
-              points={[
-                "Python and JavaScript",
-                "Real execution against tests",
-                "Probes approach before code",
-              ]}
-            />
-            <RoundCard
-              status="live"
-              title="System design"
-              body="An architecture canvas the interviewer can see and push back on, referencing your components by name and challenging hand-waving about scale."
-              points={[
-                "Drag-and-drop components",
-                "Interviewer reads your diagram",
-                "Pushes on bottlenecks and trade-offs",
-              ]}
-            />
-            <RoundCard
-              status="live"
-              title="Behavioral"
-              body="Three questions across different competencies, each with real follow-up probing. Answered by voice, graded against your target company's values."
-              points={[
-                "Voice in, voice out",
-                "Up to two probes per question",
-                "18-question bank across 6 competencies",
-              ]}
-            />
-          </div>
+          <RoundsShowcase />
         </div>
       </section>
 
@@ -232,23 +203,7 @@ export default async function Landing() {
         <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
           How it works
         </h2>
-        <div className="mt-12 grid gap-10 md:grid-cols-3">
-          <Step
-            n="01"
-            title="Pick your target"
-            body="Choose the company and the level you're actually interviewing for: Amazon SDE II, Google L5, Meta E4. The interview is built from that."
-          />
-          <Step
-            n="02"
-            title="Talk it through"
-            body="Tap the mic and answer out loud, the way you will on the day. The interviewer listens, follows up, and pushes back when you're vague."
-          />
-          <Step
-            n="03"
-            title="Read the hard truth"
-            body="Get a structured debrief in under a minute: hire / borderline / no-hire, per-answer breakdown, your top issues, and stronger rewrites."
-          />
-        </div>
+        <HowItWorks />
       </section>
 
       {/* ---------- Calibration ---------- */}
@@ -569,65 +524,6 @@ function Card({ title, body }: { title: string; body: string }) {
   );
 }
 
-function RoundCard({
-  status,
-  title,
-  body,
-  points,
-}: {
-  status: "live" | "soon";
-  title: string;
-  body: string;
-  points: string[];
-}) {
-  return (
-    <div
-      className={`rounded-lg border p-5 ${
-        status === "live"
-          ? "border-accent-border bg-accent-muted"
-          : "border-line bg-surface"
-      }`}
-    >
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-primary">{title}</h3>
-        <span
-          className={`rounded-full px-2.5 py-1 text-xs font-medium ${
-            status === "live"
-              ? "bg-accent-muted text-accent"
-              : "bg-elevated text-secondary"
-          }`}
-        >
-          {status === "live" ? "Live" : "In development"}
-        </span>
-      </div>
-      <p className="mt-3 text-sm leading-relaxed text-secondary">{body}</p>
-      <ul className="mt-5 space-y-2">
-        {points.map((p) => (
-          <li key={p} className="flex items-start gap-2 text-sm text-secondary">
-            <span
-              className={
-                status === "live" ? "mt-0.5 text-accent" : "mt-0.5 text-muted"
-              }
-            >
-              ✓
-            </span>
-            {p}
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
-function Step({ n, title, body }: { n: string; title: string; body: string }) {
-  return (
-    <div>
-      <span className="font-mono text-sm text-accent">{n}</span>
-      <h3 className="mt-3 text-lg font-semibold text-primary">{title}</h3>
-      <p className="mt-2 text-sm leading-relaxed text-secondary">{body}</p>
-    </div>
-  );
-}
 
 function Row({
   label,
