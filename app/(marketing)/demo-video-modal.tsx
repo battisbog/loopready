@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import { Button } from "@/components/ui";
 
 /**
- * "Watch it in action" trigger + lightbox.
+ * "Watch demo" trigger + lightbox.
  *
  * The <video> tag only exists in the DOM once `open` is true, so the browser
  * never requests demo.mp4 on page load -- clicking the trigger is what lazy-
@@ -14,7 +14,7 @@ import { Button } from "@/components/ui";
  */
 export default function DemoVideoModal({
   ctaHref,
-  ctaLabel = "Start free",
+  ctaLabel = "Start for free",
 }: {
   ctaHref: string;
   /** Matches whatever the page's own primary CTA says (e.g. "Go to
@@ -32,7 +32,22 @@ export default function DemoVideoModal({
         size="lg"
         onClick={() => setOpen(true)}
       >
-        Watch it in action
+        Watch demo
+        {/* Inline rather than from an icon package: this codebase has no icon
+            set (the close X and the play triangle below are inline too), and
+            one arrow is not worth a dependency. Button's BASE already applies
+            `inline-flex items-center gap-2`, so the icon centres against the
+            label without any alignment classes here. aria-hidden because the
+            label already carries the meaning. */}
+        <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" aria-hidden>
+          <path
+            d="M5 12h14M13 6l6 6-6 6"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
       </Button>
       {open && (
         <Lightbox
@@ -126,7 +141,7 @@ function Lightbox({
           )}
         </div>
 
-        {/* One action only: whatever "Start free" / "Go to dashboard" means
+        {/* One action only: whatever "Start for free" / "Go to dashboard" means
             on this page for this visitor. Generous padding on every side and
             real vertical rhythm between the label and the button, rather than
             the video, text, and button all sharing one tight row against the

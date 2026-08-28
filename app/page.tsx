@@ -45,7 +45,7 @@ export default async function Landing() {
   // "Start free" is meaningless to someone who already has an account, so the
   // primary CTA becomes the way back into the app for them.
   const ctaHref = signedIn ? "/dashboard" : "/pricing";
-  const ctaLabel = signedIn ? "Go to dashboard" : "Start free";
+  const ctaLabel = signedIn ? "Go to dashboard" : "Start for free";
 
   return (
     <div className="flex min-h-screen flex-col">
