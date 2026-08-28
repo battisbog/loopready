@@ -23,6 +23,12 @@
  *   idle_end_behavior         wait | end_conversation
  *   perception_model          raven-0 | raven-1 | raven-2 | off
  *   emotion_recognition       auto | full | limited
+ *   turn_detection_model      sparrow-1 | sparrow-2
+ *     (sparrow-2 becomes the account default 2026-09-04 per Tavus docs;
+ *     opted in early here. It reads the full audio stream itself rather than
+ *     via voice_isolation, so voice_isolation below is inert under sparrow-2
+ *     -- left set to "near" only so sparrow-1 keeps working if we ever roll
+ *     this back.)
  */
 import { readFileSync } from "node:fs";
 
@@ -68,6 +74,15 @@ const PERCEPTION = (process.env.TAVUS_PERCEPTION_MODEL ?? "off") as string;
  *        tavus-gemini-3-flash, tavus-claude-haiku-4.5
  */
 const LLM_MODEL = process.env.TAVUS_LLM_MODEL ?? "tavus-claude-haiku-4.5";
+/**
+ * Sparrow-2, GA. Targets the two turn-taking bugs we've hit directly: it
+ * "understands" noise (breaths, small sounds) from the raw stream instead of
+ * relying on voice_isolation to clean it up first, and it tolerates a 6-8s
+ * thinking pause instead of sparrow-1's 1-2s -- which is the exact window a
+ * candidate goes quiet for mid-answer. Also reported ~4x faster at inference.
+ * Override with TAVUS_TURN_DETECTION_MODEL=sparrow-1 to roll back.
+ */
+const TURN_DETECTION_MODEL = process.env.TAVUS_TURN_DETECTION_MODEL ?? "sparrow-2";
 
 /**
  * The persona is a BASELINE only. Every session overwrites
@@ -175,7 +190,7 @@ const TARGET = {
   default_replica_id: REPLICA_ID,
   layers: {
     conversational_flow: {
-      turn_detection_model: "sparrow-1",
+      turn_detection_model: TURN_DETECTION_MODEL,
       turn_taking_patience: PATIENCE,
       replica_interruptibility: INTERRUPTIBILITY,
       voice_isolation: "near",
@@ -192,6 +207,7 @@ const TARGET = {
 async function main() {
   console.log(`\npersona: ${PERSONA_ID || "(none — use --create)"}`);
   console.log(`replica: ${REPLICA_ID}`);
+  console.log(`turn_detection_model=${TURN_DETECTION_MODEL}`);
   console.log(`turn_taking_patience=${PATIENCE}  interruptibility=${INTERRUPTIBILITY}`);
   console.log(`perception=${PERCEPTION}  llm=${LLM_MODEL}\n`);
 
@@ -214,6 +230,7 @@ async function main() {
   const llm = ((current.json.layers as Record<string, Record<string, unknown>>)?.llm) ?? {};
 
   const diffs: [string, unknown, unknown][] = [
+    ["turn_detection_model", cf.turn_detection_model, TURN_DETECTION_MODEL],
     ["turn_taking_patience", cf.turn_taking_patience, PATIENCE],
     ["replica_interruptibility", cf.replica_interruptibility, INTERRUPTIBILITY],
     ["idle_engagement", cf.idle_engagement, "off"],
@@ -238,6 +255,7 @@ async function main() {
   const ops: { op: string; path: string; value: unknown }[] = [
     { op: "replace", path: "/system_prompt", value: SYSTEM_PROMPT },
     { op: "replace", path: "/greeting", value: "" },
+    { op: "replace", path: "/layers/conversational_flow/turn_detection_model", value: TURN_DETECTION_MODEL },
     { op: "replace", path: "/layers/conversational_flow/turn_taking_patience", value: PATIENCE },
     { op: "replace", path: "/layers/conversational_flow/replica_interruptibility", value: INTERRUPTIBILITY },
     { op: "replace", path: "/layers/conversational_flow/idle_engagement", value: "off" },
@@ -253,7 +271,21 @@ async function main() {
   if (objectivesId) ops.push({ op: "replace", path: "/objectives_id", value: objectivesId });
   if (guardrailsId) ops.push({ op: "replace", path: "/guardrails_id", value: guardrailsId });
 
-  const patched = await api(`/v2/personas/${PERSONA_ID}`, { method: "PATCH", body: JSON.stringify(ops) });
+  let patched = await api(`/v2/personas/${PERSONA_ID}`, { method: "PATCH", body: JSON.stringify(ops) });
+  // Tavus refuses a normal PATCH when the persona has unpublished edits made
+  // through their dashboard's visual editor ("PAL Maker"), since writing would
+  // silently discard them. --force is a deliberate second flag, not implied by
+  // --apply, so overwriting a draft someone made by hand in the dashboard is
+  // always an explicit choice, not a side effect of running this script.
+  if (!patched.ok && patched.json?.conflict === "maker_changes") {
+    if (!process.argv.includes("--force")) {
+      console.log(`\n  patch: HTTP ${patched.status} ${patched.text.slice(0, 250)}`);
+      console.log("  This persona has unpublished PAL Maker edits. Re-run with --apply --force to overwrite them.\n");
+      return;
+    }
+    console.log("  PAL Maker conflict — retrying with force=true (discards the dashboard draft)");
+    patched = await api(`/v2/personas/${PERSONA_ID}?force=true`, { method: "PATCH", body: JSON.stringify(ops) });
+  }
   console.log(`\n  patch: HTTP ${patched.status}${patched.ok ? "" : " " + patched.text.slice(0, 250)}`);
   if (!patched.ok) return;
 
@@ -265,6 +297,7 @@ async function main() {
   const acf = ((after.json.layers as Record<string, Record<string, unknown>>)?.conversational_flow) ?? {};
   const apc = ((after.json.layers as Record<string, Record<string, unknown>>)?.perception) ?? {};
   console.log("\n  verified live:");
+  console.log(`    turn_detection_model     ${acf.turn_detection_model}`);
   console.log(`    turn_taking_patience     ${acf.turn_taking_patience}`);
   console.log(`    replica_interruptibility ${acf.replica_interruptibility}`);
   console.log(`    idle_engagement          ${acf.idle_engagement}`);
