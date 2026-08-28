@@ -1,7 +1,8 @@
-import Link from "next/link";
 import { Button } from "@/components/ui";
 import { PREMIUM_VIDEO_ALLOWANCE } from "@/lib/tiers";
 import { PRICING } from "@/lib/pricing";
+import { Reveal } from "./reveal";
+import { cn } from "@/lib/cn";
 
 interface Tier {
   id: string;
@@ -136,82 +137,94 @@ export default function Pricing({
           </p>
         </div>
 
-        {/* Tier cards */}
+        {/* Tier cards. Featured (Voice) gets real elevation -- a taller card
+            via negative margin rather than scale, so its top and bottom
+            edges don't fall out of alignment with its neighbours -- plus an
+            accent glow, instead of just a tinted background doing all the
+            work of saying "pick this one". */}
+        {/* Default grid stretch (no items-start) is deliberate: it keeps
+            Free and Premium the same height as each other. The featured
+            card's negative margin then pokes it taller than that shared
+            row height on both edges, rather than fighting the stretch. */}
         <div className="mt-12 grid gap-6 lg:grid-cols-3">
-          {TIERS.map((tier) => (
-            <div
-              key={tier.id}
-              className={`relative flex flex-col rounded-lg border p-5 ${
-                tier.featured
-                  ? "border-accent-border bg-accent-muted"
-                  : "border-line bg-surface"
-              }`}
-            >
-              {tier.featured && (
-                <span className="absolute -top-3 left-7 rounded-full bg-accent px-3 py-1 text-xs font-semibold text-accent-fg">
-                  Most popular
-                </span>
-              )}
-
-              <h3 className="text-lg font-semibold text-primary">
-                {tier.name}
-              </h3>
-              <p className="mt-1 min-h-10 text-sm leading-relaxed text-secondary">
-                {tier.tagline}
-              </p>
-
-              <p className="mt-6 flex items-baseline gap-1">
-                <span className="text-4xl font-semibold text-primary">
-                  {tier.price}
-                </span>
-                {tier.cadence && (
-                  <span className="text-sm text-muted">{tier.cadence}</span>
+          {TIERS.map((tier, i) => (
+            <Reveal key={tier.id} delay={i * 0.08} className="h-full">
+              <div
+                className={cn(
+                  "relative flex h-full flex-col rounded-lg border p-6 transition-transform duration-200",
+                  tier.featured
+                    ? "border-accent-border bg-accent-muted shadow-[var(--shadow-accent)] lg:-my-3 lg:py-9"
+                    : "border-line bg-surface hover:border-line-strong",
+                  !tier.featured && "hover:-translate-y-0.5"
                 )}
-              </p>
+              >
+                {tier.featured && (
+                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-accent px-3 py-1 text-xs font-semibold whitespace-nowrap text-accent-fg">
+                    Most popular
+                  </span>
+                )}
 
-              {(() => {
-                const action = callToAction(tier, signedIn, currentTier);
-                return (
-                  <Button
-                    href={action.href}
-                    variant={
-                      action.current
-                        ? "secondary"
-                        : tier.featured
-                          ? "primary"
-                          : "secondary"
-                    }
-                    className="mt-6 w-full"
-                  >
-                    {action.cta}
-                  </Button>
-                );
-              })()}
-
-              <ul className="mt-7 space-y-3">
-                {tier.features.map((f) => (
-                  <li
-                    key={f.label}
-                    className="flex items-start gap-2.5 text-sm text-secondary"
-                  >
-                    <span
-                      className={`mt-0.5 shrink-0 ${
-                        "text-accent"
-                      }`}
-                    >
-                      ✓
-                    </span>
-                    <span>{f.label}</span>
-                  </li>
-                ))}
-              </ul>
-
-              {tier.note && (
-                <p className="mt-6 border-t border-line pt-4 text-xs leading-relaxed text-muted">
-                  {tier.note}
+                <h3 className="text-lg font-semibold text-primary">
+                  {tier.name}
+                </h3>
+                <p className="mt-1 min-h-10 text-sm leading-relaxed text-secondary">
+                  {tier.tagline}
                 </p>
-              )}
-            </div>
+
+                {/* Static, deliberately: a spring-physics count-up passes
+                    through several wrong intermediate values before settling
+                    (confirmed in a real browser -- still reading "$18" and
+                    "$67" a full 1.5s after scrolling into view, not landing
+                    on "$19"/"$69" for several seconds more). That's fine for
+                    illustrative stats elsewhere on the page; it is not
+                    acceptable for the actual number someone is about to pay. */}
+                <p className="mt-6 flex items-baseline gap-1">
+                  <span className="text-4xl font-semibold text-primary">
+                    {tier.price}
+                  </span>
+                  {tier.cadence && (
+                    <span className="text-sm text-muted">{tier.cadence}</span>
+                  )}
+                </p>
+
+                {(() => {
+                  const action = callToAction(tier, signedIn, currentTier);
+                  return (
+                    <Button
+                      href={action.href}
+                      variant={
+                        action.current
+                          ? "secondary"
+                          : tier.featured
+                            ? "primary"
+                            : "secondary"
+                      }
+                      className="mt-6 w-full"
+                    >
+                      {action.cta}
+                    </Button>
+                  );
+                })()}
+
+                <ul className="mt-7 space-y-3">
+                  {tier.features.map((f) => (
+                    <li
+                      key={f.label}
+                      className="flex items-start gap-2.5 text-sm text-secondary"
+                    >
+                      <CheckIcon accent={tier.featured} />
+                      <span>{f.label}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                {tier.note && (
+                  <p className="mt-6 border-t border-line pt-4 text-xs leading-relaxed text-muted">
+                    {tier.note}
+                  </p>
+                )}
+              </div>
+            </Reveal>
           ))}
         </div>
 
@@ -286,6 +299,29 @@ export default function Pricing({
         </a>
       </p>
     </section>
+  );
+}
+
+/** SVG rather than the "✓" character used elsewhere on the page: the glyph
+ *  renders at a different weight and baseline across platforms, which is
+ *  fine for a one-off checkmark but visible as inconsistency across six
+ *  stacked list rows in the highest-intent section of the page. */
+function CheckIcon({ accent }: { accent?: boolean }) {
+  return (
+    <svg
+      viewBox="0 0 20 20"
+      className={cn("mt-0.5 h-4 w-4 shrink-0", accent ? "text-accent" : "text-secondary")}
+      fill="none"
+      aria-hidden
+    >
+      <path
+        d="M4 10.5l3.5 3.5L16 5.5"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }
 
