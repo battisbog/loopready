@@ -58,123 +58,239 @@ export default function RoundsShowcase() {
   const round = ROUNDS.find((r) => r.key === active)!;
 
   return (
-    <div className="mt-12 grid items-start gap-8 lg:grid-cols-[minmax(0,0.7fr)_minmax(0,1.3fr)] lg:gap-10">
-      {/* ---- Tab list ---- */}
-      <div className="flex gap-2 overflow-x-auto lg:flex-col lg:gap-3">
-        {ROUNDS.map((r) => {
-          const isActive = r.key === active;
-          return (
-            <button
-              key={r.key}
-              type="button"
-              onClick={() => setActive(r.key)}
-              aria-pressed={isActive}
-              className={cn(
-                "shrink-0 rounded-lg border px-4 py-3.5 text-left transition-colors lg:shrink",
-                isActive
-                  ? "border-accent-border bg-accent-muted"
-                  : "border-line bg-surface hover:border-line-strong hover:bg-elevated"
-              )}
-            >
-              <div className="flex items-center gap-2">
-                <span
-                  className={cn(
-                    "text-sm font-semibold",
-                    isActive ? "text-accent" : "text-primary"
-                  )}
-                >
-                  {r.title}
-                </span>
-                <Badge tone={isActive ? "accent" : "neutral"} className="ml-auto lg:hidden">
-                  Live
-                </Badge>
-              </div>
-              <p className="mt-1.5 hidden max-w-sm text-sm leading-relaxed text-secondary lg:block">
-                {r.body}
-              </p>
-              {isActive && (
-                <ul className="mt-3 hidden space-y-1.5 lg:block">
-                  {r.points.map((p) => (
-                    <li
-                      key={p}
-                      className="flex items-start gap-2 text-xs text-secondary"
-                    >
-                      <span className="mt-0.5 text-accent">✓</span>
-                      {p}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </button>
-          );
-        })}
-      </div>
+    // relative + the two absolutely-positioned blurred blobs below give the
+    // whole showcase ambient depth instead of floating flat against the page
+    // background -- kept inside THIS wrapper (not the overflow-hidden preview
+    // card) specifically so the blur is free to bleed past the card's own
+    // edges rather than being clipped by it.
+    <div className="relative mt-12">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -top-16 right-0 h-72 w-72 rounded-full bg-accent-muted blur-[100px]"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -bottom-16 left-1/4 h-56 w-56 rounded-full bg-accent-muted blur-[100px] opacity-60"
+      />
 
-      {/* ---- Live preview ---- */}
-      <div className="overflow-hidden rounded-lg border border-line bg-base shadow-xl shadow-[var(--shadow-md)]">
-        <BrowserChrome url={`loopready.io/session · ${round.title.toLowerCase().replace(" ", "-")}`} />
-        <div className="relative min-h-[22rem]">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={active}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-              className="absolute inset-0"
-            >
-              {active === "coding" && <CodingPreview />}
-              {active === "system_design" && <SystemDesignPreview />}
-              {active === "behavioral" && <BehavioralPreview />}
-            </motion.div>
-          </AnimatePresence>
+      <div className="relative grid items-start gap-8 lg:grid-cols-[minmax(0,0.7fr)_minmax(0,1.3fr)] lg:gap-10">
+        {/* ---- Tab list ---- */}
+        <div className="flex gap-2 overflow-x-auto lg:flex-col lg:gap-3">
+          {ROUNDS.map((r) => {
+            const isActive = r.key === active;
+            return (
+              <button
+                key={r.key}
+                type="button"
+                onClick={() => setActive(r.key)}
+                aria-pressed={isActive}
+                className={cn(
+                  "shrink-0 rounded-lg border px-4 py-3.5 text-left transition-all duration-200 lg:shrink",
+                  isActive
+                    ? // Ring + glow rather than a plain border: a wider soft
+                      // halo (the second shadow layer) behind a crisp 1px
+                      // edge (the first), so the active tab reads as lit
+                      // from within instead of just "a different colour".
+                      // Sized to read at normal zoom, not just in a close
+                      // crop -- a first pass here was too subtle to notice
+                      // at the scale this actually ships at.
+                      "border-accent-border bg-accent-muted shadow-[0_0_0_1px_var(--accent-border),0_0_40px_-2px_rgb(16_185_129/0.6)]"
+                    : "border-line bg-surface hover:border-line-strong hover:bg-elevated"
+                )}
+              >
+                <div className="flex items-center gap-2">
+                  <span
+                    className={cn(
+                      "text-sm font-semibold",
+                      isActive ? "text-accent" : "text-primary"
+                    )}
+                  >
+                    {r.title}
+                  </span>
+                  <Badge tone={isActive ? "accent" : "neutral"} className="ml-auto lg:hidden">
+                    Live
+                  </Badge>
+                </div>
+                <p className="mt-1.5 hidden max-w-sm text-sm leading-relaxed text-secondary lg:block">
+                  {r.body}
+                </p>
+                {isActive && (
+                  <ul className="mt-3 hidden space-y-1.5 lg:block">
+                    {r.points.map((p) => (
+                      <li
+                        key={p}
+                        className="flex items-start gap-2 text-xs text-secondary"
+                      >
+                        <span className="mt-0.5 text-accent">✓</span>
+                        {p}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* ---- Live preview ---- */}
+        <div className="overflow-hidden rounded-lg border border-line bg-base shadow-xl shadow-[var(--shadow-md)]">
+          <BrowserChrome url={`loopready.io/session · ${round.title.toLowerCase().replace(" ", "-")}`} />
+          <div className="relative min-h-[24rem]">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={active}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+                className="absolute inset-0"
+              >
+                {active === "coding" && <CodingPreview />}
+                {active === "system_design" && <SystemDesignPreview />}
+                {active === "behavioral" && <BehavioralPreview />}
+              </motion.div>
+            </AnimatePresence>
+          </div>
         </div>
       </div>
     </div>
   );
 }
 
-/** Condensed editor + console. Deliberately smaller than the hero's session
- *  mockup and a different problem, so this reads as "another example", not a
- *  repeat of what the visitor already scrolled past. */
+/** Condensed editor + console, now with two more panels flanking it: a
+ *  compact interviewer column on the left (who's asking) and a Signal rail
+ *  on the right (what the interviewer is quietly keeping score of). Three
+ *  columns rather than one, because the product's whole pitch is that
+ *  something is watching and judging while you work -- a single code panel
+ *  cannot show that, no matter how well it renders Python. */
 function CodingPreview() {
   return (
-    <div className="flex h-full flex-col">
-      <div className="flex items-center gap-2 border-b border-line px-4 py-2 text-[11px]">
-        <span className="rounded-sm bg-elevated px-2 py-0.5 font-mono text-secondary">
-          solution.py
+    <div className="grid h-full md:grid-cols-[minmax(0,0.62fr)_minmax(0,1.18fr)_minmax(0,0.62fr)]">
+      <MiniInterviewer question="Walk me through your approach before you write anything." />
+
+      <div className="flex flex-col border-b border-line md:border-b-0 md:border-r">
+        <div className="flex items-center gap-2 border-b border-line px-4 py-2 text-[11px]">
+          <span className="rounded-sm bg-elevated px-2 py-0.5 font-mono text-secondary">
+            solution.py
+          </span>
+          <span className="text-muted">Valid Parentheses</span>
+        </div>
+        <pre className="flex-1 overflow-x-auto bg-inset px-4 py-3 font-mono text-xs leading-relaxed">
+          <code className="text-primary">
+            <span className="text-muted">1 </span>
+            <span className="text-accent-cool">def</span>{" "}
+            <span className="text-accent">is_valid</span>(s):{"\n"}
+            <span className="text-muted">2 </span>
+            {"    "}stack = []{"\n"}
+            <span className="text-muted">3 </span>
+            {"    "}
+            <span className="text-accent-cool">for</span> c <span className="text-accent-cool">in</span> s:{"\n"}
+            <span className="text-muted">4 </span>
+            {"        "}
+            <span className="text-accent-cool">if</span> c <span className="text-accent-cool">in</span> <span className="text-accent">&quot;([{"{"}&quot;</span>:{"\n"}
+            <span className="text-muted">5 </span>
+            {"            "}stack.append(c)
+          </code>
+        </pre>
+        <div className="space-y-1 border-t border-line px-4 py-3 font-mono text-[11px]">
+          <p className="text-secondary">
+            <span className="text-success">✓</span> is_valid(&quot;()[]{"{}"}&quot;) → True
+          </p>
+          <p className="text-secondary">
+            <span className="text-error">✕</span> is_valid(&quot;(]&quot;) → expected False, got True
+          </p>
+        </div>
+      </div>
+
+      <SignalRail
+        tracking={["Time complexity", "Edge cases", "Approach clarity"]}
+        status="Watching your last edit"
+        flag="Missed edge case — empty input string"
+      />
+    </div>
+  );
+}
+
+/**
+ * Compact stand-in for the interviewer, sized for a THIRD of a panel rather
+ * than the hero's full column. A static "LR" badge would read as decoration;
+ * the pulsing ring plus the question underneath is what makes this column
+ * earn its place instead of just being a smaller logo.
+ */
+function MiniInterviewer({ question }: { question: string }) {
+  return (
+    <div className="flex h-full flex-col gap-3 border-b border-line bg-base p-4 md:border-b-0 md:border-r">
+      <div className="flex items-center gap-2">
+        <span className="relative flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-accent-border bg-accent-muted">
+          <span className="ring-pulse absolute inset-0 rounded-full border border-accent-border" />
+          <span className="text-[10px] font-semibold text-accent">LR</span>
         </span>
-        <span className="text-muted">Valid Parentheses</span>
+        <span className="text-xs font-medium text-primary">Interviewer</span>
       </div>
-      <pre className="flex-1 overflow-x-auto bg-inset px-4 py-3 font-mono text-xs leading-relaxed">
-        <code className="text-primary">
-          <span className="text-muted">1 </span>
-          <span className="text-accent-cool">def</span>{" "}
-          <span className="text-accent">is_valid</span>(s):{"\n"}
-          <span className="text-muted">2 </span>
-          {"    "}stack = []{"\n"}
-          <span className="text-muted">3 </span>
-          {"    "}
-          <span className="text-accent-cool">for</span> c <span className="text-accent-cool">in</span> s:{"\n"}
-          <span className="text-muted">4 </span>
-          {"        "}
-          <span className="text-accent-cool">if</span> c <span className="text-accent-cool">in</span> <span className="text-accent">&quot;([{"{"}&quot;</span>:{"\n"}
-          <span className="text-muted">5 </span>
-          {"            "}stack.append(c)
-        </code>
-      </pre>
-      <div className="space-y-1 border-t border-line px-4 py-3 font-mono text-[11px]">
-        <p className="text-secondary">
-          <span className="text-success">✓</span> is_valid(&quot;()[]{"{}"}&quot;) → True
+      <p className="text-xs leading-relaxed text-secondary">{question}</p>
+
+      {/* Anchors this column to the same bottom edge Signal's status line
+          anchors to, so the two flanking columns read as a matched pair
+          instead of the interviewer side trailing off into empty space. */}
+      <p className="mt-auto text-[10px] text-muted">
+        Live · calibrated to Amazon SDE II
+      </p>
+    </div>
+  );
+}
+
+/**
+ * The "product is actively judging you" panel. Concrete and specific rather
+ * than a generic "AI is analysing" spinner: it names exactly what it is
+ * tracking, and shows one real flagged moment rather than a vague sentiment
+ * ("looking good!") that could belong to any product.
+ */
+function SignalRail({
+  tracking,
+  status,
+  flag,
+}: {
+  tracking: string[];
+  status: string;
+  flag: string;
+}) {
+  return (
+    <div className="flex flex-col gap-4 bg-base p-4">
+      <div className="flex items-center gap-2">
+        <span className="relative flex h-1.5 w-1.5">
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-75" />
+          <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-accent" />
+        </span>
+        <span className="text-[11px] font-medium uppercase tracking-wide text-muted">
+          Signal
+        </span>
+      </div>
+
+      <div>
+        <p className="text-[10px] uppercase tracking-wide text-muted">Tracking</p>
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          {tracking.map((t) => (
+            <span
+              key={t}
+              className="rounded-full border border-line-strong px-2 py-0.5 text-[10px] text-secondary"
+            >
+              {t}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      <div className="rounded-md border border-warn/30 bg-warn-muted p-2.5">
+        <p className="text-[10px] font-medium uppercase tracking-wide text-warn">
+          Flagged
         </p>
-        <p className="text-secondary">
-          <span className="text-error">✕</span> is_valid(&quot;(]&quot;) → expected False, got True
-        </p>
+        <p className="mt-1 text-xs leading-relaxed text-warn">{flag}</p>
       </div>
-      <div className="mt-auto border-t border-line bg-surface px-4 py-2.5 text-[11px] text-secondary">
-        &ldquo;You&rsquo;re only pushing — walk me through what should happen on a
-        closing bracket.&rdquo;
-      </div>
+
+      <p className="mt-auto flex items-center gap-1.5 text-[10px] text-muted">
+        <span className="h-1 w-1 animate-pulse rounded-full bg-muted" />
+        {status}…
+      </p>
     </div>
   );
 }
