@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 type Purchase =
-  | { kind: "subscription"; plan: "voice" | "premium"; promoCode?: string }
+  | { kind: "subscription"; plan: "voice" | "premium" }
   | { kind: "order"; product: "video-pack" };
 
 /** Minimal shape of the bits of the PayPal SDK we use. */
@@ -79,10 +79,7 @@ export default function CheckoutButtons({
             const res = await fetch("/api/paypal/subscription", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                plan: (purchase as { plan: string }).plan,
-                promoCode: (purchase as { promoCode?: string }).promoCode,
-              }),
+              body: JSON.stringify({ plan: (purchase as { plan: string }).plan }),
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error ?? "Could not start");

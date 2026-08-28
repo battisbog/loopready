@@ -108,18 +108,20 @@ export default function Nav({ signedIn }: { signedIn: boolean }) {
   );
 }
 
+/** Just a ring -- was an open arc plus a filled centre dot, which read as a
+ *  loading spinner rather than a mark. */
 function Logo() {
   return (
     <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden>
-      <path
-        d="M12 3a9 9 0 1 0 9 9"
+      <circle
+        cx="12"
+        cy="12"
+        r="8"
         fill="none"
         stroke="currentColor"
         strokeWidth="2.5"
-        strokeLinecap="round"
         className="text-accent"
       />
-      <circle cx="12" cy="12" r="3" className="fill-accent" />
     </svg>
   );
 }

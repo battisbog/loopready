@@ -4,8 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import AppNav from "@/components/app-nav";
 import { Badge, Card, PageShell } from "@/components/ui";
-import { PRICING, planId, type PaidPlan } from "@/lib/pricing";
-import { resolvePromo } from "@/lib/promo";
+import { PRICING, planId } from "@/lib/pricing";
 import { VIDEO_PACK_CREDITS, getUserTier } from "@/lib/tiers";
 import { paypalConfigured } from "@/lib/paypal/client";
 import CheckoutButtons from "./checkout-buttons";
@@ -82,14 +81,9 @@ function resolve(searchPlan?: string, searchProduct?: string): Purchase {
 export default async function CheckoutPage({
   searchParams,
 }: {
-  searchParams: Promise<{
-    plan?: string;
-    product?: string;
-    cancelled?: string;
-    promo?: string;
-  }>;
+  searchParams: Promise<{ plan?: string; product?: string; cancelled?: string }>;
 }) {
-  const { plan, product, cancelled, promo } = await searchParams;
+  const { plan, product, cancelled } = await searchParams;
 
   const supabase = await createClient();
   const {
@@ -104,21 +98,6 @@ export default async function CheckoutPage({
   }
 
   const purchase = resolve(plan, product);
-
-  // A valid code for this exact account overrides the displayed price. The
-  // server-side subscription route re-validates it independently — this is
-  // display only, never trust-on-its-own for what actually gets charged.
-  const discountedAmount =
-    purchase.kind === "subscription"
-      ? resolvePromo(promo, user.email, purchase.plan as PaidPlan)
-      : null;
-  if (discountedAmount) {
-    const display = `$${discountedAmount.replace(/\.00$/, "")}`;
-    purchase.price = `${display}/mo`;
-    purchase.dueToday = display;
-    purchase.terms = `Then ${display}/mo, billed monthly. Early-supporter price, locked in. Cancel anytime.`;
-  }
-
   const admin = createAdminClient();
   const tier = await getUserTier(admin, user.id);
 
@@ -262,11 +241,7 @@ export default async function CheckoutPage({
                       clientId={clientId!}
                       purchase={
                         purchase.kind === "subscription"
-                          ? {
-                              kind: "subscription",
-                              plan: purchase.plan,
-                              promoCode: discountedAmount ? promo : undefined,
-                            }
+                          ? { kind: "subscription", plan: purchase.plan }
                           : { kind: "order", product: purchase.product }
                       }
                     />

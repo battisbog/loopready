@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { paypalConfigured, paypalFetch } from "@/lib/paypal/client";
 import { PRICING, planId, type PaidPlan } from "@/lib/pricing";
-import { resolvePromo } from "@/lib/promo";
 import { checkIpRateLimit, checkRateLimit } from "@/lib/rate-limit";
 import { getSiteUrl } from "@/lib/site-url";
 
@@ -28,7 +27,7 @@ export async function POST(request: Request) {
   const ipLimited = await checkIpRateLimit("checkout", request);
   if (!ipLimited.ok) return ipLimited.response!;
 
-  const { plan, promoCode } = await request.json().catch(() => ({}));
+  const { plan } = await request.json().catch(() => ({}));
   if (plan !== "voice" && plan !== "premium") {
     return NextResponse.json({ error: "Unknown plan" }, { status: 400 });
   }
@@ -44,11 +43,6 @@ export async function POST(request: Request) {
     );
   }
 
-  // A valid code overrides price on THIS subscription only, permanently
-  // (these plans have one infinite billing cycle, not a separate first-cycle
-  // discount). The base plan amount is untouched for everyone else.
-  const discountedAmount = resolvePromo(promoCode, user.email, plan as PaidPlan);
-
   try {
     const sub = await paypalFetch<{ id: string; status: string }>(
       "/v1/billing/subscriptions",
@@ -56,23 +50,6 @@ export async function POST(request: Request) {
         method: "POST",
         body: JSON.stringify({
           plan_id: id,
-          ...(discountedAmount
-            ? {
-                plan: {
-                  billing_cycles: [
-                    {
-                      sequence: 1,
-                      pricing_scheme: {
-                        fixed_price: {
-                          value: discountedAmount,
-                          currency_code: PRICING[plan as PaidPlan].currency,
-                        },
-                      },
-                    },
-                  ],
-                },
-              }
-            : {}),
           // The webhook resolves the account from this. Without it a payment
           // can never be matched to a user.
           custom_id: `${user.id}:${plan}`,
@@ -88,12 +65,6 @@ export async function POST(request: Request) {
       }
     );
 
-    if (discountedAmount) {
-      console.log(
-        `[paypal] promo code applied: user=${user.id} plan=${plan} price=${discountedAmount}`
-      );
-    }
-
     // Logged because this id is otherwise never recorded anywhere unless the
     // subscription activates: the webhook is what persists it. An attempt that
     // the payer abandons, or that PayPal declines at the card step, leaves us
@@ -105,7 +76,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       subscriptionId: sub.id,
-      amount: discountedAmount ?? PRICING[plan as PaidPlan].amount,
+      amount: PRICING[plan as PaidPlan].amount,
     });
   } catch (e) {
     console.error("[paypal] subscription create failed:", e);
