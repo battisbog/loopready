@@ -140,7 +140,7 @@ export default async function Landing() {
                     credit card", which was a free claim sitting directly above
                     a section selling monthly plans. */}
                 Free plan, no credit card · Paid from{" "}
-                {PRICING.voice.displayWithInterval} · About 15 minutes
+                {PRICING.voice.displayWithInterval}
               </p>
             </div>
 
