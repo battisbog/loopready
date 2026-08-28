@@ -85,16 +85,27 @@ export default function RoundsShowcase() {
                 onClick={() => setActive(r.key)}
                 aria-pressed={isActive}
                 className={cn(
-                  "shrink-0 rounded-lg border px-4 py-3.5 text-left transition-all duration-200 lg:shrink",
+                  // isolate: this card always gets its own stacking context,
+                  // so nothing painted inside a SIBLING card (the Signal
+                  // rail's warn-toned Flagged callout, an unrelated element
+                  // entirely) can ever be composited as if it belonged to
+                  // this one. That was the actual bug -- not this card's own
+                  // styling, but the lack of a hard stacking boundary between
+                  // cards while several independent animations (Framer
+                  // Motion's crossfade, two different Tailwind keyframe
+                  // animations, a custom one) were all running at once
+                  // nearby, which is exactly the kind of cross-contamination
+                  // `isolate` exists to rule out.
+                  "isolate shrink-0 rounded-lg border px-4 py-3.5 text-left transition-all duration-200 lg:shrink",
                   isActive
-                    ? // Ring + glow rather than a plain border: a wider soft
-                      // halo (the second shadow layer) behind a crisp 1px
-                      // edge (the first), so the active tab reads as lit
-                      // from within instead of just "a different colour".
-                      // Sized to read at normal zoom, not just in a close
-                      // crop -- a first pass here was too subtle to notice
-                      // at the scale this actually ships at.
-                      "border-accent-border bg-accent-muted shadow-[0_0_0_1px_var(--accent-border),0_0_40px_-2px_rgb(16_185_129/0.6)]"
+                    ? // Tailwind's own `ring` utility instead of a hand-tuned
+                      // multi-layer box-shadow string. A hand-rolled shadow
+                      // is exactly the kind of thing that renders "uneven"
+                      // under real compositing -- a wide blur radius painted
+                      // via an arbitrary value has no guarantee of staying
+                      // crisp or symmetric the way a first-party, extensively
+                      // battle-tested utility does.
+                      "border-accent-border bg-accent-muted ring-2 ring-accent ring-offset-2 ring-offset-base"
                     : "border-line bg-surface hover:border-line-strong hover:bg-elevated"
                 )}
               >
@@ -137,7 +148,7 @@ export default function RoundsShowcase() {
         </div>
 
         {/* ---- Live preview ---- */}
-        <div className="overflow-hidden rounded-lg border border-line bg-base shadow-xl shadow-[var(--shadow-md)]">
+        <div className="isolate overflow-hidden rounded-lg border border-line bg-base shadow-xl shadow-[var(--shadow-md)]">
           <BrowserChrome url={`loopready.io/session · ${round.title.toLowerCase().replace(" ", "-")}`} />
           <div className="relative min-h-[24rem]">
             <AnimatePresence mode="wait">
@@ -308,7 +319,7 @@ function SignalRail({
         </div>
       </div>
 
-      <div className="rounded-md border border-warn/30 bg-warn-muted p-2.5">
+      <div className="isolate rounded-md border border-warn/30 bg-warn-muted p-2.5">
         <p className="text-[10px] font-medium uppercase tracking-wide text-warn">
           Flagged
         </p>
