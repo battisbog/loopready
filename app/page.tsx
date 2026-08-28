@@ -79,15 +79,30 @@ export default async function Landing() {
   const ctaLabel = signedIn ? "Go to dashboard" : "Start for free";
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="relative flex min-h-screen flex-col overflow-x-hidden">
+      {/* Ambient glow, moved out of <header> and up to the page's own root.
+          It used to live inside header's `overflow-hidden` at
+          top-[-18rem] -- which never actually worked: overflow-hidden clips
+          to the element's OWN box regardless of a child's negative offset,
+          so the glow was silently cut off at header's top edge and never
+          reached the nav at all. That is the entire cause of the seam: the
+          nav was sitting on flat bg-base with nothing behind it.
+          A true radial-gradient rather than a solid circle + blur() also
+          replaces the old "blob with a blurred edge" look -- a gradient
+          fades by definition, so there is no shape boundary to soften. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 z-0 h-[50rem]"
+        style={{
+          background:
+            "radial-gradient(ellipse 85% 55% at 50% -5%, rgb(16 185 129 / 0.16), rgb(16 185 129 / 0.05) 45%, transparent 72%)",
+        }}
+      />
+
       <Nav signedIn={signedIn} />
 
       {/* ---------- Hero ---------- */}
-      <header className="relative overflow-hidden">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute left-1/2 top-[-18rem] h-[36rem] w-[70rem] -translate-x-1/2 rounded-full bg-accent-muted blur-[120px]"
-        />
+      <header className="relative">
         {/* One viewport, one message. `svh` rather than `vh` because mobile
             browser chrome makes `100vh` taller than what is actually visible,
             which would push the scroll cue off the bottom of the very screen

@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { cn } from "@/lib/cn";
 
 const LINKS = [
   { href: "#how", label: "How it works" },
@@ -14,9 +15,28 @@ const LINKS = [
 
 export default function Nav({ signedIn }: { signedIn: boolean }) {
   const [open, setOpen] = useState(false);
+  // Transparent at the top of the page so the hero's ambient glow shows
+  // through behind it; a tinted, blurred bar appears only once the page has
+  // actually scrolled, which is also when a scroll boundary starts being
+  // useful rather than just a seam sitting on top of the glow.
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-line bg-base/85 backdrop-blur">
+    <nav
+      className={cn(
+        "sticky top-0 z-50 transition-colors duration-300",
+        scrolled
+          ? "border-b border-line bg-base/85 backdrop-blur"
+          : "border-b border-transparent bg-transparent"
+      )}
+    >
       <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-4">
         <Link
           href="/"
