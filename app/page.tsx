@@ -15,6 +15,34 @@ import { Reveal } from "./(marketing)/reveal";
 import ScrollCue from "./(marketing)/scroll-cue";
 import HowItWorks from "./(marketing)/how-it-works";
 import RoundsShowcase from "./(marketing)/rounds-showcase";
+import FaqAccordion from "./(marketing)/faq-accordion";
+
+const FAQ_ITEMS = [
+  {
+    q: "Do I have to speak out loud?",
+    a: "Yes, and that's the point. Reading a written answer is a different skill from telling the story under pressure. You tap a mic button, answer, and the interviewer replies in voice.",
+  },
+  {
+    q: "How is this different from asking ChatGPT how I did?",
+    a: "A chat model reads your polished summary and tells you it's good. LoopReady interviews you live, refuses to move on when you're vague, and grades the transcript against a specific company's bar at a specific level.",
+  },
+  {
+    q: "Which rounds are available today?",
+    a: "All three are live: behavioral by voice, coding with a real editor that runs your code against test cases in an isolated sandbox, and system design with an architecture canvas the interviewer reads and challenges.",
+  },
+  {
+    q: "How long does a session take?",
+    a: "About 12 to 18 minutes for three questions with follow-ups. You can end early at any point and still get a debrief on what you did answer.",
+  },
+  {
+    q: "Is my transcript private?",
+    a: "Your sessions are visible only to you. Interviews are stored so you can review past transcripts and feedback in your history.",
+  },
+  {
+    q: "Is LoopReady affiliated with these companies?",
+    a: "No. Company names are used to describe the interview style each is known for. LoopReady is independent and not endorsed by any of them.",
+  },
+];
 
 const COMPANIES = ["amazon", "google", "meta", "microsoft", "apple", "netflix"];
 
@@ -79,7 +107,7 @@ export default async function Landing() {
               </h1>
 
               <p className="mx-auto mt-7 max-w-xl text-lg leading-relaxed text-secondary sm:text-xl">
-                Realistic AI interviews that push back, adapt to you, and tell
+                An AI interviewer that pushes back, adapts to you, and tells
                 you if you&rsquo;d pass.
               </p>
 
@@ -413,32 +441,7 @@ export default async function Landing() {
           <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
             Questions
           </h2>
-          <dl className="mt-10 divide-y divide-line">
-            <Faq
-              q="Do I have to speak out loud?"
-              a="Yes, and that's the point. Reading a written answer is a different skill from telling the story under pressure. You tap a mic button, answer, and the interviewer replies in voice."
-            />
-            <Faq
-              q="How is this different from asking ChatGPT how I did?"
-              a="A chat model reads your polished summary and tells you it's good. LoopReady interviews you live, refuses to move on when you're vague, and grades the transcript against a specific company's bar at a specific level."
-            />
-            <Faq
-              q="Which rounds are available today?"
-              a="All three are live: behavioral by voice, coding with a real editor that runs your code against test cases in an isolated sandbox, and system design with an architecture canvas the interviewer reads and challenges."
-            />
-            <Faq
-              q="How long does a session take?"
-              a="About 12 to 18 minutes for three questions with follow-ups. You can end early at any point and still get a debrief on what you did answer."
-            />
-            <Faq
-              q="Is my transcript private?"
-              a="Your sessions are visible only to you. Interviews are stored so you can review past transcripts and feedback in your history."
-            />
-            <Faq
-              q="Is LoopReady affiliated with these companies?"
-              a="No. Company names are used to describe the interview style each is known for. LoopReady is independent and not endorsed by any of them."
-            />
-          </dl>
+          <FaqAccordion items={FAQ_ITEMS} />
         </div>
       </section>
 
@@ -555,14 +558,6 @@ function Row({
   );
 }
 
-function Faq({ q, a }: { q: string; a: string }) {
-  return (
-    <div className="py-6">
-      <dt className="text-base font-medium text-primary">{q}</dt>
-      <dd className="mt-2 text-sm leading-relaxed text-secondary">{a}</dd>
-    </div>
-  );
-}
 
 function FooterCol({
   title,
