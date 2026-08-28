@@ -114,19 +114,23 @@ export default function RoundsShowcase() {
                 <p className="mt-1.5 hidden max-w-sm text-sm leading-relaxed text-secondary lg:block">
                   {r.body}
                 </p>
-                {isActive && (
-                  <ul className="mt-3 hidden space-y-1.5 lg:block">
-                    {r.points.map((p) => (
-                      <li
-                        key={p}
-                        className="flex items-start gap-2 text-xs text-secondary"
-                      >
-                        <span className="mt-0.5 text-accent">✓</span>
-                        {p}
-                      </li>
-                    ))}
-                  </ul>
-                )}
+                {/* Unconditional now: all three cards show the full checklist
+                    regardless of active state, so the gap between active and
+                    inactive is the glow/border alone, not a content deficit.
+                    An inactive card that showed less used to read as an
+                    unfinished draft of the active one, not a deliberate
+                    resting state. */}
+                <ul className="mt-3 hidden space-y-1.5 lg:block">
+                  {r.points.map((p) => (
+                    <li
+                      key={p}
+                      className="flex items-start gap-2 text-xs text-secondary"
+                    >
+                      <span className="mt-0.5 text-accent">✓</span>
+                      {p}
+                    </li>
+                  ))}
+                </ul>
               </button>
             );
           })}
@@ -174,8 +178,16 @@ function CodingPreview() {
             solution.py
           </span>
           <span className="text-muted">Valid Parentheses</span>
+          <span className="ml-auto rounded-sm border border-line px-2 py-0.5 text-muted">
+            Run tests
+          </span>
         </div>
-        <pre className="flex-1 overflow-x-auto bg-inset px-4 py-3 font-mono text-xs leading-relaxed">
+        {/* No flex-1 here anymore: it used to stretch this block to fill
+            whatever height the taller flanking columns needed, leaving a
+            large blank gap between line 5 and the console output. Natural
+            height plus a blinking caret at the end of the last line reads
+            as "mid-thought", not "ran out of content". */}
+        <pre className="overflow-x-auto bg-inset px-4 py-3 font-mono text-xs leading-relaxed">
           <code className="text-primary">
             <span className="text-muted">1 </span>
             <span className="text-accent-cool">def</span>{" "}
@@ -190,6 +202,11 @@ function CodingPreview() {
             <span className="text-accent-cool">if</span> c <span className="text-accent-cool">in</span> <span className="text-accent">&quot;([{"{"}&quot;</span>:{"\n"}
             <span className="text-muted">5 </span>
             {"            "}stack.append(c)
+            <motion.span
+              className="ml-px inline-block h-3 w-px translate-y-[2px] bg-accent"
+              animate={{ opacity: [1, 1, 0, 0] }}
+              transition={{ duration: 1.1, repeat: Infinity, times: [0, 0.5, 0.5, 1] }}
+            />
           </code>
         </pre>
         <div className="space-y-1 border-t border-line px-4 py-3 font-mono text-[11px]">
@@ -200,6 +217,13 @@ function CodingPreview() {
             <span className="text-error">✕</span> is_valid(&quot;(]&quot;) → expected False, got True
           </p>
         </div>
+        {/* Same bottom-anchored footer treatment as the interviewer and
+            signal columns either side, so all three read as one deliberate
+            set instead of two "finished" panels around one that trails off. */}
+        <p className="mt-auto flex items-center gap-1.5 border-t border-line px-4 py-2.5 text-[10px] text-muted">
+          <span className="h-1 w-1 rounded-full bg-success" />
+          Auto-saved just now
+        </p>
       </div>
 
       <SignalRail
@@ -219,7 +243,7 @@ function CodingPreview() {
  */
 function MiniInterviewer({ question }: { question: string }) {
   return (
-    <div className="flex h-full flex-col gap-3 border-b border-line bg-base p-4 md:border-b-0 md:border-r">
+    <div className="flex h-full flex-col gap-4 border-b border-line bg-base p-4 md:border-b-0 md:border-r">
       <div className="flex items-center gap-2">
         <span className="relative flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-accent-border bg-accent-muted">
           <span className="ring-pulse absolute inset-0 rounded-full border border-accent-border" />
@@ -255,15 +279,19 @@ function SignalRail({
   flag: string;
 }) {
   return (
-    <div className="flex flex-col gap-4 bg-base p-4">
+    <div className="flex h-full flex-col gap-4 bg-base p-4">
+      {/* SIGNAL is the panel's own name, so it gets a real heading treatment
+          -- size and weight, not another small muted eyebrow -- while
+          Tracking and Flagged stay eyebrow-scale below it. The first version
+          put all three labels at the same ~10px muted-uppercase weight,
+          which read as three equal headings competing rather than one
+          heading with two subsections under it. */}
       <div className="flex items-center gap-2">
-        <span className="relative flex h-1.5 w-1.5">
+        <span className="relative flex h-2 w-2 shrink-0">
           <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-75" />
-          <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-accent" />
+          <span className="relative inline-flex h-2 w-2 rounded-full bg-accent" />
         </span>
-        <span className="text-[11px] font-medium uppercase tracking-wide text-muted">
-          Signal
-        </span>
+        <span className="text-sm font-semibold text-primary">Signal</span>
       </div>
 
       <div>
