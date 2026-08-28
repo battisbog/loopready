@@ -9,6 +9,7 @@ import {
   CardDescription,
 } from "@/components/ui/shadcn/card";
 import { PREMIUM_VIDEO_ALLOWANCE } from "@/lib/tiers";
+import { FREE_SESSION_LIMIT, FREE_SESSION_WINDOW_DAYS } from "@/lib/rate-limit";
 import { PRICING } from "@/lib/pricing";
 import { Reveal } from "./reveal";
 import { cn } from "@/lib/cn";
@@ -40,10 +41,12 @@ const TIERS: Tier[] = [
     cta: "Start free",
     href: "/login",
     features: [
-      { label: "3 behavioral mocks a day" },
+      {
+        label: `${FREE_SESSION_LIMIT} mock every ${FREE_SESSION_WINDOW_DAYS} days, any round`,
+      },
       { label: "Real-time voice conversation" },
       { label: "Full written debrief on every mock" },
-      { label: "Behavioral round only" },
+      { label: "Voice only — video needs Premium" },
     ],
   },
   {
@@ -90,9 +93,14 @@ const COMPARISON: {
   voice: string | boolean;
   premium: string | boolean;
 }[] = [
-  { label: "Behavioral round", free: "3 a day", voice: "Unlimited", premium: "Unlimited" },
-  { label: "Coding round (live editor + execution)", free: false, voice: true, premium: true },
-  { label: "System design round (canvas)", free: false, voice: true, premium: true },
+  {
+    label: "Session frequency",
+    free: `${FREE_SESSION_LIMIT} every ${FREE_SESSION_WINDOW_DAYS} days`,
+    voice: "Unlimited",
+    premium: "Unlimited",
+  },
+  { label: "Coding round (live editor + execution)", free: true, voice: true, premium: true },
+  { label: "System design round (canvas)", free: true, voice: true, premium: true },
   { label: "Full loop, rounds back to back", free: false, voice: true, premium: true },
   { label: "Company + level calibration", free: "Generic only", voice: "All 6 companies", premium: "All 6 companies" },
   { label: "Real-time voice interviewer", free: true, voice: true, premium: true },
@@ -319,11 +327,11 @@ export default function Pricing({
           />
           <PriceFaq
             q="What does the Free plan actually get me?"
-            a="Three behavioral mocks a day, in the same real-time voice the paid plans use, each with the full written debrief. It is enough to judge whether the feedback is worth paying for. That is the point of it."
+            a={`${FREE_SESSION_LIMIT} mock every ${FREE_SESSION_WINDOW_DAYS} days, any round you like -- behavioral, coding, or system design -- in the same real-time voice the paid plans use, with the full written debrief. It is enough to judge whether the feedback is worth paying for. That is the point of it.`}
           />
           <PriceFaq
             q="What is the difference between Free and Voice?"
-            a="The interviewer is identical: the same voice, the same probing, the same debrief. Free is capped at three behavioral mocks a day. Voice removes that cap and adds the coding round with a live editor and the system design round with a canvas, so you can rehearse a full loop rather than one round."
+            a={`The interviewer is identical: the same voice, the same probing, the same debrief, and on Free you can already pick any round type. What Voice removes is the ${FREE_SESSION_WINDOW_DAYS}-day wait between mocks -- unlimited interviews, and full loops with rounds run back to back, which Free's one-at-a-time cap does not allow.`}
           />
           <PriceFaq
             q="How do video interviews work?"

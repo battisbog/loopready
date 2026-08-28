@@ -11,6 +11,7 @@ import {
   Section,
 } from "@/components/ui";
 import { TIERS, getEntitlements, type Tier } from "@/lib/tiers";
+import { FREE_SESSION_WINDOW_DAYS } from "@/lib/rate-limit";
 import CancelSubscription from "./cancel-subscription";
 
 export const metadata = { title: "Billing & Plan" };
@@ -71,9 +72,9 @@ export default async function BillingPage() {
                 <Badge tone={paid ? "accent" : "neutral"}>{features.label}</Badge>
               </div>
               <p className="mt-3 text-sm text-secondary">
-                {features.dailySessions === null
+                {features.sessionAllowance === null
                   ? "Unlimited interviews"
-                  : `${features.dailySessions} interviews per day`}
+                  : `${features.sessionAllowance} interview every ${FREE_SESSION_WINDOW_DAYS} days`}
               </p>
             </Card>
 

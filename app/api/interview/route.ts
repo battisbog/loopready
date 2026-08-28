@@ -9,11 +9,11 @@ import { MAX_CODING_TURNS, MAX_DESIGN_TURNS, startSession } from "@/lib/intervie
 import { getContext } from "@/lib/interview/companies";
 import { ROUND_IMPLEMENTED, isRoundType } from "@/lib/interview/rounds";
 import {
-  checkDailySessionQuota,
+  checkWeeklySessionQuota,
   checkIpRateLimit,
   checkRateLimit,
   consumeGlobalBudget,
-  dailyQuotaResponse,
+  weeklyQuotaResponse,
   recordUsage,
   serviceBusyResponse,
 } from "@/lib/rate-limit";
@@ -88,8 +88,8 @@ export async function POST(request: Request) {
         tier
       );
     }
-    const quota = await checkDailySessionQuota(admin, user.id);
-    if (quota.exceeded) return dailyQuotaResponse(quota);
+    const quota = await checkWeeklySessionQuota(admin, user.id);
+    if (quota.exceeded) return weeklyQuotaResponse(quota);
 
     try {
       const started = await startSession({

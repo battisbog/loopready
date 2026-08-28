@@ -7,7 +7,7 @@ import {
   peekUsageCounts,
   rateLimitHealth,
   RATE_LIMITING_CONFIGURED,
-  FREE_DAILY_SESSIONS,
+  FREE_SESSION_LIMIT,
 } from "@/lib/rate-limit";
 import { peekDemoUsage } from "@/lib/demo/gate";
 import {
@@ -87,7 +87,7 @@ export async function GET() {
     ),
     config: {
       freeTierBudgetShare: FREE_TIER_BUDGET_SHARE,
-      freeDailySessions: FREE_DAILY_SESSIONS,
+      freeSessionLimit: FREE_SESSION_LIMIT,
       adminConfigured: ADMIN_CONFIGURED,
     },
     health: {

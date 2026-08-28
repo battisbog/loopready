@@ -13,13 +13,13 @@ import { featuresFor, getEntitlements } from "@/lib/tiers";
 import { VIDEO_ENABLED_SERVER } from "@/lib/video/config";
 import { startSession } from "@/lib/interview/start";
 import {
-  checkDailySessionQuota,
+  checkWeeklySessionQuota,
   checkIpRateLimit,
   consumeGlobalBudget,
   recordUsage,
   serviceBusyResponse,
   checkRateLimit,
-  dailyQuotaResponse,
+  weeklyQuotaResponse,
 } from "@/lib/rate-limit";
 import { getUserTier } from "@/lib/tiers";
 
@@ -107,8 +107,8 @@ export async function POST(request: Request) {
 
   // The whole loop is authorised here, because the later rounds start
   // automatically as each one finishes and never re-check.
-  const quota = await checkDailySessionQuota(admin, user.id, roundList.length);
-  if (quota.exceeded) return dailyQuotaResponse(quota);
+  const quota = await checkWeeklySessionQuota(admin, user.id, roundList.length);
+  if (quota.exceeded) return weeklyQuotaResponse(quota);
 
   // startSession generates a spoken opening, so creating a loop costs money.
   const tier = await getUserTier(admin, user.id);

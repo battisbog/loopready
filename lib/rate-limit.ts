@@ -198,28 +198,48 @@ export async function checkRateLimit(
   }
 }
 
-/** Plans exempt from the daily session cap. */
+/** Plans exempt from the free-tier session cap. */
 const UNCAPPED_PLANS = new Set(["voice", "premium", "unlimited"]);
 
-/** Free-tier ceiling on how many interviews a user can start per day. */
-export const FREE_DAILY_SESSIONS = Number(
-  process.env.FREE_DAILY_SESSION_LIMIT ?? 3
-);
+/**
+ * Free-tier ceiling: how many interviews a user may start in the trailing
+ * window, and how wide that window is.
+ *
+ * Rolling (measured back from "now") rather than a fixed calendar reset (e.g.
+ * every Monday at UTC midnight) on purpose: a fixed reset is gameable right at
+ * the boundary -- one mock late Sunday night, a second the moment Monday
+ * ticks over, two mocks inside an hour -- while a rolling window is always
+ * exactly FREE_SESSION_WINDOW_DAYS since the user's own last session,
+ * whichever day that fell on. It is also the smaller code change: the daily
+ * cap this replaced already counted "sessions since a cutoff timestamp", so
+ * moving the cutoff from UTC-midnight to `now - 7 days` reuses the same query
+ * shape instead of introducing ISO-week math.
+ */
+export const FREE_SESSION_WINDOW_DAYS = 7;
+export const FREE_SESSION_LIMIT = Number(process.env.FREE_SESSION_LIMIT ?? 1);
 
-export interface DailyQuota {
+export interface WeeklyQuota {
   used: number;
   limit: number;
   exceeded: boolean;
   plan: string;
+  /** ISO timestamp of when the next free session becomes available, or null
+   *  if the plan is uncapped or nothing has been used in the window yet. */
+  resetAt: string | null;
 }
 
 /**
- * Counts sessions the user started since UTC midnight.
+ * Counts sessions the user started in the trailing FREE_SESSION_WINDOW_DAYS.
  *
  * This lives in Postgres rather than Redis on purpose: it is a product limit,
  * not abuse protection, so it must survive cache eviction and stay accurate.
+ *
+ * Counts sessions STARTED, not completed, matching the daily cap this
+ * replaced: counting only completions would let a free user start and
+ * abandon interviews without limit, which still spends real LLM/TTS cost on
+ * every start regardless of whether it was ever finished.
  */
-export async function checkDailySessionQuota(
+export async function checkWeeklySessionQuota(
   admin: SupabaseClient,
   userId: string,
   /**
@@ -234,13 +254,13 @@ export async function checkDailySessionQuota(
    * daily limit -- two unrelated constants, either of which could move.
    */
   sessionsNeeded = 1
-): Promise<DailyQuota> {
+): Promise<WeeklyQuota> {
   // `subscription_tier` is the canonical entitlement column (see
   // supabase/schema.sql). `profiles.plan` is a legacy column kept only so old
   // rows are not lost; it is permanently "free" for every account, including
   // real Voice/Premium/Unlimited subscribers, because nothing has written to
   // it since the migration. Reading it here silently capped every paying
-  // customer at the free daily limit -- this was live in production.
+  // customer at the free limit -- this was live in production.
   const { data: profile } = await admin
     .from("profiles")
     .select("subscription_tier, subscription_status, current_period_end")
@@ -259,36 +279,64 @@ export async function checkDailySessionQuota(
     !withinPaidPeriod(profile?.subscription_status, profile?.current_period_end);
   const plan = lapsed ? "free" : rawTier;
 
-  const since = new Date();
-  since.setUTCHours(0, 0, 0, 0);
-  const { count } = await admin
+  const since = new Date(
+    Date.now() - FREE_SESSION_WINDOW_DAYS * 24 * 60 * 60 * 1000
+  );
+  // Ordered rather than a bare count: the most recent start in the window is
+  // also what a rolling reset date is computed from below.
+  const { data: recent } = await admin
     .from("sessions")
-    .select("id", { count: "exact", head: true })
+    .select("started_at")
     .eq("user_id", userId)
-    .gte("started_at", since.toISOString());
+    .gte("started_at", since.toISOString())
+    .order("started_at", { ascending: false })
+    .limit(1);
 
-  const used = count ?? 0;
+  const used = recent?.length ?? 0;
+  const lastStart = recent?.[0]?.started_at
+    ? new Date(recent[0].started_at as string)
+    : null;
+  const resetAt = lastStart
+    ? new Date(
+        lastStart.getTime() + FREE_SESSION_WINDOW_DAYS * 24 * 60 * 60 * 1000
+      ).toISOString()
+    : null;
+
   return {
     used,
     plan,
-    limit: FREE_DAILY_SESSIONS,
+    limit: FREE_SESSION_LIMIT,
     exceeded:
-      !UNCAPPED_PLANS.has(plan) && used + sessionsNeeded > FREE_DAILY_SESSIONS,
+      !UNCAPPED_PLANS.has(plan) && used + sessionsNeeded > FREE_SESSION_LIMIT,
+    resetAt,
   };
 }
 
-export function dailyQuotaResponse(quota: DailyQuota): NextResponse {
+export function weeklyQuotaResponse(quota: WeeklyQuota): NextResponse {
   const remaining = Math.max(0, quota.limit - quota.used);
-  // "You've used all 3" is wrong when they have 1 left and asked for a
-  // 3-round loop, which is now a case that can refuse.
+  const resetPhrase = quota.resetAt
+    ? `Your next one is available ${new Date(quota.resetAt).toLocaleDateString(
+        "en-US",
+        { weekday: "long", month: "short", day: "numeric" }
+      )}.`
+    : "";
+  // "That loop needs more rounds than you have left" is wrong when the limit
+  // is 1: a multi-round loop always exceeds it, so there is nothing partial
+  // to offer -- every free-tier refusal is the same "you're out" message.
   const error =
     remaining > 0
-      ? `That loop needs more rounds than you have left today (${remaining} of ${quota.limit} remaining). ` +
-        `Start a shorter loop, or come back after midnight UTC.`
-      : `You've used all ${quota.limit} practice interviews for today. Your quota resets at midnight UTC.`;
+      ? `That loop needs more rounds than your free plan allows at once (${remaining} of ${quota.limit} available). Start a single round instead.`
+      : `You've used your free interview for this week. ${resetPhrase}`.trim();
 
   return NextResponse.json(
-    { error, used: quota.used, limit: quota.limit, remaining, quotaExceeded: true },
+    {
+      error,
+      used: quota.used,
+      limit: quota.limit,
+      remaining,
+      resetAt: quota.resetAt,
+      quotaExceeded: true,
+    },
     { status: 429 }
   );
 }

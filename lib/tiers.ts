@@ -14,11 +14,18 @@ export interface TierFeatures {
   label: string;
   /** Rounds this tier may start. */
   rounds: RoundType[];
-  /** Sessions per UTC day; null means uncapped. */
-  dailySessions: number | null;
+  /** Sessions per rolling FREE_SESSION_WINDOW_DAYS window; null means
+   *  uncapped. See lib/rate-limit.ts for the window itself and the actual
+   *  enforcement -- this field is display-only. */
+  sessionAllowance: number | null;
 }
 
-const FREE_DAILY = Number(process.env.FREE_DAILY_SESSION_LIMIT ?? 3);
+// Duplicated from lib/rate-limit.ts's FREE_SESSION_LIMIT (same env var,
+// independently computed) rather than imported: rate-limit.ts already
+// imports isGoodStanding/withinPaidPeriod FROM this file, so importing back
+// would be a circular dependency. This field is display-only anyway --
+// lib/rate-limit.ts's checkWeeklySessionQuota is the actual enforcement.
+const FREE_SESSION_ALLOWANCE = Number(process.env.FREE_SESSION_LIMIT ?? 1);
 
 /**
  * Video allowance. ONE definition, used by the tier table, the webhook that
@@ -51,23 +58,28 @@ export const VIDEO_PACK_CREDITS = Number(process.env.VIDEO_PACK_CREDITS ?? 3);
 export const TIERS: Record<Tier, TierFeatures> = {
   free: {
     label: "Free",
-    rounds: ["behavioral"],
-    dailySessions: FREE_DAILY,
+    // Any round type, same as every paid tier -- free used to be restricted
+    // to behavioral only. The real constraint on free is now frequency
+    // (sessionAllowance below / checkWeeklySessionQuota), not which round
+    // someone can pick. Video stays gated separately by credits regardless
+    // of tier (see the note above TIERS), so this does not touch video.
+    rounds: ["behavioral", "coding", "system_design"],
+    sessionAllowance: FREE_SESSION_ALLOWANCE,
   },
   voice: {
     label: "Voice",
     rounds: ["coding", "system_design", "behavioral"],
-    dailySessions: null,
+    sessionAllowance: null,
   },
   premium: {
     label: "Premium",
     rounds: ["coding", "system_design", "behavioral"],
-    dailySessions: null,
+    sessionAllowance: null,
   },
   unlimited: {
     label: "Unlimited",
     rounds: ["coding", "system_design", "behavioral"],
-    dailySessions: null,
+    sessionAllowance: null,
   },
 };
 

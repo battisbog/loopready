@@ -14,13 +14,13 @@ import {
 } from "@/components/ui";
 import { ROUND_LABEL, type RoundType } from "@/lib/interview/rounds";
 import { COMPANY_PROFILES } from "@/lib/interview/companies";
-import { FREE_DAILY_SESSIONS } from "@/lib/rate-limit";
+import { FREE_SESSION_LIMIT, FREE_SESSION_WINDOW_DAYS } from "@/lib/rate-limit";
 import { getEntitlements } from "@/lib/tiers";
 
 const PLAN_COPY: Record<string, { label: string; blurb: string }> = {
   free: {
     label: "Free",
-    blurb: `${FREE_DAILY_SESSIONS} behavioral mocks a day, with the full written debrief.`,
+    blurb: `${FREE_SESSION_LIMIT} mock every ${FREE_SESSION_WINDOW_DAYS} days, any round, voice only, with the full written debrief.`,
   },
   voice: {
     label: "Voice",
