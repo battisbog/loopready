@@ -12,6 +12,7 @@ import DemoVideoModal from "./(marketing)/demo-video-modal";
 import SessionMockup from "./(marketing)/session-mockup";
 import DashboardMockup from "./(marketing)/dashboard-mockup";
 import { Reveal } from "./(marketing)/reveal";
+import ScrollCue from "./(marketing)/scroll-cue";
 
 const COMPANIES = ["amazon", "google", "meta", "microsoft", "apple", "netflix"];
 
@@ -57,26 +58,30 @@ export default async function Landing() {
           aria-hidden
           className="pointer-events-none absolute left-1/2 top-[-18rem] h-[36rem] w-[70rem] -translate-x-1/2 rounded-full bg-accent-muted blur-[120px]"
         />
-        <div className="relative mx-auto w-full max-w-6xl px-6 pb-20 pt-16 sm:pt-24">
-          <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,0.88fr)_minmax(0,1.12fr)] lg:gap-14">
-            <div className="rise">
+        {/* One viewport, one message. `svh` rather than `vh` because mobile
+            browser chrome makes `100vh` taller than what is actually visible,
+            which would push the scroll cue off the bottom of the very screen
+            it exists to guide. 4rem is the sticky nav above it. */}
+        <div className="relative mx-auto flex min-h-[calc(100svh-4rem)] w-full max-w-3xl flex-col items-center justify-center px-6 pb-12 pt-16 text-center">
+          <div className="rise">
               <span className="inline-flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-1 text-xs text-secondary">
                 <span className="h-1.5 w-1.5 rounded-full bg-accent-hover" />
                 Video interviews · Calibrated to company and level
               </span>
 
-              <h1 className="mt-6 text-4xl font-semibold leading-[1.08] tracking-tight sm:text-5xl lg:text-6xl">
+              {/* Scaled up now that nothing shares the viewport with it. */}
+              <h1 className="mt-8 text-5xl font-semibold leading-[1.05] tracking-tight sm:text-6xl lg:text-7xl">
                 Practice the interview.
                 <br />
                 <span className="text-accent">Not the questions.</span>
               </h1>
 
-              <p className="mt-6 max-w-xl text-lg leading-relaxed text-secondary">
+              <p className="mx-auto mt-7 max-w-xl text-lg leading-relaxed text-secondary sm:text-xl">
                 Realistic AI interviews that push back, adapt to you, and tell
                 you if you&rsquo;d pass.
               </p>
 
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+              <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
                 <Button href={ctaHref} size="lg">
                   {ctaLabel}
                 </Button>
@@ -94,20 +99,34 @@ export default async function Landing() {
               </p>
             </div>
 
+            {/* mt-auto pins this to the bottom of the viewport-height column
+                rather than letting it float directly under the trust line,
+                so it reads as "the page continues past here". */}
+            <div className="mt-auto pt-12">
+              <ScrollCue href="#product" />
+            </div>
+        </div>
+      </header>
+
+      {/* ---------- Product panel ----------
+          Was the hero's right-hand column. Given its own section so the
+          headline gets the first viewport uncontested, and so this arrives as
+          a deliberate reveal instead of being half-read on load. */}
+      <section id="product" className="scroll-mt-20">
+        <div className="mx-auto w-full max-w-5xl px-6 pb-20 pt-8 sm:pt-12">
+          <figure>
             {/* Was a static next/image screenshot. Now a real component, so it
                 is sharp at any size, themed from the same tokens as the
                 product, and shows the actual `two-sum` problem from the bank
                 rather than whatever was on screen the day the PNG was taken. */}
-            <figure className="rise lg:-mr-4" style={{ animationDelay: "120ms" }}>
-              <SessionMockup />
-              <figcaption className="mt-3 text-center text-xs text-muted lg:text-left">
-                All three rounds are live today: behavioral, coding, and system
-                design.
-              </figcaption>
-            </figure>
-          </div>
+            <SessionMockup revealOnScroll />
+            <figcaption className="mt-4 text-center text-xs text-muted">
+              All three rounds are live today: behavioral, coding, and system
+              design.
+            </figcaption>
+          </figure>
         </div>
-      </header>
+      </section>
 
       {/* ---------- Companies ---------- */}
       <section className="border-y border-line bg-base/60">

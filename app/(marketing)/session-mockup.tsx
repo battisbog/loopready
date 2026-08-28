@@ -22,19 +22,35 @@ import { cn } from "@/lib/cn";
 export default function SessionMockup({
   video,
   className,
+  revealOnScroll = false,
 }: {
   /** A <video> element. Replaces the poster frame when supplied. */
   video?: ReactNode;
   className?: string;
+  /**
+   * Animate the panel in as it enters the viewport, with the code lines and
+   * test results arriving in sequence after it. Off by default so the panel
+   * can still be dropped somewhere already-visible without a delay before it
+   * paints.
+   */
+  revealOnScroll?: boolean;
 }) {
   const reduced = useReducedMotion();
+  // Reduced motion collapses the whole sequence, not just the outer slide:
+  // staggered lines are the same "things moving on screen" the setting exists
+  // to switch off.
+  const reveal = revealOnScroll && !reduced;
 
   return (
-    <div
+    <motion.div
       className={cn(
         "overflow-hidden rounded-lg border border-line bg-base shadow-2xl shadow-[var(--shadow-lg)]",
         className
       )}
+      initial={reveal ? { opacity: 0, y: 32 } : false}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.2 }}
+      transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
     >
       <BrowserChrome url="loopready.io/session" />
 
@@ -86,33 +102,33 @@ export default function SessionMockup({
 
           <pre className="flex-1 overflow-x-auto bg-inset px-4 py-3 font-mono text-[11px] leading-relaxed sm:text-xs">
             <code>
-              <CodeLine n={1}>
+              <CodeLine n={1} reveal={reveal}>
                 <Kw>def</Kw> <Fn>two_sum</Fn>
                 <Pn>(nums, target):</Pn>
               </CodeLine>
-              <CodeLine n={2}>
+              <CodeLine n={2} reveal={reveal}>
                 {"    "}seen <Pn>=</Pn> <Fn>{"{}"}</Fn>
               </CodeLine>
-              <CodeLine n={3}>
+              <CodeLine n={3} reveal={reveal}>
                 {"    "}
                 <Kw>for</Kw> i, n <Kw>in</Kw> <Fn>enumerate</Fn>
                 <Pn>(nums):</Pn>
               </CodeLine>
-              <CodeLine n={4}>
+              <CodeLine n={4} reveal={reveal}>
                 {"        "}need <Pn>=</Pn> target <Pn>-</Pn> n
               </CodeLine>
-              <CodeLine n={5}>
+              <CodeLine n={5} reveal={reveal}>
                 {"        "}
                 <Kw>if</Kw> need <Kw>in</Kw> seen<Pn>:</Pn>
               </CodeLine>
-              <CodeLine n={6}>
+              <CodeLine n={6} reveal={reveal}>
                 {"            "}
                 <Kw>return</Kw> <Pn>[</Pn>seen<Pn>[</Pn>need<Pn>], i]</Pn>
               </CodeLine>
-              <CodeLine n={7}>
+              <CodeLine n={7} reveal={reveal}>
                 {"        "}seen<Pn>[</Pn>n<Pn>] =</Pn> i
               </CodeLine>
-              <CodeLine n={8} caret>
+              <CodeLine n={8} caret reveal={reveal}>
                 {"    "}
                 <Kw>return</Kw> <Pn>[]</Pn>
               </CodeLine>
@@ -131,9 +147,9 @@ export default function SessionMockup({
 
           {/* Real test cases from the two-sum entry in the bank. */}
           <div className="bg-base px-4 py-3 font-mono text-[11px] leading-relaxed">
-            <Test pass args="[2, 7, 11, 15], 9" got="[0, 1]" />
-            <Test pass args="[3, 2, 4], 6" got="[1, 2]" />
-            <Test pass args="[3, 3], 6" got="[0, 1]" />
+            <Test pass reveal={reveal} index={0} args="[2, 7, 11, 15], 9" got="[0, 1]" />
+            <Test pass reveal={reveal} index={1} args="[3, 2, 4], 6" got="[1, 2]" />
+            <Test pass reveal={reveal} index={2} args="[3, 3], 6" got="[0, 1]" />
             <p className="mt-1.5 text-secondary">
               <span className="text-success">3 passed</span>
               <span className="text-muted"> · 5 total · 2 hidden</span>
@@ -148,7 +164,7 @@ export default function SessionMockup({
         Snapshot from a real coding round · behavioral and system design run in
         the same workspace
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -220,17 +236,34 @@ function Line({
   );
 }
 
+/**
+ * One line of the editor.
+ *
+ * When revealing, lines arrive top to bottom keyed off their own line number,
+ * which reads as the solution being written rather than as a block of text
+ * fading in. Offsetting x rather than y keeps each line on its own baseline --
+ * lines sliding vertically past each other in a monospace block looks like a
+ * rendering fault.
+ */
 function CodeLine({
   n,
   caret,
+  reveal,
   children,
 }: {
   n: number;
   caret?: boolean;
+  reveal?: boolean;
   children: ReactNode;
 }) {
   return (
-    <span className="flex whitespace-pre">
+    <motion.span
+      className="flex whitespace-pre"
+      initial={reveal ? { opacity: 0, x: -6 } : false}
+      whileInView={{ opacity: 1, x: 0 }}
+      viewport={{ once: true, amount: 0.5 }}
+      transition={{ duration: 0.3, delay: 0.35 + n * 0.07 }}
+    >
       <span className="w-6 shrink-0 select-none text-right text-muted">{n}</span>
       <span className="pl-3 text-primary">
         {children}
@@ -242,7 +275,7 @@ function CodeLine({
           />
         )}
       </span>
-    </span>
+    </motion.span>
   );
 }
 
@@ -256,22 +289,37 @@ const Pn = ({ children }: { children: ReactNode }) => (
   <span className="text-secondary">{children}</span>
 );
 
+/**
+ * One console row. `index` sequences these AFTER the last code line, so the
+ * panel plays in the order it would really happen: the solution appears, then
+ * the tests report on it.
+ */
 function Test({
   pass,
   args,
   got,
+  reveal,
+  index = 0,
 }: {
   pass?: boolean;
   args: string;
   got: string;
+  reveal?: boolean;
+  index?: number;
 }) {
   return (
-    <p className="flex gap-2 whitespace-pre-wrap">
+    <motion.p
+      className="flex gap-2 whitespace-pre-wrap"
+      initial={reveal ? { opacity: 0, x: -6 } : false}
+      whileInView={{ opacity: 1, x: 0 }}
+      viewport={{ once: true, amount: 0.5 }}
+      transition={{ duration: 0.3, delay: 1.05 + index * 0.14 }}
+    >
       <span className={pass ? "text-success" : "text-error"}>
         {pass ? "✓" : "✕"}
       </span>
       <span className="text-muted">two_sum({args})</span>
       <span className="text-secondary">→ {got}</span>
-    </p>
+    </motion.p>
   );
 }
