@@ -2,9 +2,19 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { cn } from "@/lib/cn";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarSeparator,
+} from "@/components/ui/shadcn/sidebar";
 
 /**
  * Primary navigation. Every item here leads to a page with real, populated
@@ -19,8 +29,8 @@ const NAV = [
 ];
 
 const FOOTER = [
-  { href: "/billing", label: "Billing" },
-  { href: "/settings", label: "Settings" },
+  { href: "/billing", label: "Billing", icon: IconCard },
+  { href: "/settings", label: "Settings", icon: IconGear },
 ];
 
 /**
@@ -46,145 +56,13 @@ export interface SidebarCredits {
   remaining: number;
 }
 
-function SidebarContent({
-  email,
-  name,
-  credits,
-  onNavigate,
-}: {
-  email?: string;
-  /** Display name from the auth provider, when it gave us one. */
-  name?: string;
-  credits: SidebarCredits;
-  onNavigate?: () => void;
-}) {
-  const pathname = usePathname();
-  const router = useRouter();
-
-  async function signOut() {
-    await createClient().auth.signOut();
-    router.push("/login");
-    router.refresh();
-  }
-
-  return (
-    <div className="flex h-full flex-col">
-      <Link
-        href="/dashboard"
-        onClick={onNavigate}
-        className="px-4 pb-2 pt-5 text-sm font-semibold tracking-tight text-primary"
-      >
-        LoopReady
-      </Link>
-
-      <nav className="mt-4 flex-1 space-y-0.5 px-2">
-        {NAV.map((item) => {
-          // /start covers the loop builder; treat any nested route as active
-          // too, so mid-flow the item still reads as the current section.
-          const active =
-            pathname === item.href || pathname.startsWith(`${item.href}/`);
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={onNavigate}
-              aria-current={active ? "page" : undefined}
-              className={cn(
-                "flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors",
-                active
-                  ? "bg-accent-muted text-accent"
-                  : "text-secondary hover:bg-elevated hover:text-primary"
-              )}
-            >
-              <item.icon className="h-[18px] w-[18px] shrink-0" />
-              {item.label}
-            </Link>
-          );
-        })}
-      </nav>
-
-      {/* Credits: a persistent balance, not something you only discover after
-          being blocked. Read server-side, display only -- purchasing happens
-          on the checkout page this links to. */}
-      {credits.visible && (
-        <div className="mx-2 mb-3 rounded-md border border-line bg-elevated px-3 py-2.5">
-          <p className="text-xs text-muted">Video credits</p>
-          <div className="mt-1 flex items-center justify-between gap-2">
-            <span className="text-lg font-semibold text-primary">
-              {credits.remaining}
-            </span>
-            <Link
-              href="/checkout?product=video-pack"
-              onClick={onNavigate}
-              className="rounded-md border border-line-strong px-2 py-1 text-xs font-medium text-secondary transition-colors hover:border-accent-border hover:text-accent"
-            >
-              Buy more
-            </Link>
-          </div>
-        </div>
-      )}
-
-      <div className="border-t border-line px-2 py-2">
-        {FOOTER.map((item) => {
-          const active = pathname === item.href;
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={onNavigate}
-              className={cn(
-                "block rounded-md px-3 py-1.5 text-sm transition-colors",
-                active
-                  ? "bg-elevated text-primary"
-                  : "text-secondary hover:bg-elevated hover:text-primary"
-              )}
-            >
-              {item.label}
-            </Link>
-          );
-        })}
-
-        <div className="mt-1 overflow-hidden rounded-md border border-line bg-elevated">
-          {/* Avatar sized and styled to match AccountMenu's original top-nav
-              avatar (h-8 w-8, text-xs), so the two do not look like different
-              components. min-w-0 on both this row and the email span is what
-              actually makes the truncate take effect inside a flex row. */}
-          <div className="flex min-w-0 items-center gap-2.5 px-3 py-2.5">
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-line bg-surface text-xs font-semibold text-secondary">
-              {initials(name ?? email)}
-            </span>
-            {/* Name when the provider gave us one, email otherwise. The
-                email stays as the tooltip so the account is still
-                identifiable when two people share a display name. */}
-            <span className="min-w-0 flex-1 truncate text-sm text-secondary" title={email}>
-              {name ?? email ?? "Account"}
-            </span>
-          </div>
-          <button
-            onClick={signOut}
-            className="block w-full border-t border-line px-3 py-2 text-left text-sm text-secondary transition-colors hover:bg-surface hover:text-primary"
-          >
-            Log out
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// Spelled out as literal class names, not derived, because Tailwind's build-
-// time scanner only picks up classes it can see as plain strings in source --
-// a computed `\`pl-\${SIDEBAR_WIDTH...}\`\` would never actually be generated.
-const SIDEBAR_WIDTH = "w-60";
-const SIDEBAR_CONTENT_PADDING = "lg:pl-60";
-
 /**
- * The sidebar itself, plus the mobile hamburger + slide-out drawer.
- *
- * Desktop (lg+): a fixed rail, always visible, compact rather than a wide
- * empty gutter. Mobile: hidden by default behind a hamburger, opening as a
- * slide-out drawer over a backdrop -- collapsing it entirely rather than
- * squeezing a rail onto a small screen.
+ * Structural foundation is shadcn's Sidebar primitive
+ * (components/ui/shadcn/sidebar.tsx, pulled from the registry, not
+ * hand-rolled): active-state styling, the icon-collapsed rail, and the
+ * mobile Sheet drawer all come from it rather than being reimplemented here.
+ * This file supplies only OUR content -- nav items, the credits card, the
+ * account block -- inside its Header/Content/Footer slots.
  */
 export default function AppSidebar({
   email,
@@ -196,62 +74,128 @@ export default function AppSidebar({
   name?: string;
   credits: SidebarCredits;
 }) {
-  const [open, setOpen] = useState(false);
+  const pathname = usePathname();
+  const router = useRouter();
+
+  async function signOut() {
+    await createClient().auth.signOut();
+    router.push("/login");
+    router.refresh();
+  }
 
   return (
-    <>
-      {/* Mobile top bar */}
-      <div className="sticky top-0 z-40 flex items-center justify-between border-b border-line bg-base/85 px-4 py-3 backdrop-blur lg:hidden">
-        <Link href="/dashboard" className="text-sm font-semibold text-primary">
-          LoopReady
-        </Link>
-        <button
-          onClick={() => setOpen(true)}
-          aria-label="Open navigation"
-          className="flex h-9 w-9 items-center justify-center rounded-md border border-line text-secondary transition-colors hover:border-line-strong hover:text-primary"
+    <Sidebar collapsible="icon">
+      <SidebarHeader>
+        <Link
+          href="/dashboard"
+          className="flex items-center gap-2 px-2 py-1.5 text-sm font-semibold tracking-tight text-primary"
         >
-          <IconMenu className="h-5 w-5" />
-        </button>
-      </div>
+          <IconLogo className="h-5 w-5 shrink-0 text-accent" />
+          <span className="group-data-[collapsible=icon]:hidden">
+            LoopReady
+          </span>
+        </Link>
+      </SidebarHeader>
 
-      {/* Desktop rail */}
-      <aside
-        className={cn(
-          "fixed inset-y-0 left-0 z-30 hidden border-r border-line bg-surface lg:block",
-          SIDEBAR_WIDTH
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {NAV.map((item) => {
+                // /start covers the loop builder; treat any nested route as
+                // active too, so mid-flow the item still reads as current.
+                const active =
+                  pathname === item.href ||
+                  pathname.startsWith(`${item.href}/`);
+                return (
+                  <SidebarMenuItem key={item.href}>
+                    <SidebarMenuButton asChild isActive={active} tooltip={item.label}>
+                      <Link href={item.href}>
+                        <item.icon />
+                        <span>{item.label}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+
+      {/* Everything below used to be its own separately-bordered block
+          (credits card, then a bordered footer nav, then a bordered account
+          card) stacked with hand-tuned margins -- three floating pieces, and
+          on a short viewport the last one sat flush against the screen edge.
+          SidebarFooter is one slot; SidebarSeparator is the primitive's own
+          divider, so the whole footer now reads as one structure. */}
+      <SidebarFooter>
+        {credits.visible && (
+          <div className="mb-1 rounded-md border border-sidebar-border bg-elevated px-3 py-2.5 group-data-[collapsible=icon]:hidden">
+            <p className="text-xs text-muted">Video credits</p>
+            <div className="mt-1 flex items-center justify-between gap-2">
+              <span className="text-lg font-semibold text-primary">
+                {credits.remaining}
+              </span>
+              <Link
+                href="/checkout?product=video-pack"
+                className="rounded-md border border-line-strong px-2 py-1 text-xs font-medium text-secondary transition-colors hover:border-accent-border hover:text-accent"
+              >
+                Buy more
+              </Link>
+            </div>
+          </div>
         )}
-      >
-        <SidebarContent email={email} name={name} credits={credits} />
-      </aside>
 
-      {/* Mobile drawer */}
-      {open && (
-        <div className="fixed inset-0 z-50 lg:hidden">
-          <button
-            aria-label="Close navigation"
-            onClick={() => setOpen(false)}
-            className="absolute inset-0 bg-black/60"
-          />
-          <aside
-            className={cn(
-              "absolute inset-y-0 left-0 border-r border-line bg-surface shadow-[var(--shadow-lg)]",
-              SIDEBAR_WIDTH
-            )}
-          >
-            <SidebarContent
-              email={email}
-              name={name}
-              credits={credits}
-              onNavigate={() => setOpen(false)}
-            />
-          </aside>
-        </div>
-      )}
-    </>
+        <SidebarMenu>
+          {FOOTER.map((item) => (
+            <SidebarMenuItem key={item.href}>
+              <SidebarMenuButton
+                asChild
+                isActive={pathname === item.href}
+                tooltip={item.label}
+              >
+                <Link href={item.href}>
+                  <item.icon />
+                  <span>{item.label}</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          ))}
+        </SidebarMenu>
+
+        <SidebarSeparator />
+
+        {/* The one account entry: an avatar, the display identity, and sign
+            out, as two menu rows sharing this group -- not two components
+            (a top-nav AccountMenu and a sidebar account card) that could
+            ever both render on the same page. */}
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              size="lg"
+              tooltip={name ?? email}
+              className="cursor-default hover:bg-transparent active:bg-transparent"
+            >
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-line bg-surface text-xs font-semibold text-secondary">
+                {initials(name ?? email)}
+              </span>
+              <span className="min-w-0 flex-1 truncate text-secondary" title={email}>
+                {name ?? email ?? "Account"}
+              </span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton onClick={signOut} tooltip="Log out">
+              <IconLogout />
+              <span>Log out</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
+    </Sidebar>
   );
 }
-
-export { SIDEBAR_WIDTH, SIDEBAR_CONTENT_PADDING };
 
 // ---------------------------------------------------------------- icons
 // Minimal inline outline icons. No icon library is introduced.
@@ -267,6 +211,21 @@ function iconProps(className?: string) {
     className,
     "aria-hidden": true,
   };
+}
+
+function IconLogo({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden>
+      <circle
+        cx="12"
+        cy="12"
+        r="8"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.5"
+      />
+    </svg>
+  );
 }
 
 function IconHome({ className }: { className?: string }) {
@@ -304,11 +263,30 @@ function IconChat({ className }: { className?: string }) {
   );
 }
 
-function IconMenu({ className }: { className?: string }) {
+function IconCard({ className }: { className?: string }) {
   return (
     <svg {...iconProps(className)}>
-      <path d="M4 6.5h16M4 12h16M4 17.5h16" />
+      <rect x="3" y="6" width="18" height="12" rx="2" />
+      <path d="M3 10h18" />
     </svg>
   );
 }
 
+function IconGear({ className }: { className?: string }) {
+  return (
+    <svg {...iconProps(className)}>
+      <circle cx="12" cy="12" r="3" />
+      <path d="M12 3.5v2M12 18.5v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M3.5 12h2M18.5 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+    </svg>
+  );
+}
+
+function IconLogout({ className }: { className?: string }) {
+  return (
+    <svg {...iconProps(className)}>
+      <path d="M9 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h3" />
+      <path d="M16 17l5-5-5-5" />
+      <path d="M21 12H9" />
+    </svg>
+  );
+}

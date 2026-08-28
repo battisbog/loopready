@@ -84,6 +84,32 @@
   --color-border: var(--border-subtle);
   --color-muted-foreground: var(--text-muted);
 
+  /* components/ui/shadcn/sidebar.tsx's own token set. Active/selected menu
+     items use sidebar-accent as a fill -- mapped to --accent-muted (the same
+     tinted-background treatment our nav links, badges and tabs already use
+     for "this one is current"), not a solid --accent fill, which would be a
+     new visual language this component alone introduced. */
+  --color-sidebar: var(--bg-surface);
+  --color-sidebar-foreground: var(--text-primary);
+  --color-sidebar-accent: var(--accent-muted);
+  --color-sidebar-accent-foreground: var(--accent);
+  --color-sidebar-border: var(--border-subtle);
+  --color-sidebar-ring: var(--accent);
+
+  /* Needed by components/ui/shadcn/button.tsx's ghost variant (used once, by
+     the sidebar's own collapse trigger) and its base focus ring -- both are
+     unprefixed shadcn conventions, not sidebar-specific ones. */
+  --color-ring: var(--accent);
+  --color-accent-foreground: var(--accent-fg);
+
+  /* Sheet (the mobile drawer) and Tooltip (collapsed-rail labels) need
+     these. Tooltip deliberately inverts -- bg-foreground/text-background --
+     which lands as a light bubble with dark text: the one place a light
+     surface on this dark site is correct, since a tooltip's whole job is to
+     stand out, and this is shadcn's own convention for it, not an override. */
+  --color-background: var(--bg-base);
+  --color-foreground: var(--text-primary);
+
   --color-accent: var(--accent);
   --color-accent-hover: var(--accent-hover);
   --color-accent-muted: var(--accent-muted);

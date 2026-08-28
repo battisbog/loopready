@@ -1,9 +1,11 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getEntitlements } from "@/lib/tiers";
 import { VIDEO_ENABLED_CLIENT } from "@/lib/video/config";
-import AppSidebar, { SIDEBAR_CONTENT_PADDING } from "@/components/app-sidebar";
+import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/shadcn/sidebar";
+import AppSidebar from "@/components/app-sidebar";
 
 /**
  * Shell for the authenticated app: dashboard, start, history, feedback,
@@ -31,7 +33,7 @@ export default async function AppLayout({
   const ent = await getEntitlements(admin, user.id);
 
   return (
-    <div className="min-h-screen bg-base">
+    <SidebarProvider>
       <AppSidebar
         email={user.email}
         // Google and GitHub both return a display name; email sign-ups have
@@ -47,7 +49,19 @@ export default async function AppLayout({
           remaining: ent.videoCreditsRemaining,
         }}
       />
-      <div className={SIDEBAR_CONTENT_PADDING}>{children}</div>
-    </div>
+      <SidebarInset>
+        {/* Sidebar auto-collapses into a Sheet on mobile (the primitive's own
+            responsive behaviour, not hand-rolled) -- but nothing opens that
+            Sheet unless something on the page renders a trigger. This bar is
+            that trigger, shown only where the rail itself is hidden. */}
+        <header className="sticky top-0 z-40 flex items-center gap-3 border-b border-line bg-base/85 px-4 py-3 backdrop-blur lg:hidden">
+          <SidebarTrigger />
+          <Link href="/dashboard" className="text-sm font-semibold text-primary">
+            LoopReady
+          </Link>
+        </header>
+        {children}
+      </SidebarInset>
+    </SidebarProvider>
   );
 }
