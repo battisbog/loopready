@@ -60,12 +60,15 @@ export function NumberTicker({
   )
 
   return (
+    // Registry default was "text-black dark:text-white", which assumes a
+    // light/dark toggle this app doesn't have -- it's a fixed dark theme, so
+    // the dark: variant never activates and every ticker rendered literally
+    // black text on our near-black background, invisible. Dropped the color
+    // entirely; it now inherits from whatever wraps it, same as any other
+    // inline element.
     <span
       ref={ref}
-      className={cn(
-        "inline-block tracking-wider text-black tabular-nums dark:text-white",
-        className
-      )}
+      className={cn("inline-block tracking-wider tabular-nums", className)}
       {...props}
     >
       {startValue}

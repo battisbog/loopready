@@ -46,7 +46,7 @@ const TIERS: Tier[] = [
       },
       { label: "Real-time voice conversation" },
       { label: "Full written debrief on every mock" },
-      { label: "Voice only — video needs Premium" },
+      { label: "Voice only" },
     ],
   },
   {
