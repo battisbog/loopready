@@ -172,8 +172,17 @@ export default async function Landing() {
                 // aspect-video frame and loads fast on a marketing page.
                 // object-cover fills the frame exactly; the browser does the
                 // cropping, so the source didn't need to be pixel-exact.
+                //
+                // poster matters beyond the loading flicker: iOS Low Power
+                // Mode (and Low Data Mode in Safari) blocks ALL video
+                // autoplay device-wide, muted or not -- no HTML attribute
+                // overrides it, by design. Without a poster, a visitor in
+                // either mode saw a blank black box where the interviewer
+                // should be; with one, they see a real still frame and the
+                // panel never looks broken, even when autoplay never fires.
                 <video
                   src="/interviewer-demo.mp4"
+                  poster="/interviewer-poster.jpg"
                   autoPlay
                   muted
                   loop
