@@ -1,7 +1,17 @@
-import Link from "next/link";
+import { Check, Minus } from "lucide-react";
 import { Button } from "@/components/ui";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/shadcn/card";
 import { PREMIUM_VIDEO_ALLOWANCE } from "@/lib/tiers";
 import { PRICING } from "@/lib/pricing";
+import { Reveal } from "./reveal";
+import { cn } from "@/lib/cn";
 
 interface Tier {
   id: string;
@@ -9,6 +19,10 @@ interface Tier {
   price: string;
   cadence?: string;
   tagline: string;
+  /** Short positioning label shown between the price and the feature list,
+   *  e.g. "For trying it out" -- separate from `tagline`, which is a full
+   *  sentence under the name. */
+  focus: string;
   cta: string;
   href: string;
   featured?: boolean;
@@ -22,6 +36,7 @@ const TIERS: Tier[] = [
     name: "Free",
     price: "Free",
     tagline: "Try one short mock and see the feedback for yourself.",
+    focus: "For trying it out",
     cta: "Start free",
     href: "/login",
     features: [
@@ -37,6 +52,7 @@ const TIERS: Tier[] = [
     price: PRICING.voice.display,
     cadence: "/mo",
     tagline: "Unlimited practice across the whole loop, in a natural voice.",
+    focus: "For the full loop",
     cta: "Get Voice",
     href: "/checkout?plan=voice",
     featured: true,
@@ -55,6 +71,7 @@ const TIERS: Tier[] = [
     price: PRICING.premium.display,
     cadence: "/mo",
     tagline: "Face-to-face practice for the real thing.",
+    focus: "For the real thing",
     cta: "Get Premium",
     href: "/checkout?plan=premium",
     note: "Video rounds use one credit each. Voice stays unlimited.",
@@ -136,82 +153,124 @@ export default function Pricing({
           </p>
         </div>
 
-        {/* Tier cards */}
+        {/* Tier cards. Featured (Voice) gets real elevation -- a taller card
+            via negative margin rather than scale, so its top and bottom
+            edges don't fall out of alignment with its neighbours -- plus an
+            accent glow, instead of just a tinted background doing all the
+            work of saying "pick this one". */}
+        {/* Default grid stretch (no items-start) is deliberate: it keeps
+            Free and Premium the same height as each other. The featured
+            card's negative margin then pokes it taller than that shared
+            row height on both edges, rather than fighting the stretch. */}
         <div className="mt-12 grid gap-6 lg:grid-cols-3">
-          {TIERS.map((tier) => (
-            <div
-              key={tier.id}
-              className={`relative flex flex-col rounded-lg border p-5 ${
-                tier.featured
-                  ? "border-accent-border bg-accent-muted"
-                  : "border-line bg-surface"
-              }`}
-            >
-              {tier.featured && (
-                <span className="absolute -top-3 left-7 rounded-full bg-accent px-3 py-1 text-xs font-semibold text-accent-fg">
-                  Most popular
-                </span>
-              )}
-
-              <h3 className="text-lg font-semibold text-primary">
-                {tier.name}
-              </h3>
-              <p className="mt-1 min-h-10 text-sm leading-relaxed text-secondary">
-                {tier.tagline}
-              </p>
-
-              <p className="mt-6 flex items-baseline gap-1">
-                <span className="text-4xl font-semibold text-primary">
-                  {tier.price}
-                </span>
-                {tier.cadence && (
-                  <span className="text-sm text-muted">{tier.cadence}</span>
+          {TIERS.map((tier, i) => (
+            <Reveal key={tier.id} delay={i * 0.08} className="h-full">
+              <Card
+                className={cn(
+                  "relative h-full gap-5 py-6 transition-transform duration-200",
+                  tier.featured
+                    ? "border-accent-border bg-accent-muted shadow-[var(--shadow-accent)] lg:-my-3 lg:py-9"
+                    : "hover:border-line-strong hover:-translate-y-0.5"
                 )}
-              </p>
+              >
+                {tier.featured && (
+                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-accent px-3 py-1 text-xs font-semibold whitespace-nowrap text-accent-fg">
+                    Most popular
+                  </span>
+                )}
 
-              {(() => {
-                const action = callToAction(tier, signedIn, currentTier);
-                return (
-                  <Button
-                    href={action.href}
-                    variant={
-                      action.current
-                        ? "secondary"
-                        : tier.featured
-                          ? "primary"
-                          : "secondary"
-                    }
-                    className="mt-6 w-full"
-                  >
-                    {action.cta}
-                  </Button>
-                );
-              })()}
+                <CardHeader className="gap-1.5">
+                  <CardTitle className="text-lg text-primary">
+                    {tier.name}
+                  </CardTitle>
+                  <CardDescription className="min-h-10 leading-relaxed">
+                    {tier.tagline}
+                  </CardDescription>
+                </CardHeader>
 
-              <ul className="mt-7 space-y-3">
-                {tier.features.map((f) => (
-                  <li
-                    key={f.label}
-                    className="flex items-start gap-2.5 text-sm text-secondary"
-                  >
-                    <span
-                      className={`mt-0.5 shrink-0 ${
-                        "text-accent"
-                      }`}
-                    >
-                      ✓
+                {/* flex-1: this content block grows to fill whatever space
+                    the shortest feature list leaves, which is what pins the
+                    CTA to the same baseline across all three cards instead
+                    of it trailing directly under a shorter list. */}
+                <CardContent className="flex flex-1 flex-col gap-5">
+                  {/* Static, deliberately: a spring-physics count-up passes
+                      through several wrong intermediate values before
+                      settling (confirmed in a real browser -- still reading
+                      "$18" and "$67" a full 1.5s after scrolling into view,
+                      not landing on "$19"/"$69" for several seconds more).
+                      That's fine for illustrative stats elsewhere on the
+                      page; not for the number someone is about to pay. */}
+                  <p className="flex items-baseline gap-1">
+                    <span className="text-4xl font-semibold text-primary">
+                      {tier.price}
                     </span>
-                    <span>{f.label}</span>
-                  </li>
-                ))}
-              </ul>
+                    {tier.cadence && (
+                      <span className="text-sm text-muted">{tier.cadence}</span>
+                    )}
+                  </p>
 
-              {tier.note && (
-                <p className="mt-6 border-t border-line pt-4 text-xs leading-relaxed text-muted">
-                  {tier.note}
-                </p>
-              )}
-            </div>
+                  <p
+                    className={cn(
+                      "text-xs font-medium uppercase tracking-wide",
+                      tier.featured ? "text-accent" : "text-muted"
+                    )}
+                  >
+                    {tier.focus}
+                  </p>
+
+                  <ul className="space-y-3">
+                    {tier.features.map((f) => (
+                      <li
+                        key={f.label}
+                        className="flex items-center gap-2.5 text-sm text-secondary"
+                      >
+                        <span
+                          className={cn(
+                            "flex h-5 w-5 shrink-0 items-center justify-center rounded",
+                            tier.featured ? "bg-accent/20" : "bg-elevated"
+                          )}
+                        >
+                          <Check
+                            className={cn(
+                              "h-3 w-3",
+                              tier.featured ? "text-accent" : "text-secondary"
+                            )}
+                          />
+                        </span>
+                        <span>{f.label}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+
+                <CardFooter className="flex flex-col gap-3">
+                  {(() => {
+                    const action = callToAction(tier, signedIn, currentTier);
+                    return (
+                      <Button
+                        href={action.href}
+                        variant={
+                          action.current
+                            ? "secondary"
+                            : tier.featured
+                              ? "primary"
+                              : "secondary"
+                        }
+                        className="w-full"
+                      >
+                        {action.cta}
+                      </Button>
+                    );
+                  })()}
+
+                  {tier.note && (
+                    <p className="border-t border-line pt-3 text-xs leading-relaxed text-muted">
+                      {tier.note}
+                    </p>
+                  )}
+                </CardFooter>
+              </Card>
+            </Reveal>
           ))}
         </div>
 
@@ -293,9 +352,9 @@ function Cell({ value, accent }: { value: string | boolean; accent?: boolean }) 
   return (
     <td className="px-4 py-4">
       {value === true ? (
-        <span className={accent ? "text-accent" : "text-secondary"}>✓</span>
+        <Check className={cn("h-4 w-4", accent ? "text-accent" : "text-secondary")} />
       ) : value === false ? (
-        <span className="text-muted">—</span>
+        <Minus className="h-4 w-4 text-muted" />
       ) : (
         <span className={accent ? "text-accent" : "text-secondary"}>
           {value}

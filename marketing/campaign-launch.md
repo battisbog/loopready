@@ -74,13 +74,30 @@ first moment you'd bounce if you weren't the founder. Fix that moment.
 You do this part yourself; account creation needs your identity and phone. Here
 is every field, filled in.
 
-### Handle
+### Handle — CLAIMED 2026-08-22
 
-Use **`@loopready`** everywhere. If it's taken on any one platform, fall back to
-**`@getloopready`** on **all** of them — a mismatched handle set costs you more
-than a slightly worse name, because your end cards can only say one thing.
+| Platform | Handle |
+|---|---|
+| YouTube, Instagram, X, Reddit | **`@loopready`** |
+| TikTok | **`@getloopready`** (`@loopready` was taken) |
 
-Check all five before committing: TikTok, YouTube, Instagram, X, Reddit.
+**Do not rename the four to match TikTok.** `@loopready` is the better handle
+and you own it on four of five platforms; downgrading all of them to match one
+is a net loss.
+
+**Resolve the split by not using a handle as your identifier.** End cards,
+outreach templates, and cross-platform references use the **domain**
+`loopready.io` — platform-neutral, it's the actual conversion target, and it
+makes the split invisible. Name a handle only when pointing at one specific
+platform ("we're @getloopready on TikTok").
+
+**Display name is `LoopReady` on every platform.** That's what people search,
+and TikTok search surfaces display names — so someone searching "loopready"
+finds you there regardless of the handle.
+
+Optional, low priority: TikTok releases handles from long-dormant accounts. If
+`@loopready` there is a squatter with no posts, it may free up eventually.
+Don't build anything around that happening.
 
 ### Display name
 
