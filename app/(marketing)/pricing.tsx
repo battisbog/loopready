@@ -19,6 +19,10 @@ interface Tier {
   price: string;
   cadence?: string;
   tagline: string;
+  /** Short positioning label shown between the price and the feature list,
+   *  e.g. "For trying it out" -- separate from `tagline`, which is a full
+   *  sentence under the name. */
+  focus: string;
   cta: string;
   href: string;
   featured?: boolean;
@@ -32,6 +36,7 @@ const TIERS: Tier[] = [
     name: "Free",
     price: "Free",
     tagline: "Try one short mock and see the feedback for yourself.",
+    focus: "For trying it out",
     cta: "Start free",
     href: "/login",
     features: [
@@ -47,6 +52,7 @@ const TIERS: Tier[] = [
     price: PRICING.voice.display,
     cadence: "/mo",
     tagline: "Unlimited practice across the whole loop, in a natural voice.",
+    focus: "For the full loop",
     cta: "Get Voice",
     href: "/checkout?plan=voice",
     featured: true,
@@ -65,6 +71,7 @@ const TIERS: Tier[] = [
     price: PRICING.premium.display,
     cadence: "/mo",
     tagline: "Face-to-face practice for the real thing.",
+    focus: "For the real thing",
     cta: "Get Premium",
     href: "/checkout?plan=premium",
     note: "Video rounds use one credit each. Voice stays unlimited.",
@@ -181,7 +188,11 @@ export default function Pricing({
                   </CardDescription>
                 </CardHeader>
 
-                <CardContent className="flex flex-col gap-6">
+                {/* flex-1: this content block grows to fill whatever space
+                    the shortest feature list leaves, which is what pins the
+                    CTA to the same baseline across all three cards instead
+                    of it trailing directly under a shorter list. */}
+                <CardContent className="flex flex-1 flex-col gap-5">
                   {/* Static, deliberately: a spring-physics count-up passes
                       through several wrong intermediate values before
                       settling (confirmed in a real browser -- still reading
@@ -198,6 +209,41 @@ export default function Pricing({
                     )}
                   </p>
 
+                  <p
+                    className={cn(
+                      "text-xs font-medium uppercase tracking-wide",
+                      tier.featured ? "text-accent" : "text-muted"
+                    )}
+                  >
+                    {tier.focus}
+                  </p>
+
+                  <ul className="space-y-3">
+                    {tier.features.map((f) => (
+                      <li
+                        key={f.label}
+                        className="flex items-center gap-2.5 text-sm text-secondary"
+                      >
+                        <span
+                          className={cn(
+                            "flex h-5 w-5 shrink-0 items-center justify-center rounded",
+                            tier.featured ? "bg-accent/20" : "bg-elevated"
+                          )}
+                        >
+                          <Check
+                            className={cn(
+                              "h-3 w-3",
+                              tier.featured ? "text-accent" : "text-secondary"
+                            )}
+                          />
+                        </span>
+                        <span>{f.label}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+
+                <CardFooter className="flex flex-col gap-3">
                   {(() => {
                     const action = callToAction(tier, signedIn, currentTier);
                     return (
@@ -217,29 +263,12 @@ export default function Pricing({
                     );
                   })()}
 
-                  <ul className="space-y-3">
-                    {tier.features.map((f) => (
-                      <li
-                        key={f.label}
-                        className="flex items-start gap-2.5 text-sm text-secondary"
-                      >
-                        <Check
-                          className={cn(
-                            "mt-0.5 h-4 w-4 shrink-0",
-                            tier.featured ? "text-accent" : "text-secondary"
-                          )}
-                        />
-                        <span>{f.label}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-
-                {tier.note && (
-                  <CardFooter className="border-t border-line pt-5 text-xs leading-relaxed text-muted">
-                    {tier.note}
-                  </CardFooter>
-                )}
+                  {tier.note && (
+                    <p className="border-t border-line pt-3 text-xs leading-relaxed text-muted">
+                      {tier.note}
+                    </p>
+                  )}
+                </CardFooter>
               </Card>
             </Reveal>
           ))}
