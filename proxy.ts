@@ -39,6 +39,7 @@ const PUBLIC_FILES = [
   "/icon",
   "/demo.mp4",
   "/demo-poster.png",
+  "/interviewer-demo.mp4",
 ];
 
 function isPublicPath(pathname: string) {

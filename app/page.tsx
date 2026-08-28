@@ -164,7 +164,24 @@ export default async function Landing() {
                 is sharp at any size, themed from the same tokens as the
                 product, and shows the actual `two-sum` problem from the bank
                 rather than whatever was on screen the day the PNG was taken. */}
-            <SessionMockup revealOnScroll />
+            <SessionMockup
+              revealOnScroll
+              video={
+                // Cropped to 16:9 and re-encoded (936x538 source -> 800x450,
+                // 11MB -> 183KB, audio stripped) so it fits the panel's
+                // aspect-video frame and loads fast on a marketing page.
+                // object-cover fills the frame exactly; the browser does the
+                // cropping, so the source didn't need to be pixel-exact.
+                <video
+                  src="/interviewer-demo.mp4"
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  className="h-full w-full object-cover"
+                />
+              }
+            />
             <figcaption className="mt-4 text-center text-xs text-muted">
               All three rounds are live today: behavioral, coding, and system
               design.
