@@ -56,9 +56,13 @@ function loadSdk(clientId: string, subscription: boolean): Promise<PayPalSdk> {
 export default function CheckoutButtons({
   clientId,
   purchase,
+  discountCode,
 }: {
   clientId: string;
   purchase: Purchase;
+  /** Applied via /api/discount/check before rendering; re-validated and
+   *  actually redeemed server-side when the subscription is created. */
+  discountCode?: string;
 }) {
   const router = useRouter();
   const paypalMount = useRef<HTMLDivElement>(null);
@@ -79,7 +83,10 @@ export default function CheckoutButtons({
             const res = await fetch("/api/paypal/subscription", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ plan: (purchase as { plan: string }).plan }),
+              body: JSON.stringify({
+                plan: (purchase as { plan: string }).plan,
+                discountCode: discountCode || undefined,
+              }),
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error ?? "Could not start");
@@ -189,7 +196,7 @@ export default function CheckoutButtons({
     return () => {
       cancelled = true;
     };
-  }, [clientId, purchase, router]);
+  }, [clientId, purchase, router, discountCode]);
 
   return (
     <div>

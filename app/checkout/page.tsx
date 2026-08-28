@@ -8,6 +8,7 @@ import { PRICING, planId } from "@/lib/pricing";
 import { VIDEO_PACK_CREDITS, getUserTier } from "@/lib/tiers";
 import { paypalConfigured } from "@/lib/paypal/client";
 import CheckoutButtons from "./checkout-buttons";
+import SubscriptionCheckout from "./subscription-checkout";
 
 export const metadata = { title: "Checkout" };
 
@@ -237,14 +238,18 @@ export default async function CheckoutPage({
                     Use a PayPal balance or any debit or credit card.
                   </p>
                   <div className="mt-4">
-                    <CheckoutButtons
-                      clientId={clientId!}
-                      purchase={
-                        purchase.kind === "subscription"
-                          ? { kind: "subscription", plan: purchase.plan }
-                          : { kind: "order", product: purchase.product }
-                      }
-                    />
+                    {purchase.kind === "subscription" ? (
+                      <SubscriptionCheckout
+                        plan={purchase.plan}
+                        clientId={clientId!}
+                        regularPrice={PRICING[purchase.plan].amount}
+                      />
+                    ) : (
+                      <CheckoutButtons
+                        clientId={clientId!}
+                        purchase={{ kind: "order", product: purchase.product }}
+                      />
+                    )}
                   </div>
                 </>
               )}

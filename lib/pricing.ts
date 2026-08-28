@@ -11,6 +11,8 @@
  *   Voice    → recurring monthly plan, PAYPAL_PLAN_VOICE, amount 19.00 USD
  *   Premium  → recurring monthly plan, PAYPAL_PLAN_PREMIUM, amount 69.00 USD
  *   Video pack → one-time order, PAYPAL_PRICE_VIDEO_PACK, amount 19.00 USD
+ *   Discount checkout → PAYPAL_PLAN_VOICE_DISCOUNT / _PREMIUM_DISCOUNT, same
+ *     prices as above on both cycles by default -- see discountPlanId below.
  *
  * PayPal stores the amount on the plan itself, so changing a number here does
  * NOT change what is charged. Changing a price means creating a NEW PayPal
@@ -59,6 +61,47 @@ export const PAYPAL_PLAN_ENV: Record<PaidPlan, string> = {
 
 export function planId(plan: PaidPlan): string | undefined {
   return process.env[PAYPAL_PLAN_ENV[plan]];
+}
+
+/**
+ * Discount-eligible plan variants (scripts/paypal-discount-plans.mts).
+ *
+ * PayPal has no "apply a coupon" concept, and our regular plans each have a
+ * single REGULAR cycle that recurs forever -- overriding its price would
+ * discount every renewal, not just the first one. These variants add a
+ * one-time TRIAL cycle ahead of the same REGULAR cycle specifically so a
+ * discount can override the TRIAL price alone. They default to full price on
+ * both cycles, so a subscription created against them without a discount
+ * override behaves identically to the regular plan.
+ */
+export const PAYPAL_DISCOUNT_PLAN_ENV: Record<PaidPlan, string> = {
+  voice: "PAYPAL_PLAN_VOICE_DISCOUNT",
+  premium: "PAYPAL_PLAN_PREMIUM_DISCOUNT",
+};
+
+export function discountPlanId(plan: PaidPlan): string | undefined {
+  return process.env[PAYPAL_DISCOUNT_PLAN_ENV[plan]];
+}
+
+/** PayPal will not process a $0 or negative charge, and a near-zero one is
+ *  not a real transaction either -- floor the discounted price here rather
+ *  than at each call site. */
+export const MIN_CHARGE_USD = 1;
+
+/**
+ * The first-cycle price after a discount, or null if the code would take the
+ * plan below the minimum chargeable amount -- callers should reject the code
+ * for that plan rather than charge the floor silently, since "your $50 code
+ * only saved you $18" is a worse experience than telling them up front it
+ * does not apply here.
+ */
+export function discountedFirstCyclePrice(
+  plan: PaidPlan,
+  amountOff: number
+): string | null {
+  const price = Number(PRICING[plan].amount) - amountOff;
+  if (price < MIN_CHARGE_USD) return null;
+  return price.toFixed(2);
 }
 
 export interface PriceCheck {
