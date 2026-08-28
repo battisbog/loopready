@@ -362,16 +362,21 @@ export default function Pricing({
             a="Not yet, but if you're organising practice for a bootcamp or a university group, get in touch and we'll work something out."
           />
         </div>
+
+        {/* Was a sibling of this padded div rather than a child of it -- no
+            horizontal padding, and critically no bottom spacing before the
+            section boundary, so the very next section's top border sat
+            flush against this line with no breathing room at all. */}
+        <p className="mt-10 text-center text-sm text-muted">
+          Question we have not answered?{" "}
+          <a
+            href="mailto:support@loopready.io"
+            className="text-secondary underline underline-offset-2 hover:text-primary"
+          >
+            support@loopready.io
+          </a>
+        </p>
       </div>
-          <p className="mt-10 text-center text-sm text-muted">
-        Question we have not answered?{" "}
-        <a
-          href="mailto:support@loopready.io"
-          className="text-secondary underline underline-offset-2 hover:text-primary"
-        >
-          support@loopready.io
-        </a>
-      </p>
     </section>
   );
 }
