@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { Button } from "@/components/ui";
-import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getUserTier } from "@/lib/tiers";
@@ -10,6 +9,9 @@ import CompanyTabs from "./(marketing)/company-tabs";
 import Nav from "./(marketing)/nav";
 import Pricing from "./(marketing)/pricing";
 import DemoVideoModal from "./(marketing)/demo-video-modal";
+import SessionMockup from "./(marketing)/session-mockup";
+import DashboardMockup from "./(marketing)/dashboard-mockup";
+import { Reveal } from "./(marketing)/reveal";
 
 const COMPANIES = ["amazon", "google", "meta", "microsoft", "apple", "netflix"];
 
@@ -64,15 +66,14 @@ export default async function Landing() {
               </span>
 
               <h1 className="mt-6 text-4xl font-semibold leading-[1.08] tracking-tight sm:text-5xl lg:text-6xl">
-                Pass your loop,
+                Practice the interview.
                 <br />
-                <span className="text-accent">not just your mock.</span>
+                <span className="text-accent">Not the questions.</span>
               </h1>
 
               <p className="mt-6 max-w-xl text-lg leading-relaxed text-secondary">
-                LoopReady runs a real interview out loud. The interviewer interrupts
-                vague answers and digs until you give it something specific. Then it tells you, honestly, where you would have been
-                dinged.
+                Realistic AI interviews that push back, adapt to you, and tell
+                you if you&rsquo;d pass.
               </p>
 
               <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -93,27 +94,12 @@ export default async function Landing() {
               </p>
             </div>
 
+            {/* Was a static next/image screenshot. Now a real component, so it
+                is sharp at any size, themed from the same tokens as the
+                product, and shows the actual `two-sum` problem from the bank
+                rather than whatever was on screen the day the PNG was taken. */}
             <figure className="rise lg:-mr-4" style={{ animationDelay: "120ms" }}>
-              <div className="overflow-hidden rounded-lg border border-line bg-base shadow-2xl shadow-[var(--shadow-lg)]">
-                <div className="flex items-center gap-1.5 border-b border-line bg-surface px-4 py-2.5">
-                  <span className="h-2.5 w-2.5 rounded-full bg-elevated" />
-                  <span className="h-2.5 w-2.5 rounded-full bg-elevated" />
-                  <span className="h-2.5 w-2.5 rounded-full bg-elevated" />
-                  <span className="ml-3 truncate font-mono text-[11px] text-muted">
-                    loopready.io/session
-                  </span>
-                </div>
-                <Image
-                  src="/coding-round-preview.png"
-                  alt="The LoopReady interview workspace: the interviewer panel on the left, a Python editor on the right, and a console showing test cases passing and failing."
-                  width={1672}
-                  height={941}
-                  priority
-                  quality={95}
-                  className="h-auto w-full"
-                  sizes="(max-width: 1024px) 100vw, 620px"
-                />
-              </div>
+              <SessionMockup />
               <figcaption className="mt-3 text-center text-xs text-muted lg:text-left">
                 All three rounds are live today: behavioral, coding, and system
                 design.
@@ -280,6 +266,46 @@ export default async function Landing() {
             something the candidate actually said.
           </p>
         </div>
+
+        {/* The dashboard is the differentiator made visible: not "you did a
+            mock" but a graded record you can watch move. Coded, so the numbers
+            below are props rather than pixels. */}
+        <Reveal className="mt-10">
+          <DashboardMockup
+            interviews={12}
+            completed={11}
+            rounds={[
+              { label: "Coding", value: 6 },
+              { label: "System design", value: 3 },
+              { label: "Behavioral", value: 3 },
+            ]}
+            signal="borderline"
+            plan="Premium"
+            history={[
+              {
+                company: "Amazon",
+                level: "SDE III (L6)",
+                round: "Behavioral",
+                signal: "borderline",
+                when: "2h ago",
+              },
+              {
+                company: "Google",
+                level: "L5",
+                round: "System design",
+                signal: "hire",
+                when: "Yesterday",
+              },
+              {
+                company: "Meta",
+                level: "E4",
+                round: "Coding",
+                signal: "hire",
+                when: "3 days ago",
+              },
+            ]}
+          />
+        </Reveal>
 
         <div className="mt-10 overflow-hidden rounded-lg border border-line bg-base">
           <div className="flex flex-wrap items-center gap-3 border-b border-line bg-surface px-6 py-4">
