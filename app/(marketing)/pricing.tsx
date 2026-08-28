@@ -1,4 +1,13 @@
+import { Check, Minus } from "lucide-react";
 import { Button } from "@/components/ui";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/shadcn/card";
 import { PREMIUM_VIDEO_ALLOWANCE } from "@/lib/tiers";
 import { PRICING } from "@/lib/pricing";
 import { Reveal } from "./reveal";
@@ -149,13 +158,12 @@ export default function Pricing({
         <div className="mt-12 grid gap-6 lg:grid-cols-3">
           {TIERS.map((tier, i) => (
             <Reveal key={tier.id} delay={i * 0.08} className="h-full">
-              <div
+              <Card
                 className={cn(
-                  "relative flex h-full flex-col rounded-lg border p-6 transition-transform duration-200",
+                  "relative h-full gap-5 py-6 transition-transform duration-200",
                   tier.featured
                     ? "border-accent-border bg-accent-muted shadow-[var(--shadow-accent)] lg:-my-3 lg:py-9"
-                    : "border-line bg-surface hover:border-line-strong",
-                  !tier.featured && "hover:-translate-y-0.5"
+                    : "hover:border-line-strong hover:-translate-y-0.5"
                 )}
               >
                 {tier.featured && (
@@ -164,66 +172,75 @@ export default function Pricing({
                   </span>
                 )}
 
-                <h3 className="text-lg font-semibold text-primary">
-                  {tier.name}
-                </h3>
-                <p className="mt-1 min-h-10 text-sm leading-relaxed text-secondary">
-                  {tier.tagline}
-                </p>
+                <CardHeader className="gap-1.5">
+                  <CardTitle className="text-lg text-primary">
+                    {tier.name}
+                  </CardTitle>
+                  <CardDescription className="min-h-10 leading-relaxed">
+                    {tier.tagline}
+                  </CardDescription>
+                </CardHeader>
 
-                {/* Static, deliberately: a spring-physics count-up passes
-                    through several wrong intermediate values before settling
-                    (confirmed in a real browser -- still reading "$18" and
-                    "$67" a full 1.5s after scrolling into view, not landing
-                    on "$19"/"$69" for several seconds more). That's fine for
-                    illustrative stats elsewhere on the page; it is not
-                    acceptable for the actual number someone is about to pay. */}
-                <p className="mt-6 flex items-baseline gap-1">
-                  <span className="text-4xl font-semibold text-primary">
-                    {tier.price}
-                  </span>
-                  {tier.cadence && (
-                    <span className="text-sm text-muted">{tier.cadence}</span>
-                  )}
-                </p>
+                <CardContent className="flex flex-col gap-6">
+                  {/* Static, deliberately: a spring-physics count-up passes
+                      through several wrong intermediate values before
+                      settling (confirmed in a real browser -- still reading
+                      "$18" and "$67" a full 1.5s after scrolling into view,
+                      not landing on "$19"/"$69" for several seconds more).
+                      That's fine for illustrative stats elsewhere on the
+                      page; not for the number someone is about to pay. */}
+                  <p className="flex items-baseline gap-1">
+                    <span className="text-4xl font-semibold text-primary">
+                      {tier.price}
+                    </span>
+                    {tier.cadence && (
+                      <span className="text-sm text-muted">{tier.cadence}</span>
+                    )}
+                  </p>
 
-                {(() => {
-                  const action = callToAction(tier, signedIn, currentTier);
-                  return (
-                    <Button
-                      href={action.href}
-                      variant={
-                        action.current
-                          ? "secondary"
-                          : tier.featured
-                            ? "primary"
-                            : "secondary"
-                      }
-                      className="mt-6 w-full"
-                    >
-                      {action.cta}
-                    </Button>
-                  );
-                })()}
+                  {(() => {
+                    const action = callToAction(tier, signedIn, currentTier);
+                    return (
+                      <Button
+                        href={action.href}
+                        variant={
+                          action.current
+                            ? "secondary"
+                            : tier.featured
+                              ? "primary"
+                              : "secondary"
+                        }
+                        className="w-full"
+                      >
+                        {action.cta}
+                      </Button>
+                    );
+                  })()}
 
-                <ul className="mt-7 space-y-3">
-                  {tier.features.map((f) => (
-                    <li
-                      key={f.label}
-                      className="flex items-start gap-2.5 text-sm text-secondary"
-                    >
-                      <CheckIcon accent={tier.featured} />
-                      <span>{f.label}</span>
-                    </li>
-                  ))}
-                </ul>
+                  <ul className="space-y-3">
+                    {tier.features.map((f) => (
+                      <li
+                        key={f.label}
+                        className="flex items-start gap-2.5 text-sm text-secondary"
+                      >
+                        <Check
+                          className={cn(
+                            "mt-0.5 h-4 w-4 shrink-0",
+                            tier.featured ? "text-accent" : "text-secondary"
+                          )}
+                        />
+                        <span>{f.label}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
 
                 {tier.note && (
-                  <p className="mt-6 border-t border-line pt-4 text-xs leading-relaxed text-muted">
+                  <CardFooter className="border-t border-line pt-5 text-xs leading-relaxed text-muted">
                     {tier.note}
-                  </p>
+                  </CardFooter>
                 )}
-              </div>
+              </Card>
             </Reveal>
           ))}
         </div>
@@ -302,36 +319,13 @@ export default function Pricing({
   );
 }
 
-/** SVG rather than the "✓" character used elsewhere on the page: the glyph
- *  renders at a different weight and baseline across platforms, which is
- *  fine for a one-off checkmark but visible as inconsistency across six
- *  stacked list rows in the highest-intent section of the page. */
-function CheckIcon({ accent }: { accent?: boolean }) {
-  return (
-    <svg
-      viewBox="0 0 20 20"
-      className={cn("mt-0.5 h-4 w-4 shrink-0", accent ? "text-accent" : "text-secondary")}
-      fill="none"
-      aria-hidden
-    >
-      <path
-        d="M4 10.5l3.5 3.5L16 5.5"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
 function Cell({ value, accent }: { value: string | boolean; accent?: boolean }) {
   return (
     <td className="px-4 py-4">
       {value === true ? (
-        <span className={accent ? "text-accent" : "text-secondary"}>✓</span>
+        <Check className={cn("h-4 w-4", accent ? "text-accent" : "text-secondary")} />
       ) : value === false ? (
-        <span className="text-muted">—</span>
+        <Minus className="h-4 w-4 text-muted" />
       ) : (
         <span className={accent ? "text-accent" : "text-secondary"}>
           {value}

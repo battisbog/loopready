@@ -69,6 +69,21 @@
   --color-line: var(--border-subtle);
   --color-line-strong: var(--border-strong);
 
+  /*
+   * shadcn/ui registry components (components/ui/shadcn/*) are pulled
+   * verbatim from the public registry and reference Tailwind's generic
+   * `--color-{name}` tokens (bg-card, text-muted-foreground, the bare
+   * `border` utility's colour) rather than this file's own naming scheme.
+   * Mapping those names onto the SAME underlying values our hand-rolled
+   * components use, instead of restyling every registry component by
+   * hand, is what makes a pulled component look like ours on arrival and
+   * keeps it in sync if the palette changes later.
+   */
+  --color-card: var(--bg-surface);
+  --color-card-foreground: var(--text-primary);
+  --color-border: var(--border-subtle);
+  --color-muted-foreground: var(--text-muted);
+
   --color-accent: var(--accent);
   --color-accent-hover: var(--accent-hover);
   --color-accent-muted: var(--accent-muted);
@@ -113,6 +128,27 @@
   to {
     transform: translateY(calc(-100% - var(--gap)));
     }
+  }
+}
+
+/*
+ * The standard shadcn/ui base-layer reset. `shadcn init` normally writes
+ * this automatically; this project pulled its first registry component
+ * (components/ui/shadcn/card.tsx) via `add --path` instead, which copies
+ * the component file only, not this reset -- so the bare `border` utility
+ * it uses had no color source and fell back to `currentColor`, rendering a
+ * bright white border instead of --color-border (confirmed by inspecting
+ * the pulled-in card in a real browser, not assumed).
+ *
+ * Every OTHER border/border-t/border-b/border-y in this codebase already
+ * pairs with an explicit colour utility (border-line, border-accent, etc.),
+ * confirmed by grepping every className using one -- so this only changes
+ * elements that have a border-width and no explicit colour, which today is
+ * exclusively the shadcn registry components under components/ui/shadcn/.
+ */
+@layer base {
+  * {
+    border-color: var(--color-border, currentColor);
   }
 }
 
