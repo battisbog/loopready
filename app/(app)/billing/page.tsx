@@ -135,7 +135,11 @@ export default async function BillingPage() {
                   Buy video credits
                 </Button>
               )}
-              {profile?.paypal_subscription_id &&
+              {/* Gated on being paid at all, not on having a real PayPal
+                  subscription: an account granted a paid tier directly
+                  (support, comped, testing) still needs a way to cancel --
+                  see /api/billing/cancel's own no-subscription branch. */}
+              {paid &&
                 status !== "CANCEL_REQUESTED" &&
                 status !== "CANCELLED" && <CancelSubscription />}
             </div>

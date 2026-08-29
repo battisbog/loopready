@@ -19,7 +19,7 @@ export async function POST(request: Request) {
   const admin = createAdminClient();
   const { data: session } = await admin
     .from("sessions")
-    .select("id, status, loop_id, round_order")
+    .select("id, status, loop_id, round_order, trial_capped")
     .eq("id", sessionId)
     .eq("user_id", user.id)
     .single();
@@ -49,7 +49,16 @@ export async function POST(request: Request) {
         .update({ status: "completed" })
         .eq("id", session.loop_id);
     }
-    return NextResponse.json({ ok: true, nextRound: null, loopComplete: null, abandoned: true });
+    return NextResponse.json({
+      ok: true,
+      nextRound: null,
+      loopComplete: null,
+      abandoned: true,
+      // Ending early is still ending the trial session -- "Explore plans"
+      // applies here exactly as much as it does to the graceful time-cap
+      // close, not just when the clock runs out.
+      trialCapped: session.trial_capped === true,
+    });
   }
 
   if (session.status === "active") {
@@ -108,5 +117,10 @@ export async function POST(request: Request) {
     }
   }
 
-  return NextResponse.json({ ok: true, nextRound, loopComplete });
+  return NextResponse.json({
+    ok: true,
+    nextRound,
+    loopComplete,
+    trialCapped: session.trial_capped === true,
+  });
 }

@@ -71,27 +71,48 @@ function StatCol({
   icon: Icon,
   label,
   accent,
+  href,
   children,
 }: {
   icon: typeof ListChecks;
   label: string;
   accent?: boolean;
+  /** When set, the whole column is a link (e.g. Plan -> Billing) with a
+   *  hover affordance, not just its label. */
+  href?: string;
   children: ReactNode;
 }) {
-  return (
-    <div
-      className={cn(
-        "flex flex-col gap-3 bg-card p-5",
-        accent && "bg-accent-muted"
-      )}
-    >
+  const content = (
+    <>
       <div className="flex items-center gap-2">
         <Icon size={16} className="text-muted-foreground" />
         <span className="text-sm font-medium text-foreground">{label}</span>
+        {href && (
+          <ChevronRight
+            size={14}
+            className="ml-auto text-muted-foreground"
+            aria-hidden
+          />
+        )}
       </div>
       <div className="flex flex-1 flex-col justify-center">{children}</div>
-    </div>
+    </>
   );
+
+  const className = cn(
+    "flex flex-col gap-3 bg-card p-5",
+    accent && "bg-accent-muted",
+    href && "transition-colors hover:bg-accent/5"
+  );
+
+  if (href) {
+    return (
+      <Link href={href} className={className}>
+        {content}
+      </Link>
+    );
+  }
+  return <div className={className}>{content}</div>;
 }
 
 export default async function Dashboard() {
@@ -206,7 +227,12 @@ export default async function Dashboard() {
               )}
             </StatCol>
 
-            <StatCol icon={Crown} label="Plan" accent={plan !== "free"}>
+            <StatCol
+              icon={Crown}
+              label="Plan"
+              accent={plan !== "free"}
+              href="/billing"
+            >
               <Badge tone={plan === "free" ? "neutral" : "accent"}>
                 {planCopy.label}
               </Badge>

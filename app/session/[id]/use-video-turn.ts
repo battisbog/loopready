@@ -261,7 +261,11 @@ export function useVideoTurn({
     } catch {
       /* transport teardown is best effort */
     }
-    let data: { nextRound?: { sessionId: string }; loopComplete?: string } = {};
+    let data: {
+      nextRound?: { sessionId: string };
+      loopComplete?: string;
+      trialCapped?: boolean;
+    } = {};
     try {
       const res = await fetch("/api/interview/end", {
         method: "POST",
@@ -274,10 +278,17 @@ export function useVideoTurn({
     } catch (e) {
       console.error("[interview] end threw:", e);
     }
-    // Ending means leaving. Never route into the next round: the candidate
-    // just said they were done with the whole interview.
-    onLeave();
-  }, [sessionId, onDone, settle]);
+    // Ending the trial early is still ending the trial: show the same
+    // "Explore plans" screen the time cap would have, not the dashboard --
+    // there is nothing on the dashboard for this account to see yet.
+    if (data.trialCapped && onTrialCapped) {
+      onTrialCapped();
+    } else {
+      // Ending means leaving. Never route into the next round: the candidate
+      // just said they were done with the whole interview.
+      onLeave();
+    }
+  }, [sessionId, onLeave, onTrialCapped, settle]);
 
   return {
     turns,

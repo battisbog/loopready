@@ -6,9 +6,17 @@ import { paypalConfigured, paypalFetch } from "@/lib/paypal/client";
 /**
  * Cancels the caller's PayPal subscription.
  *
- * The tier itself is NOT downgraded here. PayPal sends
- * BILLING.SUBSCRIPTION.CANCELLED, and the webhook remains the only writer of
- * entitlements. We only record that a cancellation was requested.
+ * The tier itself is NOT downgraded here for a REAL PayPal subscription.
+ * PayPal sends BILLING.SUBSCRIPTION.CANCELLED, and the webhook remains the
+ * only writer of entitlements for that case. We only record that a
+ * cancellation was requested.
+ *
+ * An account can be on a paid tier with no paypal_subscription_id at all --
+ * granted directly (support, a comped account, testing) rather than bought.
+ * There is nothing for PayPal to cancel and no webhook will ever fire for
+ * one, so without a separate path here that account had NO way to ever
+ * self-serve back to free from the UI. Downgrade it directly instead of
+ * refusing.
  */
 export async function POST() {
   const supabase = await createClient();
@@ -26,10 +34,16 @@ export async function POST() {
 
   const subscriptionId = profile?.paypal_subscription_id;
   if (!subscriptionId) {
-    return NextResponse.json(
-      { error: "No active subscription found on this account." },
-      { status: 409 }
-    );
+    await admin
+      .from("profiles")
+      .update({
+        subscription_tier: "free",
+        subscription_status: null,
+        video_plan_allowance: 0,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", user.id);
+    return NextResponse.json({ ok: true, downgraded: true });
   }
   if (!paypalConfigured()) {
     return NextResponse.json(

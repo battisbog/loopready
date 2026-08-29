@@ -50,13 +50,13 @@ export default async function TrialStartPage() {
     return <CapacityScreen message={TRIAL_CAPACITY_MESSAGE} />;
   }
 
-  // Sensible default: company-agnostic, mid-level, one behavioral round.
+  // Sensible default: company-agnostic, mid-level, one coding round.
   // Deliberately not configurable here -- the whole point is skipping the
   // start-interview config screen for this specific flow.
   const started = await startSession({
     admin,
     userId: user.id,
-    roundType: "behavioral",
+    roundType: "coding",
     company: "generic",
     level: "mid",
     trialCapped: true,

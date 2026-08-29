@@ -54,35 +54,39 @@ export const TARGET_MINUTES = envInt("INTERVIEW_TARGET_MINUTES", 40);
 /**
  * How long the "Try it free" trial session (homepage hero CTA, VIDEO mode)
  * runs before it is wrapped up and routed to /pricing. See
- * app/api/trial/start/route.ts (creates the flagged session) and
+ * app/trial/start/page.tsx (creates the flagged session) and
  * sessions.trial_capped (the flag the turn routes and buildInstructions key
  * off to force a graceful close).
  *
- * Traced against the live opening arc rather than the ~90s/exchange figure
- * above, which is for TEXT mode's separately-turned greeting and format
- * phases. Both voice's buildGreeting and video's buildSpokenGreeting fold
- * greeting+format into ONE utterance before the candidate ever replies, so
- * the trial needs only a single candidate turn (their self-intro) before the
- * first real question is asked -- one fewer exchange than text mode.
+ * The trial round is CODING (app/trial/start/page.tsx), not behavioral, so
+ * this is re-derived for that pacing specifically rather than reusing
+ * behavioral's arc:
  *
- *   greeting+format (merged) + candidate intro   ~45-60s
- *   Q1 asked + candidate's first real answer     ~55-70s
- *   one follow-up asked + answered                ~55-70s
- *   connection/turn-detection/model latency        ~15-20s (voice)
- *   -----------------------------------------------------
- *   total to "question asked, answered, and one probing follow-up"  ~3-3.5 min
+ *   greeting+format (merged, one utterance) + candidate intro   ~45-60s
+ *   problem presented + candidate talks through their approach  ~55-70s
+ *     (codingSystemPrompt asks for approach before code, same as text mode)
+ *   candidate actually WRITES some code before there is anything
+ *     real to discuss -- this is the term behavioral's arc doesn't
+ *     have at all, and it's not optional: a check-in on zero code
+ *     written is not a "real probing exchange"                   ~90-120s
+ *   one real exchange about that code (interviewer reacts,
+ *     candidate responds)                                        ~55-70s
+ *   connection/turn-detection/model latency, Daily/WebRTC room
+ *     join, Tavus avatar connect (video adds real latency voice
+ *     doesn't have -- lib/video/config.ts's own comment notes
+ *     generally slower turn-taking too)                          ~20-30s
+ *   -----------------------------------------------------------------
+ *   total to "problem understood, code written, one real exchange about it"
+ *                                                                 ~4.5-5.8 min
  *
- * Video adds real extra latency on top of that voice baseline -- Daily/
- * WebRTC room join, Tavus avatar connect, and (per lib/video/config.ts's own
- * comment) generally slower turn-taking than pure audio -- so 3 minutes is
- * tighter for video than the voice trace already showed it to be. Set to 4
- * minutes for margin to actually complete that follow-up exchange rather
- * than being cut off mid-arc, which is the whole point of the cap (a taste
- * of a REAL exchange, not just the greeting). Tavus's own hard maxMinutes
- * cutoff (app/api/video/session/route.ts) is set a couple of minutes past
- * this as a backstop, not the primary mechanism -- see its own comment.
+ * Set to 6 minutes for margin to actually reach that exchange rather than
+ * being cut off mid-typing, which is the whole point of the cap (a taste of
+ * a REAL exchange, not just the problem statement). Tavus's own hard
+ * maxMinutes cutoff (app/api/video/session/route.ts) is set a couple of
+ * minutes past this as a backstop, not the primary mechanism -- see its own
+ * comment.
  */
-export const TRIAL_TASTE_MINUTES = envInt("TRIAL_TASTE_MINUTES", 4);
+export const TRIAL_TASTE_MINUTES = envInt("TRIAL_TASTE_MINUTES", 6);
 export const TRIAL_TASTE_MS = TRIAL_TASTE_MINUTES * 60_000;
 
 /**
