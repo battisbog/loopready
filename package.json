@@ -25,6 +25,7 @@
     "ai": "^7.0.62",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "dodopayments": "^2.48.0",
     "lucide-react": "^1.34.0",
     "motion": "^13.1.1",
     "next": "16.3.0",
