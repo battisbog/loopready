@@ -33,6 +33,7 @@ export function useVideoTurn({
   getArtifactPatch,
   onDone,
   onLeave,
+  onTrialCapped,
 }: {
   sessionId: string;
   initialTurns: Turn[];
@@ -40,6 +41,11 @@ export function useVideoTurn({
   onDone: (nextSessionId: string | null, loopId?: string | null) => void;
   /** Called when the candidate ends the whole interview. */
   onLeave: () => void;
+  /** Called instead of onDone when this was the "Try it free" trial session
+   *  (see sessions.trial_capped), whether it ended by the soft elapsed-time
+   *  check (a candidate turn arriving after the cap) or by Tavus's own
+   *  maxMinutes hard cutoff (onNaturalEnd below) firing first. */
+  onTrialCapped?: () => void;
 }) {
   const [turns, setTurns] = useState<Turn[]>(initialTurns);
   const [status, setStatus] = useState<VideoStatus>("starting");
@@ -50,6 +56,7 @@ export function useVideoTurn({
     maxMinutes: number;
     demo: boolean;
     demoEndsAt: string | null;
+    trial: boolean;
   } | null>(null);
 
   const callRef = useRef<DailyCall | null>(null);
@@ -112,6 +119,7 @@ export function useVideoTurn({
           maxMinutes: Number(cfg.maxMinutes ?? 45),
           demo: Boolean(cfg.demo),
           demoEndsAt: cfg.demoEndsAt ?? null,
+          trial: Boolean(cfg.trial),
         });
         setStatus("connecting");
       } catch (e) {
@@ -175,13 +183,13 @@ export function useVideoTurn({
         finishedRef.current = true;
         setStatus("done");
         await settle("completed");
-        setTimeout(
-          () => onDone(data.nextRound?.sessionId ?? null, data.loopComplete ?? null),
-          8000
-        );
+        setTimeout(() => {
+          if (data.trialCapped && onTrialCapped) onTrialCapped();
+          else onDone(data.nextRound?.sessionId ?? null, data.loopComplete ?? null);
+        }, 8000);
       }
     },
-    [sessionId, onDone, settle]
+    [sessionId, onDone, onTrialCapped, settle]
   );
 
   /**
@@ -304,6 +312,15 @@ export function useVideoTurn({
           // The demo is over. Send them straight to plans, not into feedback
           // for a 30-second clip or a "next round" that does not exist.
           window.location.assign(room.demoEndsAt ?? "/pricing");
+          return;
+        }
+        if (room?.trial) {
+          // Tavus's own hard maxMinutes cutoff got here before a candidate
+          // turn ever triggered the soft elapsed-time check in
+          // /api/realtime/turn -- this is the backstop case (e.g. a silent
+          // candidate). Same trial dialog either way, not a hard navigate:
+          // onTrialCapped shows it in place over the still-visible call.
+          if (onTrialCapped) onTrialCapped();
           return;
         }
         // A real video round that ran out the clock is a finished round: route

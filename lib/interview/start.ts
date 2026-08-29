@@ -21,10 +21,11 @@ interface StartArgs {
   company?: string | null;
   level?: string | null;
   /**
-   * True only for the very first round of a user's very first-ever session
-   * (see lib/rate-limit.ts's isFirstEverSession). Callers chaining a loop's
-   * LATER rounds must never pass this -- the cap applies to session #1 alone,
-   * not to every round of the loop it happens to be part of.
+   * True only for the single auto-started "Try it free" trial session
+   * created by app/api/trial/start/route.ts. Never set for a normal
+   * loop/round -- this is not "the user's first session", it is specifically
+   * the one session created by that route, gated by lib/rate-limit.ts's
+   * hasUsedTrial so it can only ever happen once per account.
    */
   trialCapped?: boolean;
 }

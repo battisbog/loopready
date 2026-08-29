@@ -37,6 +37,7 @@ import {
   isDemoAccount,
 } from "@/lib/demo/gate";
 import { getSiteUrl } from "@/lib/site-url";
+import { TRIAL_TASTE_MINUTES } from "@/lib/interview/length";
 
 export const maxDuration = 60;
 
@@ -89,11 +90,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Session is not active" }, { status: 409 });
   }
 
-  // 2a. The shared demo account. Checked BEFORE entitlements, because it does
-  //     not hold video credits and must not be judged by them; its budget is
-  //     the lifetime cap instead. Consuming here, before the Tavus call, means
-  //     a refused demo costs nothing.
+  // 2a. The shared demo account, and the "Try it free" trial session. Neither
+  //     holds video credits and neither must be judged by them: the demo's
+  //     budget is a lifetime cap, and the trial's is the one-time flag set at
+  //     session creation (see app/api/trial/start/route.ts) plus the daily
+  //     platform cap checked there. Consuming/reading here, before the Tavus
+  //     call, means a refused attempt costs nothing.
   const demo = isDemoAccount(user.email);
+  const trial = session.trial_capped === true;
   if (demo) {
     const gate = await consumeDemoUse(admin);
     console.log(
@@ -113,7 +117,7 @@ export async function POST(request: Request) {
 
   // 2b. Entitlement and credits, before spending anything.
   const ent = await getEntitlements(admin, user.id);
-  if (!demo && !ent.canUseVideo) return outOfVideoCredits(ent);
+  if (!demo && !trial && !ent.canUseVideo) return outOfVideoCredits(ent);
   // A reservation left behind by a session that already ended is not a real
   // conflict. The client can die between creating the room and settling it (a
   // crash, a closed laptop), and without this the candidate is locked out of
@@ -191,9 +195,10 @@ export async function POST(request: Request) {
   // 4. Reserve BEFORE calling Tavus. Reserving after a successful create would
   //    leave a billable room running with no credit attached if the reserve
   //    then failed.
-  const reserved = demo
-    ? ({ ok: true as const, remaining: undefined })
-    : await reserveVideoCredit(admin, user.id, sessionId);
+  const reserved =
+    demo || trial
+      ? ({ ok: true as const, remaining: undefined })
+      : await reserveVideoCredit(admin, user.id, sessionId);
   if (!reserved.ok) {
     return NextResponse.json(
       { error: "Could not reserve a video credit.", reason: reserved.reason },
@@ -239,14 +244,20 @@ export async function POST(request: Request) {
   try {
     instructions =
       buildInstructions(session, state, ctx) +
-      `
+      (trial
+        ? `
+
+TIME
+This is a short trial preview, not a full round. It ends automatically after
+${TRIAL_TASTE_MINUTES} minutes.`
+        : `
 
 TIME
 This session ends automatically after ${VIDEO_SESSION_MAX_MINUTES} minutes. At
 around ${VIDEO_WRAP_UP_MINUTES} minutes, begin closing: finish the current
-thread, thank them, and stop. Never leave them mid-answer with no ending.`;
+thread, thank them, and stop. Never leave them mid-answer with no ending.`);
   } catch (e) {
-    if (!demo) await releaseVideoCredit(admin, user.id, sessionId);
+    if (!demo && !trial) await releaseVideoCredit(admin, user.id, sessionId);
     return NextResponse.json(
       { error: e instanceof Error ? e.message : "Cannot start round" },
       { status: 409 }
@@ -263,14 +274,24 @@ thread, thank them, and stop. Never leave them mid-answer with no ending.`;
       greeting: greet ? buildSpokenGreeting(session, ctx) : undefined,
       sessionId,
       // Tavus enforces this server-side; a tampered client cannot extend it.
-      maxMinutes: demo ? DEMO_SECONDS / 60 : VIDEO_SESSION_MAX_MINUTES,
+      // The trial's real "graceful stop" is the elapsed-time check in
+      // /api/realtime/turn (forceImmediateClose), which fires on a candidate
+      // turn well before this; this is a backstop in case that path never
+      // gets a turn to check (e.g. a silent candidate), so it's set a couple
+      // of minutes past the soft target rather than equal to it.
+      maxMinutes: demo
+        ? DEMO_SECONDS / 60
+        : trial
+          ? TRIAL_TASTE_MINUTES + 2
+          : VIDEO_SESSION_MAX_MINUTES,
       callbackUrl: `${getSiteUrl()}/api/video/callback`,
     });
   } catch (e) {
     // The room never came up, so the candidate keeps their credit.
-    const released = demo
-      ? { ok: true }
-      : await releaseVideoCredit(admin, user.id, sessionId);
+    const released =
+      demo || trial
+        ? { ok: true }
+        : await releaseVideoCredit(admin, user.id, sessionId);
     console.error(
       `[video] create failed for session=${sessionId}, credit released=${released.ok}:`,
       e
@@ -293,7 +314,7 @@ thread, thank them, and stop. Never leave them mid-answer with no ending.`;
   if (saveError) {
     // We cannot track a room we failed to record, so do not leave it billing.
     await endConversation(conversation.conversationId);
-    if (!demo) await releaseVideoCredit(admin, user.id, sessionId);
+    if (!demo && !trial) await releaseVideoCredit(admin, user.id, sessionId);
     console.error("[video] could not persist conversation id:", saveError);
     return NextResponse.json(
       { error: "Could not start the video interview. Your credit was not used." },
@@ -310,12 +331,21 @@ thread, thank them, and stop. Never leave them mid-answer with no ending.`;
   return NextResponse.json({
     conversationUrl: conversation.conversationUrl,
     conversationId: conversation.conversationId,
-    maxMinutes: demo ? DEMO_SECONDS / 60 : VIDEO_SESSION_MAX_MINUTES,
-    wrapUpMinutes: demo ? 0 : VIDEO_WRAP_UP_MINUTES,
+    maxMinutes: demo
+      ? DEMO_SECONDS / 60
+      : trial
+        ? TRIAL_TASTE_MINUTES + 2
+        : VIDEO_SESSION_MAX_MINUTES,
+    wrapUpMinutes: demo || trial ? 0 : VIDEO_WRAP_UP_MINUTES,
     demo,
-    // Where the demo sends people when their 30 seconds are up.
+    trial,
+    // Where the demo/trial sends people when their preview is up. Distinct
+    // from the normal round-end routing (next round / feedback), and read by
+    // use-video-turn.ts's onNaturalEnd.
     ...(demo ? { demoEndsAt: "/pricing" } : {}),
     // The client shows this so a candidate knows when the credit is spent.
+    // Meaningless for demo/trial (neither holds a credit); kept for shape
+    // consistency with the normal response.
     creditThresholdMinutes: VIDEO_CREDIT_THRESHOLD_MINUTES,
     videoCreditsRemaining: reserved.remaining ?? ent.videoCreditsRemaining,
     shouldGreet: greet,

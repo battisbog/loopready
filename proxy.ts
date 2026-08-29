@@ -97,8 +97,14 @@ export default async function proxy(request: NextRequest) {
    * Setting the cookie here removes every moving part: no client JS, no
    * hydration, no cache. The redirect response that sends them to /login is
    * the same response that carries the destination.
+   *
+   * /trial/start (the homepage "Try it free" CTA) needs the identical
+   * treatment for the identical reason: without this, the generic
+   * !isPublicPath branch below sends a signed-out visitor to a bare /login
+   * with no destination at all, and the callback lands them on /dashboard
+   * instead of auto-starting their trial.
    */
-  if (!user && pathname.startsWith("/checkout")) {
+  if (!user && (pathname.startsWith("/checkout") || pathname.startsWith("/trial/start"))) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     const target = `${pathname}${request.nextUrl.search}`;

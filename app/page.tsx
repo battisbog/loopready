@@ -74,9 +74,20 @@ export default async function Landing() {
     : undefined;
 
   // "Start free" is meaningless to someone who already has an account, so the
-  // primary CTA becomes the way back into the app for them.
+  // primary CTA becomes the way back into the app for them. Used by the
+  // "Watch demo" modal's own internal CTA and the closing section further
+  // down the page -- both still mean "join the normal free tier", not the
+  // trial below.
   const ctaHref = signedIn ? "/dashboard" : "/pricing";
   const ctaLabel = signedIn ? "Go to dashboard" : "Start for free";
+
+  // The hero's PRIMARY button is its own thing, not a reuse of ctaHref/Label
+  // above: for a signed-out visitor it routes into the auto-started video
+  // trial (app/trial/start/page.tsx) rather than the pricing page, and reads
+  // "Try it free" rather than "Start for free". A signed-in visitor has
+  // nothing to trial -- same "back into the app" behavior as ctaHref.
+  const heroCtaHref = signedIn ? "/dashboard" : "/trial/start";
+  const heroCtaLabel = signedIn ? "Go to dashboard" : "Try it free";
 
   return (
     <div className="relative flex min-h-screen flex-col overflow-x-hidden">
@@ -127,8 +138,8 @@ export default async function Landing() {
               </p>
 
               <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
-                <Button href={ctaHref} size="lg">
-                  {ctaLabel}
+                <Button href={heroCtaHref} size="lg">
+                  {heroCtaLabel}
                 </Button>
                 <DemoVideoModal ctaHref={ctaHref} ctaLabel={ctaLabel} />
               </div>

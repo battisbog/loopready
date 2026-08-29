@@ -342,30 +342,27 @@ export function weeklyQuotaResponse(quota: WeeklyQuota): NextResponse {
 }
 
 /**
- * Whether the caller is about to create this user's first-ever interview
- * session (across all time, not the rolling weekly window above).
+ * Whether this account has already run the "Try it free" trial session
+ * (see app/api/trial/start/route.ts and sessions.trial_capped) -- once ever,
+ * not once per week like the free-tier quota above. Gates repeat use of a
+ * flow that skips both the weekly session quota AND the paid video-credit
+ * system entirely, so without this a signed-in free user could keep
+ * revisiting the homepage CTA for unlimited free video minutes.
  *
  * A plain existence check rather than a full count -- `head: true` asks
  * Postgres for the row count without transferring any rows, and this only
  * needs to know "zero or more than zero", never the actual number.
- *
- * Called once, at session creation (see lib/interview/start.ts's
- * `trialCapped` param), and the result is stored on that session row
- * (`sessions.trial_capped`) rather than recomputed on every turn: a chained
- * round within the SAME first loop must not each independently qualify as
- * "the first session" and re-trigger the cap, and a flag fixed at creation
- * can't flip mid-session if a second tab somehow starts a session
- * concurrently.
  */
-export async function isFirstEverSession(
+export async function hasUsedTrial(
   admin: SupabaseClient,
   userId: string
 ): Promise<boolean> {
   const { count } = await admin
     .from("sessions")
     .select("id", { count: "exact", head: true })
-    .eq("user_id", userId);
-  return (count ?? 0) === 0;
+    .eq("user_id", userId)
+    .eq("trial_capped", true);
+  return (count ?? 0) > 0;
 }
 
 // ============================================================

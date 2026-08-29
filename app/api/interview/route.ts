@@ -13,12 +13,11 @@ import {
   checkIpRateLimit,
   checkRateLimit,
   consumeGlobalBudget,
-  isFirstEverSession,
   weeklyQuotaResponse,
   recordUsage,
   serviceBusyResponse,
 } from "@/lib/rate-limit";
-import { FIRST_SESSION_CAP_MS } from "@/lib/interview/length";
+import { TRIAL_TASTE_MS } from "@/lib/interview/length";
 import { forcedClosingPrompt } from "@/lib/interview/prompt";
 import { canUseRound, getUserTier, upgradeRequired } from "@/lib/tiers";
 
@@ -94,8 +93,6 @@ export async function POST(request: Request) {
     const quota = await checkWeeklySessionQuota(admin, user.id);
     if (quota.exceeded) return weeklyQuotaResponse(quota);
 
-    const trialCapped = await isFirstEverSession(admin, user.id);
-
     try {
       const started = await startSession({
         admin,
@@ -103,7 +100,6 @@ export async function POST(request: Request) {
         roundType,
         company: body.company ?? null,
         level: body.level ?? null,
-        trialCapped,
       });
       return NextResponse.json(started);
     } catch {
@@ -203,7 +199,7 @@ export async function POST(request: Request) {
     session.trial_capped === true &&
     !plan.normal.done &&
     (session.phase ?? "questions") === "questions" &&
-    Date.now() - new Date(session.started_at).getTime() >= FIRST_SESSION_CAP_MS;
+    Date.now() - new Date(session.started_at).getTime() >= TRIAL_TASTE_MS;
 
   // forcedClosingPrompt(), not closingPrompt(): swapping in the gentler
   // closing prompt mid-question (message history still ending on the

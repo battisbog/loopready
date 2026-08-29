@@ -19,6 +19,12 @@ interface Costs {
   requestsByEndpoint: Record<string, number>;
   sessionsToday: number;
   demoAccount?: { used: number; cap: number; remaining: number; disabled: boolean };
+  trial?: {
+    sessionsToday: number;
+    dailyCapUsed: number;
+    dailyCap: number;
+    dailyRemaining: number;
+  };
   unitCostsUsd: Record<string, number>;
   config: {
     freeTierBudgetShare: number;
@@ -181,6 +187,20 @@ export default function CostDashboard() {
                 }`}
               >
                 {data.demoAccount.used}/{data.demoAccount.cap}
+              </span>
+            </p>
+          )}
+          {data.trial && (
+            <p className="mt-1.5 flex justify-between border-t border-line pt-1.5 text-sm">
+              <span className="text-secondary">
+                Trial videos today ({data.trial.sessionsToday} started)
+              </span>
+              <span
+                className={`font-mono ${
+                  data.trial.dailyRemaining === 0 ? "text-error" : "text-primary"
+                }`}
+              >
+                {data.trial.dailyCapUsed}/{data.trial.dailyCap}
               </span>
             </p>
           )}

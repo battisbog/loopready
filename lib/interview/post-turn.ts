@@ -35,6 +35,9 @@ export interface TurnResponse {
   instructions?: string | null;
   nextRound?: { roundType?: string; sessionId: string } | null;
   loopComplete?: string | null;
+  /** True when `done` is because this was the "Try it free" trial session's
+   *  time cap (or it naturally finished first) -- see sessions.trial_capped. */
+  trialCapped?: boolean;
 }
 
 export interface TurnPostResult {

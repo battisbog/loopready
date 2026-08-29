@@ -10,6 +10,7 @@ import {
   FREE_SESSION_LIMIT,
 } from "@/lib/rate-limit";
 import { peekDemoUsage } from "@/lib/demo/gate";
+import { peekTrialUsage, TRIAL_DAILY_CAP } from "@/lib/trial";
 import {
   COST,
   DAILY_CAP_MICRO,
@@ -41,16 +42,26 @@ export async function GET() {
     peekUsageCounts(),
     rateLimitHealth(),
   ]);
-  const demoUsage = await peekDemoUsage(createAdminClient());
+  const admin = createAdminClient();
+  const demoUsage = await peekDemoUsage(admin);
+  const trialUsage = await peekTrialUsage(admin);
 
   // Sessions started today, straight from Postgres, so the figure survives a
   // Redis flush.
-  const admin = createAdminClient();
   const since = new Date();
   since.setUTCHours(0, 0, 0, 0);
   const { count: sessionsToday } = await admin
     .from("sessions")
     .select("id", { count: "exact", head: true })
+    .gte("started_at", since.toISOString());
+  // Trial video sessions specifically, same day window -- watched
+  // separately from sessionsToday because these are free (no video credit,
+  // no weekly-quota deduction) and the ones this whole cap system exists to
+  // bound.
+  const { count: trialSessionsToday } = await admin
+    .from("sessions")
+    .select("id", { count: "exact", head: true })
+    .eq("trial_capped", true)
     .gte("started_at", since.toISOString());
 
   const spentUsd = budget.used / USD;
@@ -82,12 +93,22 @@ export async function GET() {
     sessionsToday: sessionsToday ?? 0,
     // Shared demo account: lifetime, never refills.
     demoAccount: demoUsage,
+    // "Try it free" video trial: resets daily, this is the platform-wide
+    // capacity ceiling (see lib/trial.ts's own comment on TRIAL_DAILY_CAP --
+    // it's a placeholder until real Tavus plan limits are known).
+    trial: {
+      sessionsToday: trialSessionsToday ?? 0,
+      dailyCapUsed: trialUsage.used,
+      dailyCap: trialUsage.cap,
+      dailyRemaining: trialUsage.remaining,
+    },
     unitCostsUsd: Object.fromEntries(
       Object.entries(COST).map(([k, v]) => [k, Number((v / USD).toFixed(4))])
     ),
     config: {
       freeTierBudgetShare: FREE_TIER_BUDGET_SHARE,
       freeSessionLimit: FREE_SESSION_LIMIT,
+      trialDailyCap: TRIAL_DAILY_CAP,
       adminConfigured: ADMIN_CONFIGURED,
     },
     health: {

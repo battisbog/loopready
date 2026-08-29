@@ -17,7 +17,7 @@ import {
   serviceBusyResponse,
 } from "@/lib/rate-limit";
 import { getUserTier } from "@/lib/tiers";
-import { FIRST_SESSION_CAP_MS } from "@/lib/interview/length";
+import { TRIAL_TASTE_MS } from "@/lib/interview/length";
 import { forcedClosingPrompt } from "@/lib/interview/prompt";
 
 export const maxDuration = 60;
@@ -125,7 +125,7 @@ export async function POST(request: Request) {
     session.trial_capped === true &&
     !plan.normal.done &&
     (session.phase ?? "questions") === "questions" &&
-    Date.now() - new Date(session.started_at).getTime() >= FIRST_SESSION_CAP_MS;
+    Date.now() - new Date(session.started_at).getTime() >= TRIAL_TASTE_MS;
 
   // forcedClosingPrompt(), not the gentler closingPrompt()/coding/design
   // variants -- see its own comment: a mid-question swap to the gentler

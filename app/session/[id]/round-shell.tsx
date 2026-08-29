@@ -314,6 +314,7 @@ function VideoRound({
 }: RoundProps) {
   const onDone = useDoneRouting(sessionId);
   const onLeave = useLeaveToDashboard();
+  const { capped, onTrialCapped } = useTrialCapped(sessionId);
   const {
     turns,
     status,
@@ -326,9 +327,17 @@ function VideoRound({
     onJoined,
     onVideoError,
     onNaturalEnd,
-  } = useVideoTurn({ sessionId, initialTurns, getArtifactPatch, onDone, onLeave });
+  } = useVideoTurn({
+    sessionId,
+    initialTurns,
+    getArtifactPatch,
+    onDone,
+    onLeave,
+    onTrialCapped,
+  });
 
   return (
+    <>
     <InterviewShell
       live
       header={header}
@@ -367,5 +376,7 @@ function VideoRound({
       }
       surface={renderSurface?.({ pushArtifact: () => void pushArtifact() })}
     />
+    <TrialCappedDialog open={capped} />
+    </>
   );
 }
