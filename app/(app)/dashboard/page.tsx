@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { cn } from "@/lib/cn";
 import { PREMIUM_VIDEO_ALLOWANCE } from "@/lib/tiers";
 import { redirect } from "next/navigation";
@@ -31,6 +32,8 @@ import {
   Crown,
   Trophy,
   History,
+  Route,
+  ArrowDownUp,
   ChevronRight,
 } from "lucide-react";
 
@@ -53,24 +56,41 @@ const PLAN_COPY: Record<string, { label: string; blurb: string }> = {
   },
 };
 
-/** Small bordered header shared by every stat card: icon + label, like the
- *  reference block's CardHeader (icon, CardTitle, border-b) construction. */
-function StatHeader({
+/**
+ * One column of the divided stat row. The four stats used to be four
+ * separate Cards with gaps between them; CSS grid stretched them to equal
+ * height, but a single-line stat (a badge, a number) had nothing to fill
+ * that height with, so it sat at the top of its card with dead space below.
+ * Now there's one Card, one grid with a 1px gap painted by the parent's
+ * bg-border showing through (the AssetsBlockCode "gap-px bg-border" trick
+ * from the reference), and each column centers its own value vertically in
+ * whatever height the tallest column (By round's three rows) sets -- so a
+ * single number or badge lands in the middle instead of floating at the top.
+ */
+function StatCol({
   icon: Icon,
   label,
+  accent,
+  children,
 }: {
   icon: typeof ListChecks;
   label: string;
+  accent?: boolean;
+  children: ReactNode;
 }) {
   return (
-    <CardHeader className="border-b border-border">
+    <div
+      className={cn(
+        "flex flex-col gap-3 bg-card p-5",
+        accent && "bg-accent-muted"
+      )}
+    >
       <div className="flex items-center gap-2">
         <Icon size={16} className="text-muted-foreground" />
-        <CardTitle className="text-sm font-medium text-foreground">
-          {label}
-        </CardTitle>
+        <span className="text-sm font-medium text-foreground">{label}</span>
       </div>
-    </CardHeader>
+      <div className="flex flex-1 flex-col justify-center">{children}</div>
+    </div>
   );
 }
 
@@ -139,26 +159,26 @@ export default async function Dashboard() {
         </Button>
       }
     >
-      {/* Stats */}
+      {/* Stats -- one bordered row, hairline dividers between columns
+          (gap-px on the grid + bg-border showing through) instead of four
+          separate cards with gaps, per the reference's stat-row construction. */}
       <Section>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Card className="gap-0 py-0">
-            <StatHeader icon={ListChecks} label="Interviews" />
-            <CardContent className="py-5">
+        <Card className="overflow-hidden py-0">
+          <div className="grid grid-cols-2 gap-px bg-border lg:grid-cols-4">
+            <StatCol icon={ListChecks} label="Interviews">
               <p className="text-3xl font-semibold tracking-tight text-foreground">
                 <AnimatedNumber value={rows.length} />
               </p>
               <p className="mt-1 text-xs text-muted-foreground">
                 {completed} completed
               </p>
-            </CardContent>
-          </Card>
+            </StatCol>
 
-          <Card className="gap-0 py-0">
-            <StatHeader icon={Layers} label="By round" />
-            <CardContent className="space-y-1.5 py-5">
-              {(["coding", "system_design", "behavioral"] as RoundType[]).map(
-                (r) => (
+            <StatCol icon={Layers} label="By round">
+              <div className="space-y-1.5">
+                {(
+                  ["coding", "system_design", "behavioral"] as RoundType[]
+                ).map((r) => (
                   <div
                     key={r}
                     className="flex items-center justify-between text-sm"
@@ -170,14 +190,11 @@ export default async function Dashboard() {
                       <AnimatedNumber value={byRound[r] ?? 0} />
                     </span>
                   </div>
-                )
-              )}
-            </CardContent>
-          </Card>
+                ))}
+              </div>
+            </StatCol>
 
-          <Card className="gap-0 py-0">
-            <StatHeader icon={Target} label="Latest signal" />
-            <CardContent className="py-5">
+            <StatCol icon={Target} label="Latest signal">
               {latestSignal ? (
                 <Badge tone={SIGNAL_TONE[latestSignal] ?? "neutral"} dot>
                   {latestSignal}
@@ -187,60 +204,109 @@ export default async function Dashboard() {
                   No feedback yet
                 </p>
               )}
-            </CardContent>
-          </Card>
+            </StatCol>
 
-          <Card
-            className={cn(
-              "gap-0 py-0",
-              plan !== "free" && "border-accent-border bg-accent-muted"
-            )}
-          >
-            <StatHeader icon={Crown} label="Plan" />
-            <CardContent className="py-5">
+            <StatCol icon={Crown} label="Plan" accent={plan !== "free"}>
               <Badge tone={plan === "free" ? "neutral" : "accent"}>
                 {planCopy.label}
               </Badge>
-            </CardContent>
-          </Card>
-        </div>
+            </StatCol>
+          </div>
+        </Card>
       </Section>
 
-      {/* Full loops */}
+      {/* Full loops -- a Table (shadcn TableHeader/TableRow/TableCell)
+          instead of a stack of individually-bordered row-cards: one Card,
+          one set of column headers, hairline row dividers, tinted verdict
+          badges. Sort icons are decorative (no sort state) for now, matching
+          the reference's own "clickable-looking, not yet wired" header
+          affordance. */}
       {fullLoops.length > 0 && (
         <Section title="Full loops">
-          <div className="space-y-2">
-            {fullLoops.map((l) => {
-              const profileFor = COMPANY_PROFILES[l.company];
-              const levelLabel = profileFor?.levels[l.level]?.label ?? l.level;
-              return (
-                <Link key={l.id} href={`/loop/${l.id}`} className="block">
-                  <Card className="flex-row flex-wrap items-center justify-between gap-3 px-5 py-4 shadow-sm transition-colors hover:bg-accent/5">
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-medium text-foreground">
-                        {profileFor?.displayName ?? l.company} · {levelLabel}
-                      </p>
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        {l.rounds.length} rounds ·{" "}
-                        {new Date(l.created_at).toLocaleDateString(undefined, {
-                          dateStyle: "medium",
-                        })}
-                      </p>
-                    </div>
-                    {l.overall_signal ? (
-                      <Badge tone={SIGNAL_TONE[l.overall_signal] ?? "neutral"}>
-                        {l.overall_signal}
-                      </Badge>
-                    ) : (
-                      <Badge tone={l.status === "active" ? "accent" : "outline"}>
-                        {l.status === "active" ? "In progress" : "View verdict"}
-                      </Badge>
-                    )}
-                  </Card>
-                </Link>
-              );
-            })}
-          </div>
+          <Card className="gap-0 py-0">
+            <CardHeader className="flex flex-row items-center gap-2 border-b border-border py-4">
+              <Route size={16} className="text-foreground" />
+              <CardTitle className="text-sm font-medium text-foreground">
+                Full loops
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="px-0">
+              <Table>
+                <TableHeader>
+                  <TableRow className="hover:bg-transparent">
+                    <TableHead className="px-4">
+                      <span className="flex items-center gap-1.5">
+                        Loop
+                        <ArrowDownUp size={12} className="text-muted-foreground" />
+                      </span>
+                    </TableHead>
+                    <TableHead className="px-4">
+                      <span className="flex items-center gap-1.5">
+                        Rounds
+                        <ArrowDownUp size={12} className="text-muted-foreground" />
+                      </span>
+                    </TableHead>
+                    <TableHead className="px-4">
+                      <span className="flex items-center gap-1.5">
+                        Date
+                        <ArrowDownUp size={12} className="text-muted-foreground" />
+                      </span>
+                    </TableHead>
+                    <TableHead className="px-4">Verdict</TableHead>
+                    <TableHead className="w-10 px-2" />
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {fullLoops.map((l) => {
+                    const profileFor = COMPANY_PROFILES[l.company];
+                    const levelLabel =
+                      profileFor?.levels[l.level]?.label ?? l.level;
+                    return (
+                      <TableRow key={l.id}>
+                        <TableCell className="px-4">
+                          <Link href={`/loop/${l.id}`} className="block">
+                            <span className="block text-sm font-medium text-foreground">
+                              {profileFor?.displayName ?? l.company}
+                            </span>
+                            <span className="block text-xs text-muted-foreground">
+                              {levelLabel}
+                            </span>
+                          </Link>
+                        </TableCell>
+                        <TableCell className="px-4 text-muted-foreground">
+                          {l.rounds.length} rounds
+                        </TableCell>
+                        <TableCell className="px-4 text-muted-foreground">
+                          {new Date(l.created_at).toLocaleDateString(undefined, {
+                            dateStyle: "medium",
+                          })}
+                        </TableCell>
+                        <TableCell className="px-4">
+                          {l.overall_signal ? (
+                            <Badge tone={SIGNAL_TONE[l.overall_signal] ?? "neutral"}>
+                              {l.overall_signal}
+                            </Badge>
+                          ) : (
+                            <Badge tone={l.status === "active" ? "accent" : "outline"}>
+                              {l.status === "active" ? "In progress" : "View verdict"}
+                            </Badge>
+                          )}
+                        </TableCell>
+                        <TableCell className="px-2 text-right">
+                          <Link href={`/loop/${l.id}`} aria-label="View loop">
+                            <ChevronRight
+                              size={16}
+                              className="ml-auto text-muted-foreground"
+                            />
+                          </Link>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
         </Section>
       )}
 
