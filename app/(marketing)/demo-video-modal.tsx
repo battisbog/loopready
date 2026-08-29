@@ -128,13 +128,12 @@ function Lightbox({
             onPause={() => setPlaying(false)}
           />
           {!playing && (
-            // Poster leads with the live-interview screen: interviewer panel
-            // on the left, a mostly-empty code editor on the right. Centering
-            // the button (the old default) landed it on top of the config
-            // screen's Target Level selector; this position sits in that
-            // empty editor space instead, clear of every panel, label, and
-            // the "Interviewer is speaking" caption.
-            <div className="absolute left-[62%] top-[55%] -translate-x-1/2 -translate-y-1/2">
+            // The offset position this briefly held (left of dead-center) was
+            // to dodge the OLD poster's config screen, whose Target Level
+            // selector sat right behind a centered button. The poster is now
+            // the live-interview frame, which is empty at true center, so a
+            // standard centered play button no longer covers anything.
+            <div className="absolute inset-0 flex items-center justify-center">
               <HoverBorderGradient
                 as="button"
                 onClick={() => videoRef.current?.play()}
