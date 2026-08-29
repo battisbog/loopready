@@ -82,7 +82,13 @@
   --color-card: var(--bg-surface);
   --color-card-foreground: var(--text-primary);
   --color-border: var(--border-subtle);
+  --color-muted: var(--bg-elevated);
   --color-muted-foreground: var(--text-muted);
+
+  /* Table (row hover), Select (trigger border/fill, dropdown surface) */
+  --color-input: var(--border-strong);
+  --color-popover: var(--bg-elevated);
+  --color-popover-foreground: var(--text-primary);
 
   /* components/ui/shadcn/sidebar.tsx's own token set. Active/selected menu
      items use sidebar-accent as a fill -- mapped to --accent-muted (the same

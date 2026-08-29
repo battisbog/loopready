@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/cn";
+import { Badge as ShadcnBadge } from "@/components/ui/shadcn/badge";
 
 export type BadgeTone =
   | "neutral"
@@ -9,15 +10,6 @@ export type BadgeTone =
   | "error"
   | "outline";
 
-const TONES: Record<BadgeTone, string> = {
-  neutral: "border-line bg-elevated text-secondary",
-  accent: "border-accent-border bg-accent-muted text-accent",
-  success: "border-success/30 bg-success-muted text-success",
-  warn: "border-warn/30 bg-warn-muted text-warn",
-  error: "border-error/30 bg-error-muted text-error",
-  outline: "border-line-strong bg-transparent text-secondary",
-};
-
 /** Maps an interview verdict to its tone. */
 export const SIGNAL_TONE: Record<string, BadgeTone> = {
   hire: "success",
@@ -25,6 +17,13 @@ export const SIGNAL_TONE: Record<string, BadgeTone> = {
   "no-hire": "error",
 };
 
+/**
+ * Thin wrapper around the real shadcn Badge (components/ui/shadcn/badge.tsx)
+ * -- every call site across the app keeps using the "tone" prop this file
+ * has always had, but the rendering, variant resolution, and base classes
+ * (rounded-full pill, focus ring, disabled state) now come from the actual
+ * cva-based primitive instead of a hand-rolled span.
+ */
 export function Badge({
   children,
   tone = "neutral",
@@ -37,15 +36,12 @@ export function Badge({
   dot?: boolean;
 }) {
   return (
-    <span
-      className={cn(
-        "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium",
-        TONES[tone],
-        className
-      )}
+    <ShadcnBadge
+      variant={tone === "outline" ? "outline" : tone}
+      className={cn("gap-1.5 px-2.5 py-0.5 text-xs font-medium", className)}
     >
       {dot && <span className="h-1.5 w-1.5 rounded-full bg-current" />}
       {children}
-    </span>
+    </ShadcnBadge>
   );
 }

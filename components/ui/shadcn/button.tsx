@@ -19,6 +19,17 @@ const buttonVariants = cva(
         ghost:
           "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
         link: "text-primary underline-offset-4 hover:underline",
+        // This app's own --color-primary means body text (near-white), not a
+        // brand fill, so the registry's "default" variant above renders wrong
+        // here (a near-white button). "accent" is the real primary-CTA variant
+        // for this app: solid emerald, same look components/ui/button.tsx's
+        // old hand-rolled "primary" variant had, now as a proper cva entry.
+        accent:
+          "bg-accent text-accent-fg shadow-[var(--shadow-accent)] hover:bg-accent-hover",
+        // Soft/tinted destructive, for a lower-emphasis "danger" action
+        // (e.g. cancel subscription) next to solid "destructive" above.
+        "destructive-soft":
+          "border border-error/40 bg-transparent text-error hover:bg-error-muted",
       },
       size: {
         default: "h-9 px-4 py-2 has-[>svg]:px-3",

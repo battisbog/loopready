@@ -12,6 +12,12 @@ import {
   ROUND_TYPES,
   type RoundType,
 } from "@/lib/interview/rounds";
+import { Button } from "@/components/ui/shadcn/button";
+import {
+  ToggleGroup,
+  ToggleGroupItem,
+} from "@/components/ui/shadcn/toggle-group";
+import { Minus, Plus } from "lucide-react";
 
 const LABEL: Record<string, string> = {
   behavioral: "Behavioral",
@@ -101,50 +107,53 @@ export default function LoopBuilder({
             </span>
             <div className="flex items-center gap-3">
               {videoEnabled && (
-                <div className="flex overflow-hidden rounded-md border border-line">
+                <ToggleGroup
+                  type="single"
+                  variant="outline"
+                  value={n > 0 ? modeOf(t) : undefined}
+                  onValueChange={(m) => m && setMode(t, m as RoundMode)}
+                >
                   {(["voice", "video"] as const).map((m) => (
-                    <button
+                    <ToggleGroupItem
                       key={m}
-                      type="button"
+                      value={m}
+                      size="sm"
                       aria-label={`${LABEL[t]} rounds use ${m}`}
-                      onClick={() => setMode(t, m)}
-                      className={`px-2 py-1 text-xs transition-colors ${
-                        modeOf(t) === m && n > 0
-                          ? "bg-accent-muted text-accent"
-                          : "text-muted hover:text-secondary"
-                      }`}
+                      className="px-2.5 text-xs"
                     >
                       {m === "voice" ? "Voice" : "Video"}
-                    </button>
+                    </ToggleGroupItem>
                   ))}
-                </div>
+                </ToggleGroup>
               )}
               <div className="flex items-center gap-1">
-              <button
-                type="button"
-                aria-label={`One fewer ${LABEL[t]} round`}
-                onClick={() => setCount(t, n - 1)}
-                disabled={n === 0}
-                className="h-7 w-7 rounded-md text-secondary transition-colors hover:bg-elevated hover:text-primary disabled:opacity-25"
-              >
-                &minus;
-              </button>
-              <span
-                className={`w-6 text-center font-mono text-sm ${
-                  n > 0 ? "text-primary" : "text-muted"
-                }`}
-              >
-                {n}
-              </span>
-              <button
-                type="button"
-                aria-label={`One more ${LABEL[t]} round`}
-                onClick={() => setCount(t, n + 1)}
-                disabled={atCap}
-                className="h-7 w-7 rounded-md text-secondary transition-colors hover:bg-elevated hover:text-primary disabled:opacity-25"
-              >
-                +
-              </button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon-sm"
+                  aria-label={`One fewer ${LABEL[t]} round`}
+                  onClick={() => setCount(t, n - 1)}
+                  disabled={n === 0}
+                >
+                  <Minus size={14} />
+                </Button>
+                <span
+                  className={`w-6 text-center font-mono text-sm ${
+                    n > 0 ? "text-primary" : "text-muted"
+                  }`}
+                >
+                  {n}
+                </span>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon-sm"
+                  aria-label={`One more ${LABEL[t]} round`}
+                  onClick={() => setCount(t, n + 1)}
+                  disabled={atCap}
+                >
+                  <Plus size={14} />
+                </Button>
               </div>
             </div>
           </div>

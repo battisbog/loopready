@@ -8,6 +8,11 @@ import Link from "next/link";
 import { COMPANY_PROFILES } from "@/lib/interview/companies";
 import LoopBuilder from "./loop-builder";
 import { planCost, type PlannedRound } from "@/lib/interview/loop-plan";
+import { Button } from "@/components/ui";
+import {
+  ToggleGroup,
+  ToggleGroupItem,
+} from "@/components/ui/shadcn/toggle-group";
 
 // "generic" leads and is the default: most people practising are not targeting
 // one named company, and burying the company-agnostic option last implied you
@@ -104,45 +109,53 @@ export default function StartPage() {
       </div>
 
       <Section title="Target company">
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+        <ToggleGroup
+          type="single"
+          variant="outline"
+          spacing={2}
+          value={company}
+          onValueChange={(v) => v && pickCompany(v)}
+          className="grid w-full grid-cols-2 sm:grid-cols-4"
+        >
           {COMPANY_KEYS.map((key) => (
-            <button
+            <ToggleGroupItem
               key={key}
-              onClick={() => pickCompany(key)}
-              className={`rounded-lg border px-3 py-2.5 text-sm font-medium transition-colors ${
-                company === key
-                  ? "border-accent bg-accent-muted text-accent"
-                  : "border-line text-secondary hover:border-line-strong"
-              }`}
+              value={key}
+              className="h-auto w-full rounded-lg px-3 py-2.5 text-sm font-medium"
             >
               {COMPANY_PROFILES[key].displayName}
-            </button>
+            </ToggleGroupItem>
           ))}
-        </div>
+        </ToggleGroup>
         <p className="mt-3 text-xs leading-relaxed text-muted">
           {profile.behavioralStyle.split(".")[0]}.
         </p>
       </Section>
 
       <Section title="Target level">
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+        <ToggleGroup
+          type="single"
+          variant="outline"
+          spacing={2}
+          value={level}
+          onValueChange={(v) => v && setLevel(v)}
+          className="grid w-full grid-cols-1 sm:grid-cols-3"
+        >
           {levelKeys.map((key) => (
-            <button
+            <ToggleGroupItem
               key={key}
-              onClick={() => setLevel(key)}
-              className={`rounded-lg border px-3 py-2.5 text-sm transition-colors ${
-                level === key
-                  ? "border-accent bg-accent-muted text-accent"
-                  : "border-line text-secondary hover:border-line-strong"
-              }`}
+              value={key}
+              className="h-auto w-full flex-col items-start gap-0.5 rounded-lg px-3 py-2.5"
             >
-              <span className="font-medium">{profile.levels[key].label}</span>
-              <span className="mt-0.5 block text-xs text-muted">
+              <span className="text-sm font-medium">
+                {profile.levels[key].label}
+              </span>
+              <span className="text-xs text-muted-foreground">
                 {profile.levels[key].tier} bar
               </span>
-            </button>
+            </ToggleGroupItem>
           ))}
-        </div>
+        </ToggleGroup>
       </Section>
 
       <Section title="Rounds">
@@ -156,15 +169,16 @@ export default function StartPage() {
 
       <div className="mt-10">
         {error && <p className="mb-3 text-sm text-error">{error}</p>}
-        <button
+        <Button
           onClick={start}
           disabled={busy || plan.length === 0 || cost.creditsNeeded > credits}
-          className="w-full rounded-lg bg-accent px-5 py-3 text-sm font-semibold text-accent-fg hover:bg-accent-hover disabled:opacity-50"
+          size="lg"
+          fullWidth
         >
           {busy
             ? "Starting…"
             : `Start ${profile.displayName} ${profile.levels[level]?.label ?? ""} interview`.replace(/\s+/g, " ")}
-        </button>
+        </Button>
       </div>
     </main>
   );

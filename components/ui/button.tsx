@@ -1,29 +1,26 @@
 import Link from "next/link";
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 import { cn } from "@/lib/cn";
+import { Button as ShadcnButton } from "@/components/ui/shadcn/button";
 
 export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
 export type ButtonSize = "sm" | "md" | "lg";
 
-// Radius, colour and padding live here and nowhere else. Callers may pass
-// className for LAYOUT only (margin, width); anything visual belongs in a prop.
-const BASE =
-  "inline-flex items-center justify-center gap-2 rounded-md font-medium " +
-  "transition-colors duration-150 disabled:pointer-events-none disabled:opacity-50";
-
-const VARIANTS: Record<ButtonVariant, string> = {
-  primary:
-    "bg-accent text-accent-fg hover:bg-accent-hover shadow-[var(--shadow-accent)]",
-  secondary:
-    "border border-line-strong bg-surface text-primary hover:bg-elevated hover:border-line-strong",
-  ghost: "text-secondary hover:bg-elevated hover:text-primary",
-  danger: "border border-error/40 text-error hover:bg-error-muted",
+// Every call site across the app keeps using these names (primary/secondary/
+// ghost/danger, sm/md/lg) -- this file maps them onto the real shadcn Button's
+// own variant/size vocabulary (components/ui/shadcn/button.tsx) rather than
+// every one of those call sites needing to change.
+const VARIANT_MAP: Record<ButtonVariant, "accent" | "outline" | "ghost" | "destructive-soft"> = {
+  primary: "accent",
+  secondary: "outline",
+  ghost: "ghost",
+  danger: "destructive-soft",
 };
 
-const SIZES: Record<ButtonSize, string> = {
-  sm: "h-8 px-3 text-xs",
-  md: "h-10 px-4 text-sm",
-  lg: "h-12 px-6 text-sm",
+const SIZE_MAP: Record<ButtonSize, "sm" | "default" | "lg"> = {
+  sm: "sm",
+  md: "default",
+  lg: "lg",
 };
 
 interface CommonProps {
@@ -48,25 +45,29 @@ export function Button({
   fullWidth,
   ...rest
 }: Props) {
-  const classes = cn(
-    BASE,
-    VARIANTS[variant],
-    SIZES[size],
-    fullWidth && "w-full",
-    className
-  );
+  const classes = cn(fullWidth && "w-full", className);
 
   if (href) {
     return (
-      <Link href={href} className={classes}>
-        {children}
-      </Link>
+      <ShadcnButton
+        asChild
+        variant={VARIANT_MAP[variant]}
+        size={SIZE_MAP[size]}
+        className={classes}
+      >
+        <Link href={href}>{children}</Link>
+      </ShadcnButton>
     );
   }
 
   return (
-    <button className={classes} {...rest}>
+    <ShadcnButton
+      variant={VARIANT_MAP[variant]}
+      size={SIZE_MAP[size]}
+      className={classes}
+      {...rest}
+    >
       {children}
-    </button>
+    </ShadcnButton>
   );
 }
