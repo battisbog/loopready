@@ -21,10 +21,15 @@ export async function POST(request: Request) {
   const ipLimited = await checkIpRateLimit("checkout", request);
   if (!ipLimited.ok) return ipLimited.response!;
 
-  const { product } = await request.json().catch(() => ({}));
+  const { product, quantity: rawQuantity } = await request
+    .json()
+    .catch(() => ({}));
   if (product !== "video-pack") {
     return NextResponse.json({ error: "Unknown product" }, { status: 400 });
   }
+  // Clamped and re-derived from the raw input server-side -- the client's
+  // displayed price/credits are just a preview, never trusted for the charge.
+  const quantity = Math.min(10, Math.max(1, Math.round(Number(rawQuantity)) || 1));
   // Never take money for a switched-off feature. Every "Buy more" entry point
   // is tier-blind, so this is the one place that can refuse the sale.
   if (!videoAvailable()) {
@@ -44,12 +49,14 @@ export async function POST(request: Request) {
         intent: "CAPTURE",
         purchase_units: [
           {
-            // Same mechanism the webhook already uses to map a payment.
-            custom_id: `${user.id}:video-pack`,
-            description: `${VIDEO_PACK_CREDITS} video interview credits`,
+            // Same mechanism the webhook already uses to map a payment; the
+            // trailing segment is how many packs this order is for, so the
+            // webhook grants (and, on refund, reverses) the right multiple.
+            custom_id: `${user.id}:video-pack:${quantity}`,
+            description: `${VIDEO_PACK_CREDITS * quantity} video interview credits (${quantity} pack${quantity === 1 ? "" : "s"})`,
             amount: {
               currency_code: PRICING.videoPack.currency,
-              value: PRICING.videoPack.amount,
+              value: (Number(PRICING.videoPack.amount) * quantity).toFixed(2),
             },
           },
         ],

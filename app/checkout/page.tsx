@@ -7,8 +7,8 @@ import { Badge, Card, PageShell } from "@/components/ui";
 import { PRICING, planId } from "@/lib/pricing";
 import { VIDEO_PACK_CREDITS, getUserTier } from "@/lib/tiers";
 import { paypalConfigured } from "@/lib/paypal/client";
-import CheckoutButtons from "./checkout-buttons";
 import SubscriptionCheckout from "./subscription-checkout";
+import VideoPackCheckout from "./video-pack-checkout";
 
 export const metadata = { title: "Checkout" };
 
@@ -145,7 +145,18 @@ export default async function CheckoutPage({
         )}
 
         {/* Summary left, payment right: the thing being bought stays visible
-            while the payment panel does its work. */}
+            while the payment panel does its work. Video pack is its own
+            client component -- it has a quantity stepper, so its price,
+            credit count, and PayPal order all need to react to a client-side
+            state that a single fixed purchase.dueToday can't express. */}
+        {purchase.kind === "order" ? (
+          <VideoPackCheckout
+            clientId={clientId ?? ""}
+            configured={configured}
+            unitPrice={PRICING.videoPack.amount}
+            creditsPerPack={VIDEO_PACK_CREDITS}
+          />
+        ) : (
         <div className="mt-6 grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
           <Card>
             <p className="text-xs font-medium uppercase tracking-wide text-muted">
@@ -238,18 +249,15 @@ export default async function CheckoutPage({
                     Use a PayPal balance or any debit or credit card.
                   </p>
                   <div className="mt-4">
-                    {purchase.kind === "subscription" ? (
-                      <SubscriptionCheckout
-                        plan={purchase.plan}
-                        clientId={clientId!}
-                        regularPrice={PRICING[purchase.plan].amount}
-                      />
-                    ) : (
-                      <CheckoutButtons
-                        clientId={clientId!}
-                        purchase={{ kind: "order", product: purchase.product }}
-                      />
-                    )}
+                    {/* This branch only ever renders for a subscription now --
+                        video-pack has its own component (VideoPackCheckout)
+                        with a quantity stepper, rendered above instead of
+                        this shared grid. */}
+                    <SubscriptionCheckout
+                      plan={purchase.plan}
+                      clientId={clientId!}
+                      regularPrice={PRICING[purchase.plan].amount}
+                    />
                   </div>
                 </>
               )}
@@ -276,6 +284,7 @@ export default async function CheckoutPage({
             </ul>
           </div>
         </div>
+        )}
 
         <p className="mt-8 text-center text-xs leading-relaxed text-muted">
           By continuing you agree to our{" "}

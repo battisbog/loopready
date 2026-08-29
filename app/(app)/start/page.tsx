@@ -127,7 +127,12 @@ export default function StartPage() {
             </ToggleGroupItem>
           ))}
         </ToggleGroup>
-        <p className="mt-3 text-xs leading-relaxed text-muted">
+        {/* Company blurbs vary a lot in length (Amazon's first sentence runs
+            ~110 chars, "generic"'s is ~30) -- at this container width some
+            wrapped to a second line and some didn't, so switching company
+            shifted every section below this one. truncate pins it to one
+            line always, so the page height never moves on company change. */}
+        <p className="mt-3 truncate text-xs leading-relaxed text-muted">
           {profile.behavioralStyle.split(".")[0]}.
         </p>
       </Section>

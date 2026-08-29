@@ -286,10 +286,20 @@ export default async function Dashboard() {
                             <Badge tone={SIGNAL_TONE[l.overall_signal] ?? "neutral"}>
                               {l.overall_signal}
                             </Badge>
+                          ) : l.status === "active" ? (
+                            <Badge tone="accent">In progress</Badge>
                           ) : (
-                            <Badge tone={l.status === "active" ? "accent" : "outline"}>
-                              {l.status === "active" ? "In progress" : "View verdict"}
-                            </Badge>
+                            // Was a Badge reading "View verdict" -- looked like
+                            // a button (a pill, like the badges beside it) but
+                            // was a plain span, not a link, so clicking it did
+                            // nothing. Plain clickable text instead, so it
+                            // doesn't imply an affordance it doesn't have.
+                            <Link
+                              href={`/loop/${l.id}`}
+                              className="text-sm text-accent hover:underline"
+                            >
+                              View
+                            </Link>
                           )}
                         </TableCell>
                         <TableCell className="px-2 text-right">

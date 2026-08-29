@@ -84,22 +84,33 @@ async function verifySignature(
 type Purpose = "premium" | "voice" | "video-pack" | null;
 
 /**
- * custom_id is written as `<userId>` or `<userId>:<purpose>` at checkout, so a
- * single webhook can tell a Premium subscription from a one-time video pack.
+ * custom_id is written as `<userId>`, `<userId>:<purpose>`, or (for a video
+ * pack, where the customer can buy more than one) `<userId>:video-pack:<qty>`
+ * at checkout, so a single webhook can tell a Premium subscription from a
+ * one-time video pack, and how many packs that pack purchase was for.
  */
-function splitCustomId(raw: string): { userId: string; purpose: Purpose } {
-  const [userId, purpose] = raw.split(":");
+function splitCustomId(raw: string): {
+  userId: string;
+  purpose: Purpose;
+  quantity: number;
+} {
+  const [userId, purpose, qty] = raw.split(":");
   const known: Purpose[] = ["premium", "voice", "video-pack"];
+  // Older custom_ids (before quantity existed) have no third segment; that
+  // and anything non-numeric or out of range default to a single pack rather
+  // than rejecting the whole event.
+  const quantity = Math.min(10, Math.max(1, Math.round(Number(qty)) || 1));
   return {
     userId,
     purpose: known.includes(purpose as Purpose) ? (purpose as Purpose) : null,
+    quantity,
   };
 }
 
 async function resolveUserId(
   admin: ReturnType<typeof createAdminClient>,
   resource: Record<string, unknown>
-): Promise<{ userId: string | null; purpose: Purpose }> {
+): Promise<{ userId: string | null; purpose: Purpose; quantity: number }> {
   const custom =
     (resource.custom_id as string | undefined) ??
     (resource.custom as string | undefined) ??
@@ -107,7 +118,11 @@ async function resolveUserId(
       ?.custom_id as string | undefined);
   if (custom) {
     const parsed = splitCustomId(custom);
-    return { userId: parsed.userId || null, purpose: parsed.purpose };
+    return {
+      userId: parsed.userId || null,
+      purpose: parsed.purpose,
+      quantity: parsed.quantity,
+    };
   }
 
   // Try every id that could be the SUBSCRIPTION id, most specific first.
@@ -128,9 +143,9 @@ async function resolveUserId(
       .select("id")
       .eq("paypal_subscription_id", candidate)
       .maybeSingle();
-    if (data?.id) return { userId: data.id, purpose: null };
+    if (data?.id) return { userId: data.id, purpose: null, quantity: 1 };
   }
-  return { userId: null, purpose: null };
+  return { userId: null, purpose: null, quantity: 1 };
 }
 
 /**
@@ -242,7 +257,7 @@ export async function POST(request: Request) {
     return NextResponse.json(body, { status });
   };
 
-  const { userId, purpose } = await resolveUserId(admin, resource);
+  const { userId, purpose, quantity } = await resolveUserId(admin, resource);
 
   if (!userId) {
     // Acknowledge so PayPal stops retrying, but record it: this means a
@@ -437,11 +452,13 @@ export async function POST(request: Request) {
       patch.paypal_order_id = resource.id;
       if (purpose === "video-pack") {
         // A pack tops up on TOP of whatever is left; it never sets the tier.
+        // quantity is however many packs this checkout was for (custom_id
+        // carries it), defaulting to 1 for pre-quantity custom_ids.
         credits = {
           mode: "add",
-          amount: VIDEO_PACK_CREDITS,
+          amount: VIDEO_PACK_CREDITS * quantity,
           reset: null,
-          detail: "video pack purchase",
+          detail: `video pack purchase (x${quantity})`,
         };
       } else {
         tier = "premium";
@@ -461,9 +478,9 @@ export async function POST(request: Request) {
         // Refunding a pack removes the credits it granted, floored at zero.
         credits = {
           mode: "add",
-          amount: -VIDEO_PACK_CREDITS,
+          amount: -VIDEO_PACK_CREDITS * quantity,
           reset: null,
-          detail: "video pack refunded",
+          detail: `video pack refunded (x${quantity})`,
         };
       } else {
         tier = "free";

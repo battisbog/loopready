@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 
 type Purchase =
   | { kind: "subscription"; plan: "voice" | "premium" }
-  | { kind: "order"; product: "video-pack" };
+  | { kind: "order"; product: "video-pack"; quantity: number };
 
 /** Minimal shape of the bits of the PayPal SDK we use. */
 interface PayPalSdk {
@@ -72,9 +72,26 @@ export default function CheckoutButtons({
   );
   const [error, setError] = useState<string | null>(null);
 
+  // Video pack's quantity stepper creates a new `purchase` object on every
+  // click. createOrder reads this ref instead of `purchase` directly so a
+  // quantity change doesn't have to appear in the effect's own deps below --
+  // it always sees the latest quantity without the PayPal SDK re-mounting
+  // (which tore the buttons down and replayed their load-in animation on
+  // every single + or - click).
+  const purchaseRef = useRef(purchase);
+  purchaseRef.current = purchase;
+
+  // Only the KIND of purchase (which plan, which product) should remount the
+  // SDK -- quantity is deliberately excluded so it stays out of the deps
+  // array below.
+  const purchaseIdentity =
+    purchase.kind === "subscription"
+      ? `sub:${purchase.plan}`
+      : `order:${purchase.product}`;
+
   useEffect(() => {
     let cancelled = false;
-    const isSubscription = purchase.kind === "subscription";
+    const isSubscription = purchaseRef.current.kind === "subscription";
 
     /** Handlers are identical for every funding source. */
     const flow = isSubscription
@@ -84,7 +101,7 @@ export default function CheckoutButtons({
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
-                plan: (purchase as { plan: string }).plan,
+                plan: (purchaseRef.current as { plan: string }).plan,
                 discountCode: discountCode || undefined,
               }),
             });
@@ -100,11 +117,16 @@ export default function CheckoutButtons({
         }
       : {
           createOrder: async () => {
+            const current = purchaseRef.current as {
+              product: string;
+              quantity?: number;
+            };
             const res = await fetch("/api/paypal/order", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
-                product: (purchase as { product: string }).product,
+                product: current.product,
+                quantity: current.quantity,
               }),
             });
             const data = await res.json();
@@ -196,7 +218,7 @@ export default function CheckoutButtons({
     return () => {
       cancelled = true;
     };
-  }, [clientId, purchase, router, discountCode]);
+  }, [clientId, purchaseIdentity, router, discountCode]);
 
   return (
     <div>
