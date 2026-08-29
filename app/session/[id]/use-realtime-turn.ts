@@ -33,6 +33,13 @@ interface Options {
   onDone: (nextSessionId: string | null, loopId?: string | null) => void;
   /** Called when the candidate ends the whole interview. */
   onLeave: () => void;
+  /**
+   * Called instead of onDone when this was the user's trial-capped
+   * first-ever session (see sessions.trial_capped). Fires at the exact same
+   * "closing line has finished playing" moment onDone normally would --
+   * only what happens next differs (a dialog in place, not a navigation).
+   */
+  onTrialCapped?: () => void;
 }
 
 /**
@@ -48,6 +55,7 @@ export function useRealtimeTurn({
   onProgress,
   onDone,
   onLeave,
+  onTrialCapped,
 }: Options) {
   const [turns, setTurns] = useState<Turn[]>(initialTurns);
   const [status, setStatus] = useState<LiveStatus>("connecting");
@@ -64,6 +72,7 @@ export function useRealtimeTurn({
   const finishRef = useRef<{
     nextSessionId: string | null;
     loopId: string | null;
+    trialCapped: boolean;
   } | null>(null);
   const finishTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // True once the round has genuinely finished (button click or normal
@@ -77,6 +86,10 @@ export function useRealtimeTurn({
   useEffect(() => {
     onDoneRef.current = onDone;
   }, [onDone]);
+  const onTrialCappedRef = useRef(onTrialCapped);
+  useEffect(() => {
+    onTrialCappedRef.current = onTrialCapped;
+  }, [onTrialCapped]);
 
   useEffect(() => {
     const startedAt = Date.now();
@@ -119,7 +132,11 @@ export function useRealtimeTurn({
       finishTimerRef.current = null;
     }
     sessionRef.current?.stop();
-    onDoneRef.current(finish.nextSessionId, finish.loopId);
+    if (finish.trialCapped && onTrialCappedRef.current) {
+      onTrialCappedRef.current();
+    } else {
+      onDoneRef.current(finish.nextSessionId, finish.loopId);
+    }
   }, []);
 
   /** Applies whatever the server decided after a turn or an advance request. */
@@ -130,6 +147,7 @@ export function useRealtimeTurn({
       questionIndex?: number;
       nextRound?: { sessionId: string } | null;
       loopComplete?: string | null;
+      trialCapped?: boolean;
     } | null) => {
       if (!data || !aliveRef.current) return;
       const live = sessionRef.current;
@@ -156,6 +174,7 @@ export function useRealtimeTurn({
         finishRef.current = {
           nextSessionId: data.nextRound?.sessionId ?? null,
           loopId: data.loopComplete ?? null,
+          trialCapped: data.trialCapped === true,
         };
         // Backstop: if the closing never plays (audio blocked, connection
         // dropped) the round must still end.

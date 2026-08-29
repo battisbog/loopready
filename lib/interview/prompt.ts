@@ -80,6 +80,32 @@ for their time, in 1-2 sentences. Do not give any feedback or evaluation.
 Mention that their feedback report is being prepared.`;
 }
 
+/**
+ * A stronger variant of closingPrompt(), for ending mid-conversation rather
+ * than at a natural question boundary (the trial-session time cap in
+ * app/api/interview/route.ts, stream/route.ts, and buildInstructions in
+ * lib/realtime/conversation.ts).
+ *
+ * closingPrompt() alone was not enough here: swapped in as the system prompt
+ * while the message history still ends on the candidate's detailed answer to
+ * an in-progress question, the model followed the conversation's own
+ * momentum and asked a follow-up anyway, entirely ignoring the system
+ * instruction to wrap up (confirmed by logging the literal system prompt
+ * sent and the literal reply -- the instruction was exactly this text, and
+ * the model still produced a follow-up question). This spells out the
+ * override explicitly enough to win against that pull.
+ */
+export function forcedClosingPrompt(): string {
+  return `STOP THE INTERVIEW NOW, regardless of what you were about to ask or
+what the candidate just said. Do not follow up on their last answer, do not
+ask anything else, and do not continue the conversation in any way.
+
+Your entire reply must be ONLY a brief, warm 1-2 sentence thank-you for their
+time. Mention that their feedback report is being prepared. Give no feedback
+or evaluation. Do not ask if they have final questions. This reply ends the
+interview -- say nothing else.`;
+}
+
 // ============================================================
 // Interview arc
 //

@@ -12,6 +12,7 @@ import { MAX_CODING_TURNS, MAX_DESIGN_TURNS } from "@/lib/interview/length";
 import {
   closingPrompt,
   firstQuestionPrompt,
+  forcedClosingPrompt,
   formatPrompt,
   interviewerSystemPrompt,
   type Phase,
@@ -243,8 +244,23 @@ function roundPrompt(
 export function buildInstructions(
   session: RealtimeSessionRow,
   state: RealtimeState,
-  ctx: InterviewContext | null
+  ctx: InterviewContext | null,
+  /**
+   * True only for the trial-session time cap firing mid-question (see
+   * app/api/realtime/turn/route.ts). closingPrompt() alone is tuned for
+   * ending at a natural question boundary (the follow-up budget just spent,
+   * or the last question just answered) -- swapped in when the conversation
+   * is instead mid-probe, on real text-mode testing the model followed the
+   * conversation's own momentum and asked a follow-up anyway, entirely
+   * ignoring the instruction to wrap up. forcedClosingPrompt() spells out
+   * the override explicitly enough to win against that pull; used here too
+   * since voice shares the same underlying model behavior.
+   */
+  forceImmediateClose = false
 ): string {
+  if (forceImmediateClose) {
+    return forcedClosingPrompt() + SPOKEN_RULES;
+  }
   if (state.done || state.phase === "closing") {
     return (
       closingPrompt() +

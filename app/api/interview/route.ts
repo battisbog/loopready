@@ -13,10 +13,13 @@ import {
   checkIpRateLimit,
   checkRateLimit,
   consumeGlobalBudget,
+  isFirstEverSession,
   weeklyQuotaResponse,
   recordUsage,
   serviceBusyResponse,
 } from "@/lib/rate-limit";
+import { FIRST_SESSION_CAP_MS } from "@/lib/interview/length";
+import { forcedClosingPrompt } from "@/lib/interview/prompt";
 import { canUseRound, getUserTier, upgradeRequired } from "@/lib/tiers";
 
 export const maxDuration = 60;
@@ -91,6 +94,8 @@ export async function POST(request: Request) {
     const quota = await checkWeeklySessionQuota(admin, user.id);
     if (quota.exceeded) return weeklyQuotaResponse(quota);
 
+    const trialCapped = await isFirstEverSession(admin, user.id);
+
     try {
       const started = await startSession({
         admin,
@@ -98,6 +103,7 @@ export async function POST(request: Request) {
         roundType,
         company: body.company ?? null,
         level: body.level ?? null,
+        trialCapped,
       });
       return NextResponse.json(started);
     } catch {
@@ -180,12 +186,42 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: plan.error }, { status: 409 });
   }
 
-  let state = plan.normal;
-  let reply = await llm(plan.system, messages);
+  // First-ever session, and the clock's run out: end this round NOW instead
+  // of whatever planTurn decided, using the same closing prompt each round
+  // type already uses for its own natural "out of budget" ending -- so the
+  // goodbye reads identically to a real one, just triggered by elapsed time
+  // instead of the question/follow-up budget.
+  //
+  // Gated on phase === "questions", not merely "past greeting": when the
+  // stored phase is "format", planTurn's phase==="format" branch is what
+  // produces question one's text as THIS turn's reply. Overriding to the
+  // closing prompt at that point would skip question one entirely and go
+  // straight to goodbye -- exactly the "just the intro" failure mode the cap
+  // must not produce. Only once phase has reached "questions" has question
+  // one already been asked in a prior turn.
+  const trialCapExpired =
+    session.trial_capped === true &&
+    !plan.normal.done &&
+    (session.phase ?? "questions") === "questions" &&
+    Date.now() - new Date(session.started_at).getTime() >= FIRST_SESSION_CAP_MS;
 
-  if (plan.controlToken && reply.startsWith(plan.controlToken) && plan.onControl) {
-    state = plan.onControl.state;
-    reply = await llm(plan.onControl.system, messages);
+  // forcedClosingPrompt(), not closingPrompt(): swapping in the gentler
+  // closing prompt mid-question (message history still ending on the
+  // candidate's in-progress answer) was not enough to stop the model from
+  // asking a follow-up anyway -- confirmed by logging the literal prompt and
+  // reply during testing. See forcedClosingPrompt's own comment.
+  const system = trialCapExpired ? forcedClosingPrompt() : plan.system;
+  const controlToken = trialCapExpired ? null : plan.controlToken;
+  const onControl = trialCapExpired ? null : plan.onControl;
+
+  let state = trialCapExpired
+    ? { ...plan.normal, done: true, phase: "closing" as const }
+    : plan.normal;
+  let reply = await llm(system, messages);
+
+  if (controlToken && reply.startsWith(controlToken) && onControl) {
+    state = onControl.state;
+    reply = await llm(onControl.system, messages);
   }
 
   const questionIndex = state.questionIndex;
@@ -210,10 +246,12 @@ export async function POST(request: Request) {
     .eq("id", session.id);
 
   // Full-loop sequencing: if this round finished and the loop has more rounds,
-  // tell the client where to go next.
+  // tell the client where to go next. A trial-capped session never chains --
+  // the cap is on session #1 specifically, not on however many rounds the
+  // loop it happens to belong to has; the client routes to /pricing instead.
   let nextRound: { roundType: string; sessionId: string } | null = null;
   let loopComplete: string | null = null;
-  if (done && session.loop_id) {
+  if (done && session.loop_id && !session.trial_capped) {
     const { data: loop } = await admin
       .from("loops")
       .select("company, level, rounds")
@@ -239,6 +277,13 @@ export async function POST(request: Request) {
         .eq("id", session.loop_id);
       if ((loop.rounds?.length ?? 0) > 1) loopComplete = session.loop_id;
     }
+  } else if (done && session.loop_id && session.trial_capped) {
+    // Close out the loop rather than leaving it "active" forever with no
+    // further round ever coming.
+    await admin
+      .from("loops")
+      .update({ status: "completed" })
+      .eq("id", session.loop_id);
   }
 
   return NextResponse.json({
@@ -247,6 +292,10 @@ export async function POST(request: Request) {
     nextRound,
     loopComplete,
     done,
+    // Whenever this specific session ends -- by the clock or by naturally
+    // reaching its own end first -- the client shows the trial's "explore
+    // plans" screen instead of routing to feedback/next-round as normal.
+    trialCapped: done && session.trial_capped === true,
     ...progressPayload(session, state),
   });
 }

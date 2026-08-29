@@ -20,6 +20,13 @@ interface StartArgs {
   roundOrder?: number;
   company?: string | null;
   level?: string | null;
+  /**
+   * True only for the very first round of a user's very first-ever session
+   * (see lib/rate-limit.ts's isFirstEverSession). Callers chaining a loop's
+   * LATER rounds must never pass this -- the cap applies to session #1 alone,
+   * not to every round of the loop it happens to be part of.
+   */
+  trialCapped?: boolean;
 }
 
 export { MAX_CODING_TURNS } from "./length";
@@ -59,6 +66,7 @@ export async function startSession({
   roundOrder = 0,
   company = null,
   level = null,
+  trialCapped = false,
 }: StartArgs) {
   const ctx = company && level ? getContext(company, level) : null;
 
@@ -67,6 +75,7 @@ export async function startSession({
     round_type: roundType,
     loop_id: loopId,
     round_order: roundOrder,
+    trial_capped: trialCapped,
   };
 
   let questionCount = 1;

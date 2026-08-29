@@ -341,6 +341,33 @@ export function weeklyQuotaResponse(quota: WeeklyQuota): NextResponse {
   );
 }
 
+/**
+ * Whether the caller is about to create this user's first-ever interview
+ * session (across all time, not the rolling weekly window above).
+ *
+ * A plain existence check rather than a full count -- `head: true` asks
+ * Postgres for the row count without transferring any rows, and this only
+ * needs to know "zero or more than zero", never the actual number.
+ *
+ * Called once, at session creation (see lib/interview/start.ts's
+ * `trialCapped` param), and the result is stored on that session row
+ * (`sessions.trial_capped`) rather than recomputed on every turn: a chained
+ * round within the SAME first loop must not each independently qualify as
+ * "the first session" and re-trigger the cap, and a flag fixed at creation
+ * can't flip mid-session if a second tab somehow starts a session
+ * concurrently.
+ */
+export async function isFirstEverSession(
+  admin: SupabaseClient,
+  userId: string
+): Promise<boolean> {
+  const { count } = await admin
+    .from("sessions")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", userId);
+  return (count ?? 0) === 0;
+}
+
 // ============================================================
 // Layer 2: per-IP limits
 //

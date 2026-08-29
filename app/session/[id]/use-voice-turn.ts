@@ -119,6 +119,10 @@ interface Options {
   onDone: (nextSessionId: string | null, loopId?: string | null) => void;
   /** Called when the candidate ends the whole interview. */
   onLeave?: () => void;
+  /** Called instead of onDone when this was the trial-capped first-ever
+   *  session (see sessions.trial_capped), once the closing line has
+   *  finished playing. */
+  onTrialCapped?: () => void;
 }
 
 // Shared push-to-talk pipeline: record → transcribe → interview → speak.
@@ -130,6 +134,7 @@ export function useVoiceTurn({
   onProgress,
   onDone,
   onLeave,
+  onTrialCapped,
 }: Options) {
   const [turns, setTurns] = useState<Turn[]>(initialTurns);
   const [status, setStatus] = useState<Status>("idle");
@@ -463,6 +468,7 @@ export function useVoiceTurn({
           done: boolean;
           nextRound?: { sessionId: string } | null;
           loopComplete?: string | null;
+          trialCapped?: boolean;
           questionIndex: number;
           questionCount: number;
         } | null;
@@ -514,7 +520,11 @@ export function useVoiceTurn({
         finishedRef.current = true;
         setStatus("done");
         stopAllAudio();
-        onDone(result.nextRound?.sessionId ?? null, result.loopComplete ?? null);
+        if (result.trialCapped && onTrialCapped) {
+          onTrialCapped();
+        } else {
+          onDone(result.nextRound?.sessionId ?? null, result.loopComplete ?? null);
+        }
       } else {
         setStatus("idle");
       }

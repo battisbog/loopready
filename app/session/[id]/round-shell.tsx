@@ -14,6 +14,7 @@ import { REALTIME_ENABLED } from "@/lib/realtime/config";
 import { VIDEO_ENABLED_CLIENT } from "@/lib/video/config";
 import { useVideoTurn } from "./use-video-turn";
 import MicGate from "./mic-gate";
+import TrialCappedDialog from "./trial-capped-dialog";
 
 export interface RoundShellProps {
   sessionId: string;
@@ -142,6 +143,31 @@ function useDoneRouting(sessionId: string) {
   };
 }
 
+/**
+ * Handles the trial-capped end state: still generates feedback from
+ * whatever transcript exists (same call useDoneRouting makes for a normal
+ * end, so it's reachable later from the dashboard/loop summary exactly like
+ * any other round's debrief -- nothing the candidate did is lost), but the
+ * round hooks are told NOT to navigate away. Instead `capped` flips true and
+ * the caller renders TrialCappedDialog over the still-visible, dimmed
+ * interview shell.
+ */
+function useTrialCapped(sessionId: string) {
+  const [capped, setCapped] = useState(false);
+  const onTrialCapped = () => {
+    setCapped(true);
+    void fetch("/api/feedback", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sessionId }),
+      keepalive: true,
+    }).catch(() => {
+      // The feedback page regenerates on demand if this fails.
+    });
+  };
+  return { capped, onTrialCapped };
+}
+
 function LiveRound({
   sessionId,
   initialTurns,
@@ -154,6 +180,7 @@ function LiveRound({
 }: RoundProps) {
   const onDone = useDoneRouting(sessionId);
   const onLeave = useLeaveToDashboard();
+  const { capped, onTrialCapped } = useTrialCapped(sessionId);
   const [qIndex, setQIndex] = useState(questionIndex);
 
   const {
@@ -173,22 +200,26 @@ function LiveRound({
     onProgress: ({ questionIndex: i }) => setQIndex(i),
     onDone,
     onLeave,
+    onTrialCapped,
   });
 
   return (
-    <InterviewShell
-      live
-      header={header}
-      elapsed={elapsed}
-      turns={turns}
-      orbStatus={status === "connecting" ? "connecting" : speaking ? "speaking" : "listening"}
-      statusLabel={statusLabel}
-      error={error}
-      onEnd={endEarly}
-      questionIndex={qIndex}
-      questionCount={questionCount}
-      surface={renderSurface?.({ pushArtifact: () => void pushArtifact() })}
-    />
+    <>
+      <InterviewShell
+        live
+        header={header}
+        elapsed={elapsed}
+        turns={turns}
+        orbStatus={status === "connecting" ? "connecting" : speaking ? "speaking" : "listening"}
+        statusLabel={statusLabel}
+        error={error}
+        onEnd={endEarly}
+        questionIndex={qIndex}
+        questionCount={questionCount}
+        surface={renderSurface?.({ pushArtifact: () => void pushArtifact() })}
+      />
+      <TrialCappedDialog open={capped} />
+    </>
   );
 }
 
@@ -204,6 +235,7 @@ function PushToTalkRound({
 }: RoundProps) {
   const onDone = useDoneRouting(sessionId);
   const onLeave = useLeaveToDashboard();
+  const { capped, onTrialCapped } = useTrialCapped(sessionId);
   const [qIndex, setQIndex] = useState(questionIndex);
 
   const {
@@ -226,38 +258,42 @@ function PushToTalkRound({
     onProgress: ({ questionIndex: i }) => setQIndex(i),
     onDone,
     onLeave,
+    onTrialCapped,
   });
 
   return (
-    <InterviewShell
-      header={header}
-      elapsed={elapsed}
-      turns={turns}
-      orbStatus={status}
-      statusLabel={statusLabel}
-      error={error}
-      hint={hint}
-      onEnd={endEarly}
-      questionIndex={qIndex}
-      questionCount={questionCount}
-      recording={recording}
-      busy={busy}
-      onToggleRecording={toggleRecording}
-      serverAudio={serverAudio}
-      // Push-to-talk rebuilds the prompt server-side on each turn, so there is
-      // nothing to refresh — but the work still needs persisting.
-      surface={renderSurface?.({
-        pushArtifact: () => {
-          const patch = getArtifactPatch?.();
-          if (!patch) return;
-          void fetch("/api/artifact", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ sessionId, patch }),
-          }).catch(() => {});
-        },
-      })}
-    />
+    <>
+      <InterviewShell
+        header={header}
+        elapsed={elapsed}
+        turns={turns}
+        orbStatus={status}
+        statusLabel={statusLabel}
+        error={error}
+        hint={hint}
+        onEnd={endEarly}
+        questionIndex={qIndex}
+        questionCount={questionCount}
+        recording={recording}
+        busy={busy}
+        onToggleRecording={toggleRecording}
+        serverAudio={serverAudio}
+        // Push-to-talk rebuilds the prompt server-side on each turn, so there is
+        // nothing to refresh — but the work still needs persisting.
+        surface={renderSurface?.({
+          pushArtifact: () => {
+            const patch = getArtifactPatch?.();
+            if (!patch) return;
+            void fetch("/api/artifact", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ sessionId, patch }),
+            }).catch(() => {});
+          },
+        })}
+      />
+      <TrialCappedDialog open={capped} />
+    </>
   );
 }
 

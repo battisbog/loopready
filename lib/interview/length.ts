@@ -52,6 +52,32 @@ export const MAX_DESIGN_TURNS = envInt("INTERVIEW_DESIGN_TURNS", 22);
 export const TARGET_MINUTES = envInt("INTERVIEW_TARGET_MINUTES", 40);
 
 /**
+ * How long a brand-new user's first-ever session runs before it is wrapped up
+ * and routed to /pricing (see lib/rate-limit.ts's isFirstEverSession and
+ * sessions.trial_capped).
+ *
+ * Traced against the live-voice opening arc rather than the ~90s/exchange
+ * figure above, which is for TEXT mode's separately-turned greeting and
+ * format phases. Voice's buildGreeting (lib/realtime/conversation.ts) folds
+ * both into ONE spoken utterance before the candidate ever replies, so voice
+ * needs only a single candidate turn (their self-intro) before the first real
+ * question is asked -- one fewer exchange than text mode.
+ *
+ *   greeting+format (merged) + candidate intro   ~45-60s
+ *   Q1 asked + candidate's first real answer     ~55-70s
+ *   one follow-up asked + answered                ~55-70s
+ *   connection/turn-detection/model latency        ~15-20s
+ *   -----------------------------------------------------
+ *   total to "question asked, answered, and one probing follow-up"  ~3-3.5 min
+ *
+ * 4 minutes leaves margin for a slower/nervous candidate to complete that
+ * follow-up exchange rather than being cut off mid-arc, which is the whole
+ * point of the cap (a taste of a REAL exchange, not just the greeting).
+ */
+export const FIRST_SESSION_CAP_MINUTES = envInt("FIRST_SESSION_CAP_MINUTES", 4);
+export const FIRST_SESSION_CAP_MS = FIRST_SESSION_CAP_MINUTES * 60_000;
+
+/**
  * Pacing guidance shared by every round.
  *
  * Without this the model races: it treats each answer as a box to tick and

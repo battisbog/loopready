@@ -17,6 +17,8 @@ import {
   serviceBusyResponse,
 } from "@/lib/rate-limit";
 import { getUserTier } from "@/lib/tiers";
+import { FIRST_SESSION_CAP_MS } from "@/lib/interview/length";
+import { forcedClosingPrompt } from "@/lib/interview/prompt";
 
 export const maxDuration = 60;
 
@@ -115,6 +117,28 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: plan.error }, { status: 409 });
   }
 
+  // Same trial-cap override as the non-streaming route (app/api/interview/
+  // route.ts) -- see its comment for why this is gated on phase==="questions"
+  // rather than "past greeting": question one's text is what phase==="format"
+  // produces THIS turn, and overriding earlier than "questions" would skip it.
+  const trialCapExpired =
+    session.trial_capped === true &&
+    !plan.normal.done &&
+    (session.phase ?? "questions") === "questions" &&
+    Date.now() - new Date(session.started_at).getTime() >= FIRST_SESSION_CAP_MS;
+
+  // forcedClosingPrompt(), not the gentler closingPrompt()/coding/design
+  // variants -- see its own comment: a mid-question swap to the gentler
+  // prompt was measured NOT to stop the model from asking a follow-up
+  // anyway, because the message history still ends on the candidate's
+  // in-progress answer.
+  const openingSystem = trialCapExpired ? forcedClosingPrompt() : plan.system;
+  const openingControlToken = trialCapExpired ? null : plan.controlToken;
+  const openingOnControl = trialCapExpired ? null : plan.onControl;
+  const openingState = trialCapExpired
+    ? { ...plan.normal, done: true, phase: "closing" as const }
+    : plan.normal;
+
   const encoder = new TextEncoder();
 
   const stream = new ReadableStream({
@@ -168,13 +192,13 @@ export async function POST(request: Request) {
       };
 
       try {
-        let state: TurnState = plan.normal;
-        const first = await runGeneration(plan.system, plan.controlToken);
+        let state: TurnState = openingState;
+        const first = await runGeneration(openingSystem, openingControlToken);
         let text = first.text;
 
-        if (first.sawControl && plan.onControl) {
-          state = plan.onControl.state;
-          text = (await runGeneration(plan.onControl.system, null)).text;
+        if (first.sawControl && openingOnControl) {
+          state = openingOnControl.state;
+          text = (await runGeneration(openingOnControl.system, null)).text;
         }
 
         // The model call succeeded; count it for abuse monitoring.
@@ -200,7 +224,7 @@ export async function POST(request: Request) {
         // Set when a MULTI-round loop just finished, so the client can send the
         // candidate to the combined verdict instead of the last round's debrief.
         let loopComplete: string | null = null;
-        if (state.done && session.loop_id && loop) {
+        if (state.done && session.loop_id && loop && !session.trial_capped) {
           const nextOrder = (session.round_order ?? 0) + 1;
           const upcoming = loop.rounds?.[nextOrder];
           if (upcoming && isRoundType(upcoming) && ROUND_IMPLEMENTED[upcoming]) {
@@ -221,6 +245,11 @@ export async function POST(request: Request) {
               .eq("id", session.loop_id);
             if ((loop.rounds?.length ?? 0) > 1) loopComplete = session.loop_id;
           }
+        } else if (state.done && session.loop_id && session.trial_capped) {
+          await admin
+            .from("loops")
+            .update({ status: "completed" })
+            .eq("id", session.loop_id);
         }
 
         send("done", {
@@ -228,6 +257,7 @@ export async function POST(request: Request) {
           done: state.done,
           nextRound,
           loopComplete,
+          trialCapped: state.done && session.trial_capped === true,
           ...progressPayload(session, state),
         });
       } catch (e) {

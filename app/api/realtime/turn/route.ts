@@ -19,6 +19,7 @@ import {
   serviceBusyResponse,
 } from "@/lib/rate-limit";
 import { getUserTier } from "@/lib/tiers";
+import { FIRST_SESSION_CAP_MS } from "@/lib/interview/length";
 
 export const maxDuration = 30;
 
@@ -169,10 +170,36 @@ export async function POST(request: Request) {
     ? false
     : isSubstantiveAnswer(body.text ?? "");
 
-  const state = advanceState(session, {
+  let state = advanceState(session, {
     substantive,
     modelRequestedAdvance: body.advanceOnly === true,
   });
+
+  // First-ever session, and the clock's run out: force the same forward-
+  // looking "wrap up" treatment buildInstructions already gives a naturally
+  // exhausted follow-up budget (see its "THIS IS YOUR LAST EXCHANGE" branch)
+  // -- the interviewer says goodbye on its own next reply, never a reactive
+  // cutoff.
+  //
+  // Gated on state.phase === "questions", not merely "past greeting": when
+  // advanceState just moved phase from "greeting" to "format" (the
+  // candidate's own self-intro turn), buildInstructions' phase==="format"
+  // branch is what asks question one on the interviewer's VERY NEXT reply --
+  // but buildInstructions checks done/closing before it ever reaches that
+  // branch. Forcing done=true here on that same turn would skip question one
+  // entirely and go straight to goodbye, which is exactly the "just the
+  // intro" failure mode the cap must not produce. Only once phase has
+  // actually reached "questions" has question one already been asked (and
+  // this is at minimum the candidate's answer to it, or a follow-up).
+  const trialCapExpired =
+    session.trial_capped === true &&
+    !state.done &&
+    state.phase === "questions" &&
+    Date.now() - new Date(session.started_at).getTime() >= FIRST_SESSION_CAP_MS;
+  if (trialCapExpired) {
+    state = { ...state, done: true, phase: "closing" };
+  }
+
   const questionIndex = state.questionIndex;
   const followupCount = state.followupCount;
   const done = state.done;
@@ -197,10 +224,12 @@ export async function POST(request: Request) {
     })
     .eq("id", session.id);
 
-  // Loop sequencing is identical to the turn-based path.
+  // Loop sequencing is identical to the turn-based path. A trial-capped
+  // session never chains into the loop's next round -- the cap is on
+  // session #1 specifically; the client routes to /pricing instead.
   let nextRound: { roundType: string; sessionId: string } | null = null;
   let loopComplete: string | null = null;
-  if (done && session.loop_id && loop) {
+  if (done && session.loop_id && loop && !session.trial_capped) {
     const nextOrder = (session.round_order ?? 0) + 1;
     const upcoming = loop.rounds?.[nextOrder];
     if (upcoming && isRoundType(upcoming) && ROUND_IMPLEMENTED[upcoming]) {
@@ -221,6 +250,11 @@ export async function POST(request: Request) {
         .eq("id", session.loop_id);
       if ((loop.rounds?.length ?? 0) > 1) loopComplete = session.loop_id;
     }
+  } else if (done && session.loop_id && session.trial_capped) {
+    await admin
+      .from("loops")
+      .update({ status: "completed" })
+      .eq("id", session.loop_id);
   }
 
   // Forward-looking instructions, always. Never a reactive response.create:
@@ -229,7 +263,7 @@ export async function POST(request: Request) {
   // `conversation_already_has_active_response` and silently dropped. Pushing
   // instructions instead means the model performs the acknowledgement and the
   // transition itself, in one natural utterance, on its next reply.
-  const instructions = buildInstructions(session, state, ctx);
+  const instructions = buildInstructions(session, state, ctx, trialCapExpired);
 
   return NextResponse.json({
     ok: true,
@@ -240,5 +274,9 @@ export async function POST(request: Request) {
     instructions,
     nextRound,
     loopComplete,
+    // Whenever this specific session ends -- by the clock or by naturally
+    // reaching its own end first -- the client shows the trial's "explore
+    // plans" screen instead of routing to feedback/next-round as normal.
+    trialCapped: done && session.trial_capped === true,
   });
 }

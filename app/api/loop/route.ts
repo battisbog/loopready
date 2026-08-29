@@ -14,6 +14,7 @@ import { VIDEO_ENABLED_SERVER } from "@/lib/video/config";
 import { startSession } from "@/lib/interview/start";
 import {
   checkWeeklySessionQuota,
+  isFirstEverSession,
   checkIpRateLimit,
   consumeGlobalBudget,
   recordUsage,
@@ -133,6 +134,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Failed to create loop" }, { status: 500 });
   }
 
+  // Whichever round type/company/level they picked, this is still their
+  // first-ever interview if they've never started one before -- so the trial
+  // cap applies to the first round of ANY loop, not just a specific default
+  // config. Later rounds of THIS SAME loop (see /api/interview and
+  // /api/realtime/turn's nextRound chaining) never re-check this and never
+  // inherit it.
+  const trialCapped = await isFirstEverSession(admin, user.id);
+
   const first = await startSession({
     admin,
     userId: user.id,
@@ -141,6 +150,7 @@ export async function POST(request: Request) {
     roundOrder: 0,
     company,
     level,
+    trialCapped,
   });
 
   return NextResponse.json({
