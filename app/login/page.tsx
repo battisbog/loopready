@@ -51,18 +51,31 @@ export default function LoginPage() {
     setStatus(null);
     const supabase = createClient();
 
-    // The destination rides in a cookie, NOT only in redirectTo.
+    // The destination rides ONLY in a cookie for OAuth, never in redirectTo's
+    // query string.
     //
-    // Supabase validates redirectTo against its Redirect URLs allowlist and,
-    // when it does not match, silently substitutes the project's Site URL
-    // instead of failing. A callback URL carrying "?next=/checkout?plan=voice"
-    // is exactly the shape that fails to match, so the intent was dropped and
-    // the user landed on the dashboard -- signed in, on the free plan, with no
-    // payment taken and nothing to explain it.
+    // Supabase validates redirectTo against its Redirect URLs allowlist. An
+    // exact-match allowlist entry for the bare callback URL does not also
+    // match that same URL with "?next=..." appended -- a query string turns a
+    // path that matches into one that does not, and Supabase silently
+    // substitutes the project's Site URL instead of failing loudly. That
+    // dropped the destination for both a stray "?code=" landing on the bare
+    // homepage (redirectTo rejected outright) AND a clean callback that still
+    // lost "next" and defaulted to /dashboard (the allowlist matched the PATH
+    // but the query string was not preserved through it) -- both observed
+    // from this exact code before this fix. Sending a bare callback URL with
+    // no query string at all removes the one thing that needed a wildcard
+    // allowlist entry to survive; a plain, exact "https://loopready.io/auth/
+    // callback" is far more likely to already be correctly allowlisted than
+    // any wildcard pattern is.
     //
-    // A cookie survives the round trip to the provider and back regardless of
-    // what the allowlist says. SameSite=Lax is correct here because the return
-    // leg is a top-level GET navigation.
+    // The cookie is what actually carries the destination now, not a
+    // fallback. It survives the round trip to the provider and back
+    // regardless of what the allowlist says: SameSite=Lax is correct here
+    // because the return leg is a top-level GET navigation, and OAuth stays
+    // in the same browser the whole way (unlike a magic link, which can be
+    // opened on a different device -- that path below still needs next in
+    // the URL itself).
     if (next && next !== "/dashboard") {
       document.cookie = `lr_next=${encodeURIComponent(next)}; path=/; max-age=600; SameSite=Lax${
         location.protocol === "https:" ? "; Secure" : ""
@@ -71,7 +84,7 @@ export default function LoginPage() {
 
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
-      options: { redirectTo: getAuthCallbackUrl(next) },
+      options: { redirectTo: getAuthCallbackUrl() },
     });
     if (error) {
       setBusy(null);
