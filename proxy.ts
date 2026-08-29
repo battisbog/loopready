@@ -28,17 +28,18 @@ const PUBLIC_PATHS = [
 // Public surface: marketing page, auth, and crawler files. Everything else
 // requires a session.
 //
-// /demo.mp4 and /demo-poster.png are here because the matcher below only
+// /demo.mp4 and /interviewer-demo.mp4 are here because the matcher below only
 // excludes image extensions, not video -- without this an anonymous visitor
 // clicking "Watch it in action" on the homepage got redirected to /login
-// instead of the demo.
+// instead of the demo. demo-poster.jpg is already covered by the matcher's
+// own image-extension exclusion; kept listed anyway since it costs nothing.
 const PUBLIC_FILES = [
   "/sitemap.xml",
   "/robots.txt",
   "/opengraph-image",
   "/icon",
   "/demo.mp4",
-  "/demo-poster.png",
+  "/demo-poster.jpg",
   "/interviewer-demo.mp4",
 ];
 

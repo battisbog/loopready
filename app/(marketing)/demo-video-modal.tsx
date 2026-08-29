@@ -117,11 +117,11 @@ function Lightbox({
           <video
             ref={videoRef}
             src="/demo.mp4"
-            poster="/demo-poster.png"
+            poster="/demo-poster.jpg"
             controls={playing}
             preload="none"
             playsInline
-            className="h-full w-full"
+            className="h-full w-full object-cover"
             onPlay={() => setPlaying(true)}
             onPause={() => setPlaying(false)}
           />
@@ -130,7 +130,13 @@ function Lightbox({
               type="button"
               onClick={() => videoRef.current?.play()}
               aria-label="Play video"
-              className="group absolute inset-0 flex items-center justify-center"
+              // Poster leads with the live-interview screen: interviewer
+              // panel on the left, a mostly-empty code editor on the right.
+              // Centering the button (the old default) landed it on top of
+              // the config screen's Target Level selector; this position
+              // sits in that empty editor space instead, clear of every
+              // panel, label, and the "Interviewer is speaking" caption.
+              className="group absolute left-[62%] top-[55%] -translate-x-1/2 -translate-y-1/2"
             >
               <span className="flex h-16 w-16 items-center justify-center rounded-full bg-accent text-accent-fg shadow-[var(--shadow-accent)] transition-transform group-hover:scale-105">
                 <svg viewBox="0 0 24 24" className="ml-1 h-6 w-6" fill="currentColor" aria-hidden>
@@ -145,8 +151,11 @@ function Lightbox({
             on this page for this visitor. Generous padding on every side and
             real vertical rhythm between the label and the button, rather than
             the video, text, and button all sharing one tight row against the
-            card edge. */}
-        <div className="flex flex-col items-center gap-4 px-6 py-8 text-center sm:px-8">
+            card edge. border-t gives the CTA a deliberate seam against the
+            video -- without it the two blocks read as one continuous dark
+            area (bg-base bleeding into bg-surface, barely distinguishable),
+            which is what previously looked like a stray gap. */}
+        <div className="flex flex-col items-center gap-4 border-t border-line px-6 py-8 text-center sm:px-8">
           <p className="text-sm text-secondary">Ready to try it?</p>
           <Button href={ctaHref} size="lg" className="w-full sm:w-auto">
             {ctaLabel}
