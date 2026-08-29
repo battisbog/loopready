@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Button } from "@/components/ui";
+import { HoverBorderGradient } from "@/components/ui/aceternity/hover-border-gradient";
+import { ShimmerButton } from "@/components/ui/magicui/shimmer-button";
 
 /**
  * "Watch demo" trigger + lightbox.
@@ -126,24 +128,25 @@ function Lightbox({
             onPause={() => setPlaying(false)}
           />
           {!playing && (
-            <button
-              type="button"
-              onClick={() => videoRef.current?.play()}
-              aria-label="Play video"
-              // Poster leads with the live-interview screen: interviewer
-              // panel on the left, a mostly-empty code editor on the right.
-              // Centering the button (the old default) landed it on top of
-              // the config screen's Target Level selector; this position
-              // sits in that empty editor space instead, clear of every
-              // panel, label, and the "Interviewer is speaking" caption.
-              className="group absolute left-[62%] top-[55%] -translate-x-1/2 -translate-y-1/2"
-            >
-              <span className="flex h-16 w-16 items-center justify-center rounded-full bg-accent text-accent-fg shadow-[var(--shadow-accent)] transition-transform group-hover:scale-105">
-                <svg viewBox="0 0 24 24" className="ml-1 h-6 w-6" fill="currentColor" aria-hidden>
+            // Poster leads with the live-interview screen: interviewer panel
+            // on the left, a mostly-empty code editor on the right. Centering
+            // the button (the old default) landed it on top of the config
+            // screen's Target Level selector; this position sits in that
+            // empty editor space instead, clear of every panel, label, and
+            // the "Interviewer is speaking" caption.
+            <div className="absolute left-[62%] top-[55%] -translate-x-1/2 -translate-y-1/2">
+              <HoverBorderGradient
+                as="button"
+                onClick={() => videoRef.current?.play()}
+                aria-label="Play video"
+                containerClassName="h-16 w-16 shadow-[var(--shadow-lg)]"
+                className="flex h-full w-full items-center justify-center p-0"
+              >
+                <svg viewBox="0 0 24 24" className="ml-1 h-6 w-6 text-primary" fill="currentColor" aria-hidden>
                   <path d="M8 5v14l11-7z" />
                 </svg>
-              </span>
-            </button>
+              </HoverBorderGradient>
+            </div>
           )}
         </div>
 
@@ -157,9 +160,9 @@ function Lightbox({
             which is what previously looked like a stray gap. */}
         <div className="flex flex-col items-center gap-4 border-t border-line px-6 py-8 text-center sm:px-8">
           <p className="text-sm text-secondary">Ready to try it?</p>
-          <Button href={ctaHref} size="lg" className="w-full sm:w-auto">
+          <ShimmerButton href={ctaHref} className="w-full text-sm font-medium sm:w-auto">
             {ctaLabel}
-          </Button>
+          </ShimmerButton>
         </div>
       </div>
     </div>
