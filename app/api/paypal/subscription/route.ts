@@ -57,7 +57,9 @@ export async function POST(request: Request) {
       "redeem_discount_code",
       { p_code: discountCode.trim(), p_user: user.id }
     );
-    const result = redemption?.[0] as { ok?: boolean; amount_off?: number } | undefined;
+    const result = redemption?.[0] as
+      | { ok?: boolean; amount_off?: number | null; percent_off?: number | null }
+      | undefined;
     if (redeemError || !result?.ok) {
       return NextResponse.json(
         {
@@ -67,7 +69,17 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
-    firstCyclePrice = discountedFirstCyclePrice(plan as PaidPlan, result.amount_off!);
+    // Exactly one of these is set -- enforced by the table's own check
+    // constraint. Either way this collapses to a single fixed dollar
+    // first-cycle price below: PayPal's discount-plan variant only supports
+    // overriding the trial cycle to a fixed amount, not a live percentage,
+    // so a percent-off code is resolved to a dollar figure right here.
+    firstCyclePrice = discountedFirstCyclePrice(
+      plan as PaidPlan,
+      result.percent_off != null
+        ? { percentOff: result.percent_off }
+        : { amountOff: result.amount_off! }
+    );
     if (!firstCyclePrice) {
       // Redeemed above, but doesn't apply to this plan -- this is checked in
       // /api/discount/check too, so a normal checkout never reaches here.

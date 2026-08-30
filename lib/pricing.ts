@@ -98,6 +98,10 @@ export function discountPlanId(plan: PaidPlan): string | undefined {
  *  than at each call site. */
 export const MIN_CHARGE_USD = 1;
 
+/** A code carries exactly one of these -- see the table's own check
+ *  constraint in supabase/migrations-discount-percent.sql. */
+export type Discount = { amountOff: number } | { percentOff: number };
+
 /**
  * The first-cycle price after a discount, or null if the code would take the
  * plan below the minimum chargeable amount -- callers should reject the code
@@ -107,9 +111,13 @@ export const MIN_CHARGE_USD = 1;
  */
 export function discountedFirstCyclePrice(
   plan: PaidPlan,
-  amountOff: number
+  discount: Discount
 ): string | null {
-  const price = Number(PRICING[plan].amount) - amountOff;
+  const base = Number(PRICING[plan].amount);
+  const price =
+    "percentOff" in discount
+      ? base * (1 - discount.percentOff / 100)
+      : base - discount.amountOff;
   if (price < MIN_CHARGE_USD) return null;
   return price.toFixed(2);
 }

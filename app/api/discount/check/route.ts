@@ -51,7 +51,7 @@ export async function POST(request: Request) {
 
   const { data, error } = await admin
     .from("discount_codes")
-    .select("amount_off, active, max_uses, times_used, expires_at")
+    .select("amount_off, percent_off, active, max_uses, times_used, expires_at")
     .eq("code", code.trim().toUpperCase())
     .maybeSingle();
 
@@ -68,8 +68,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ valid: false, error: "That code has already been fully redeemed." });
   }
 
-  const amountOff = Number(data.amount_off);
-  const discounted = discountedFirstCyclePrice(plan as PaidPlan, amountOff);
+  // Exactly one of these is set -- enforced by the table's own check
+  // constraint (supabase/migrations-discount-percent.sql).
+  const amountOff = data.amount_off !== null ? Number(data.amount_off) : null;
+  const percentOff = data.percent_off !== null ? Number(data.percent_off) : null;
+  const discounted = discountedFirstCyclePrice(
+    plan as PaidPlan,
+    percentOff !== null ? { percentOff } : { amountOff: amountOff! }
+  );
   if (!discounted) {
     return NextResponse.json({
       valid: false,
@@ -80,6 +86,7 @@ export async function POST(request: Request) {
   return NextResponse.json({
     valid: true,
     amountOff,
+    percentOff,
     firstCyclePrice: discounted,
     regularPrice: PRICING[plan as PaidPlan].amount,
   });
