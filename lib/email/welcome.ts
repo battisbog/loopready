@@ -16,41 +16,26 @@ function welcomeHtml(): string {
   const ACCENT = "#10b981";
   const ACCENT_FG = "#052e21"; // text on a solid accent fill, matches the app token
   return `
-<div style="background: #f4f4f5; padding: 40px 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-  <div style="max-width: 480px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; border: 1px solid #e4e4e7;">
-    <div style="padding: 32px 32px 0;">
-      <div style="display: inline-block; width: 10px; height: 10px; border-radius: 999px; background: ${ACCENT}; margin-right: 8px; vertical-align: middle;"></div>
-      <span style="font-size: 15px; font-weight: 600; color: #18181b; letter-spacing: -0.01em; vertical-align: middle;">LoopReady</span>
-    </div>
+<div style="max-width: 480px; margin: 0 auto; padding: 24px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #18181b;">
+  <p style="font-size: 15px; font-weight: 600; margin: 0 0 20px;">LoopReady</p>
 
-    <div style="padding: 24px 32px 8px;">
-      <h1 style="font-size: 22px; font-weight: 700; color: #18181b; margin: 0 0 16px; letter-spacing: -0.01em;">
-        Welcome to LoopReady.
-      </h1>
-      <p style="font-size: 15px; line-height: 1.6; color: #3f3f46; margin: 0 0 24px;">
-        Here's $10 off your first month, on us. Use this code at checkout:
-      </p>
-    </div>
+  <h1 style="font-size: 20px; font-weight: 700; margin: 0 0 16px;">Welcome to LoopReady.</h1>
 
-    <div style="padding: 0 32px;">
-      <div style="background: rgba(16, 185, 129, 0.08); border: 1px dashed ${ACCENT}; border-radius: 10px; padding: 18px 20px; text-align: center;">
-        <span style="font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 22px; font-weight: 700; letter-spacing: 0.08em; color: #047857;">${WELCOME_DISCOUNT_CODE}</span>
-      </div>
-    </div>
+  <p style="font-size: 15px; line-height: 1.6; color: #3f3f46; margin: 0 0 20px;">
+    Here's $10 off your first month, on us. Use this code at checkout:
+  </p>
 
-    <div style="padding: 28px 32px 8px;">
-      <a href="${pricingUrl}" style="display: inline-block; background: ${ACCENT}; color: ${ACCENT_FG}; font-size: 15px; font-weight: 600; text-decoration: none; padding: 12px 24px; border-radius: 8px;">
-        See plans &rarr;
-      </a>
-    </div>
+  <p style="font-size: 22px; font-weight: 700; letter-spacing: 0.08em; color: #047857; margin: 0 0 24px;">
+    ${WELCOME_DISCOUNT_CODE}
+  </p>
 
-    <div style="padding: 24px 32px 32px; border-top: 1px solid #f4f4f5; margin-top: 24px;">
-      <p style="font-size: 13px; line-height: 1.6; color: #a1a1aa; margin: 0;">
-        You're getting this because you just signed up for LoopReady. You can
-        turn off account emails any time in Settings.
-      </p>
-    </div>
-  </div>
+  <p style="margin: 0 0 24px;">
+    <a href="${pricingUrl}" style="display: inline-block; background: ${ACCENT}; color: ${ACCENT_FG}; font-size: 15px; font-weight: 600; text-decoration: none; padding: 12px 24px; border-radius: 8px;">See plans &rarr;</a>
+  </p>
+
+  <p style="font-size: 13px; line-height: 1.6; color: #a1a1aa; margin: 0;">
+    You're getting this because you just signed up for LoopReady. You can turn off account emails any time in Settings.
+  </p>
 </div>`.trim();
 }
 
