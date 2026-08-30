@@ -76,7 +76,7 @@ for (let i = 1; i <= LIMIT + 1; i++) {
 }
 
 // --- unlimited user is exempt ---
-const me = await cookieFor("ishkiwashka@gmail.com", "signal-summit-2708");
+const me = await cookieFor(process.env.DEV_TEST_EMAIL, process.env.DEV_TEST_PASSWORD);
 const { data: prof } = await admin
   .from("profiles")
   .select("plan")

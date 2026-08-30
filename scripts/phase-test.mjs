@@ -7,7 +7,7 @@ dotenv.config({ path: join(root, ".env.local"), quiet: true });
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const c = createClient(url, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY, { auth: { persistSession: false } });
-const { data } = await c.auth.signInWithPassword({ email: "ishkiwashka@gmail.com", password: "signal-summit-2708" });
+const { data } = await c.auth.signInWithPassword({ email: process.env.DEV_TEST_EMAIL, password: process.env.DEV_TEST_PASSWORD });
 const ref = new URL(url).hostname.split(".")[0];
 const enc = "base64-" + Buffer.from(JSON.stringify(data.session)).toString("base64url");
 const CH = 3180, parts = [];

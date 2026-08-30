@@ -13,8 +13,8 @@ const c = createClient(url, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY, {
   auth: { persistSession: false },
 });
 const { data } = await c.auth.signInWithPassword({
-  email: "ishkiwashka@gmail.com",
-  password: "signal-summit-2708",
+  email: process.env.DEV_TEST_EMAIL,
+  password: process.env.DEV_TEST_PASSWORD,
 });
 const ref = new URL(url).hostname.split(".")[0];
 const enc =
