@@ -24,10 +24,10 @@
  * than a preset PayPal plan/price object -- there is no PAYPAL_PRICE_*
  * env var backing it, so changing videoPack.amount alone is enough.
  *
- * videoPack is priced at real cost (Tavus Growth plan, $0.31/min, per a
- * ~40-minute round) plus the LLM turn cost that still runs alongside video
- * (see lib/cost.ts's realtime_turn) -- ~$12.40 Tavus + ~$0.65 LLM ≈ $13,
- * priced at $12.90. Sold at cost, not a markup: this is one credit, not a
+ * videoPack is priced just above real cost (Tavus Growth plan, $0.31/min,
+ * per a ~40-minute round) plus the LLM turn cost that still runs alongside
+ * video (see lib/cost.ts's realtime_turn) -- ~$12.40 Tavus + ~$0.65 LLM ≈
+ * $13.07, priced at $13.90 for a small margin. This is one credit, not a
  * multi-credit pack (see VIDEO_PACK_CREDITS in lib/tiers.ts).
  */
 
@@ -60,7 +60,7 @@ export const PRICING = {
   free: money("0.00", null),
   voice: money("19.00", "month"),
   premium: money("69.00", "month"),
-  videoPack: money("12.90", null),
+  videoPack: money("13.90", null),
 } as const;
 
 /** Env var holding the PayPal plan id for each paid plan. */
