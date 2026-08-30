@@ -72,7 +72,7 @@ export async function POST(request: Request) {
     const admin = createAdminClient();
     const { data: redemption, error: redeemError } = await admin.rpc(
       "redeem_discount_code",
-      { p_code: discountCode.trim() }
+      { p_code: discountCode.trim(), p_user: user.id }
     );
     const result = redemption?.[0] as { ok?: boolean; amount_off?: number } | undefined;
     if (redeemError || !result?.ok) {
