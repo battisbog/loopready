@@ -8,7 +8,7 @@ export const TRIES: Problem[] = [
     tiers: ["junior"],
     title: "Longest Common Prefix",
     fn: "longest_common_prefix",
-    companies: ["Amazon", "Google"],
+    companies: ["Amazon", "Google", "Meta", "Microsoft", "Apple"],
     statement:
       "Given a list of words, return the longest starting string that all of them share. Return an empty string if there is none.",
     example: "[\"flower\",\"flow\",\"flight\"] -> \"fl\"",
@@ -55,7 +55,7 @@ export const TRIES: Problem[] = [
     tiers: ["senior"],
     title: "Find Words in a Letter Grid",
     fn: "find_words",
-    companies: ["Amazon", "Meta", "Google"],
+    companies: ["Amazon", "Meta", "Google", "Microsoft"],
     statement:
       "Given a grid of letters and a list of target words, return which of those words can be spelled by walking between horizontally or vertically adjacent cells without reusing a cell in a single word.",
     example: "grid [[\"o\",\"a\"],[\"e\",\"t\"]], words [\"oat\",\"ate\"] -> [\"oat\",\"ate\"]",

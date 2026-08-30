@@ -8,7 +8,7 @@ export const ARRAYS_HASHING: Problem[] = [
     tiers: ["junior"],
     title: "Two Sum",
     fn: "two_sum",
-    companies: ["Amazon", "Google", "Meta", "Microsoft"],
+    companies: ["Amazon", "Google", "Meta", "Microsoft", "Apple"],
     statement:
       "Given an array of integers and a target, return the indices of the two numbers that add up to the target. Each input has exactly one solution, and you may not use the same element twice.",
     example: "nums = [2, 7, 11, 15], target = 9 -> [0, 1]",
@@ -32,7 +32,7 @@ export const ARRAYS_HASHING: Problem[] = [
     tiers: ["junior"],
     title: "Contains Duplicate",
     fn: "has_duplicate",
-    companies: ["Amazon", "Apple"],
+    companies: ["Amazon", "Apple", "Google", "Meta", "Microsoft"],
     statement:
       "Given an array of integers, return true if any value appears more than once, and false if every element is distinct.",
     example: "[1, 2, 3, 1] -> true",
@@ -56,7 +56,7 @@ export const ARRAYS_HASHING: Problem[] = [
     tiers: ["junior"],
     title: "Valid Anagram",
     fn: "is_anagram",
-    companies: ["Amazon", "Meta"],
+    companies: ["Amazon", "Meta", "Google", "Microsoft"],
     statement:
       "Given two strings, return true if the second is a rearrangement of the first using exactly the same letters with the same counts.",
     example: "\"listen\", \"silent\" -> true",
@@ -80,7 +80,7 @@ export const ARRAYS_HASHING: Problem[] = [
     tiers: ["mid"],
     title: "Group Anagrams",
     fn: "group_anagrams",
-    companies: ["Amazon", "Uber", "Meta"],
+    companies: ["Amazon", "Uber", "Meta", "Google", "Microsoft", "Apple"],
     statement:
       "Given a list of words, group together the words that are rearrangements of one another. Return the groups in any order.",
     example: "[\"eat\",\"tea\",\"tan\",\"ate\"] -> [[\"eat\",\"tea\",\"ate\"],[\"tan\"]]",
@@ -103,7 +103,7 @@ export const ARRAYS_HASHING: Problem[] = [
     tiers: ["mid"],
     title: "Top K Frequent Elements",
     fn: "top_k_frequent",
-    companies: ["Amazon", "Meta", "Netflix"],
+    companies: ["Amazon", "Meta", "Netflix", "Google", "Microsoft", "Apple"],
     statement:
       "Given an array of integers and a number k, return the k values that occur most often. The order of the returned values does not matter.",
     example: "nums = [1,1,1,2,2,3], k = 2 -> [1, 2]",
@@ -126,7 +126,7 @@ export const ARRAYS_HASHING: Problem[] = [
     tiers: ["mid"],
     title: "Product of Array Except Self",
     fn: "product_except_self",
-    companies: ["Amazon", "Meta", "Apple"],
+    companies: ["Amazon", "Meta", "Apple", "Google", "Microsoft"],
     statement:
       "Given an array of integers, return an array where each position holds the product of every other element. Solve it without using division.",
     example: "[1,2,3,4] -> [24,12,8,6]",
@@ -149,7 +149,7 @@ export const ARRAYS_HASHING: Problem[] = [
     tiers: ["senior"],
     title: "Longest Consecutive Run",
     fn: "longest_consecutive",
-    companies: ["Google", "Meta"],
+    companies: ["Google", "Meta", "Amazon", "Microsoft", "Apple"],
     statement:
       "Given an unsorted array of integers, find the length of the longest run of consecutive whole numbers present in the array. Aim for linear time.",
     example: "[100, 4, 200, 1, 3, 2] -> 4  (the run 1,2,3,4)",
@@ -173,7 +173,7 @@ export const ARRAYS_HASHING: Problem[] = [
     tiers: ["mid"],
     title: "Next Lexicographic Permutation",
     fn: "next_permutation",
-    companies: ["Meta", "Microsoft"],
+    companies: ["Meta", "Microsoft", "Amazon", "Google"],
     statement:
       "Given a list of numbers representing a permutation, return the next permutation in lexicographic order. If it is already the highest possible, return the lowest (sorted ascending).",
     example: "[1,2,3] -> [1,3,2]",
@@ -196,7 +196,7 @@ export const ARRAYS_HASHING: Problem[] = [
     tiers: ["senior"],
     title: "First Missing Positive Integer",
     fn: "first_missing_positive",
-    companies: ["Meta", "Microsoft"],
+    companies: ["Meta", "Microsoft", "Amazon", "Google"],
     statement:
       "Given an unsorted array of integers, return the smallest positive integer that does not appear in it. Must run in O(n) time and O(1) extra space.",
     example: "[3,4,-1,1] -> 2",

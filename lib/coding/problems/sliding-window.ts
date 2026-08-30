@@ -8,7 +8,7 @@ export const SLIDING_WINDOW: Problem[] = [
     tiers: ["junior"],
     title: "Best Time to Buy and Sell",
     fn: "max_profit",
-    companies: ["Amazon", "Meta", "Microsoft"],
+    companies: ["Amazon", "Meta", "Microsoft", "Google", "Apple"],
     statement:
       "You are given daily prices for one stock. Choose one day to buy and a later day to sell to make the largest profit. If no profit is possible, return 0.",
     example: "[7,1,5,3,6,4] -> 5  (buy at 1, sell at 6)",
@@ -32,7 +32,7 @@ export const SLIDING_WINDOW: Problem[] = [
     tiers: ["mid"],
     title: "Longest Substring Without Repeats",
     fn: "length_of_longest",
-    companies: ["Amazon", "Google", "Meta"],
+    companies: ["Amazon", "Google", "Meta", "Microsoft", "Apple", "Netflix"],
     statement:
       "Given a string, return the length of the longest stretch of consecutive characters that contains no repeats.",
     example: "\"abcabcbb\" -> 3  (\"abc\")",
@@ -57,7 +57,7 @@ export const SLIDING_WINDOW: Problem[] = [
     tiers: ["senior"],
     title: "Longest Run After K Replacements",
     fn: "character_replacement",
-    companies: ["Google", "Amazon"],
+    companies: ["Google", "Amazon", "Meta", "Microsoft"],
     statement:
       "Given a string of uppercase letters and a budget k, you may change up to k characters to any other letter. Return the length of the longest run of one repeated letter you can produce.",
     example: "\"AABABBA\", k = 1 -> 4",
@@ -81,7 +81,7 @@ export const SLIDING_WINDOW: Problem[] = [
     tiers: ["senior"],
     title: "Minimum Window Containing All Characters",
     fn: "min_window",
-    companies: ["Meta", "Google", "Uber"],
+    companies: ["Meta", "Google", "Uber", "Amazon", "Microsoft"],
     statement:
       "Given a string and a set of required characters given as a string, return the shortest stretch of the first string that contains every required character including repeats. Return an empty string if none exists.",
     example: "\"ADOBECODEBANC\", \"ABC\" -> \"BANC\"",

@@ -8,7 +8,7 @@ export const TREES: Problem[] = [
     tiers: ["junior"],
     title: "Maximum Depth of a Binary Tree",
     fn: "max_depth",
-    companies: ["Amazon", "Meta", "Microsoft"],
+    companies: ["Amazon", "Meta", "Microsoft", "Google"],
     statement:
       "A binary tree is given as a level-order array where null marks a missing child. Return the number of nodes on the longest path from the root down to a leaf.",
     example: "[3,9,20,null,null,15,7] -> 3",
@@ -32,7 +32,7 @@ export const TREES: Problem[] = [
     tiers: ["junior"],
     title: "Invert a Binary Tree",
     fn: "invert_tree",
-    companies: ["Google", "Amazon"],
+    companies: ["Google", "Amazon", "Meta"],
     statement:
       "A binary tree is given as a level-order array where null marks a missing child. Mirror the tree left-to-right and return the result as a level-order array with trailing nulls removed.",
     example: "[4,2,7,1,3,6,9] -> [4,7,2,9,6,3,1]",
@@ -55,7 +55,7 @@ export const TREES: Problem[] = [
     tiers: ["junior"],
     title: "Identical Trees",
     fn: "is_same_tree",
-    companies: ["Amazon", "Apple"],
+    companies: ["Amazon", "Apple", "Google", "Meta", "Microsoft"],
     statement:
       "Two binary trees are given as level-order arrays where null marks a missing child. Return true if they have the same shape and the same values in the same positions.",
     example: "[1,2,3] and [1,2,3] -> true",
@@ -78,7 +78,7 @@ export const TREES: Problem[] = [
     tiers: ["mid"],
     title: "Level Order Traversal",
     fn: "level_order",
-    companies: ["Amazon", "Meta", "LinkedIn"],
+    companies: ["Amazon", "Meta", "LinkedIn", "Google", "Microsoft"],
     statement:
       "A binary tree is given as a level-order array where null marks a missing child. Return a list of lists holding the values at each depth, from the root down.",
     example: "[3,9,20,null,null,15,7] -> [[3],[9,20],[15,7]]",
@@ -101,7 +101,7 @@ export const TREES: Problem[] = [
     tiers: ["senior"],
     title: "Validate a Binary Search Tree",
     fn: "is_valid_bst",
-    companies: ["Amazon", "Meta", "Google"],
+    companies: ["Amazon", "Meta", "Google", "Microsoft"],
     statement:
       "A binary tree is given as a level-order array where null marks a missing child. Return true if it is a valid binary search tree: every value in a node's left subtree is smaller than the node, and every value in its right subtree is larger.",
     example: "[5,1,4,null,null,3,6] -> false",
@@ -126,7 +126,7 @@ export const TREES: Problem[] = [
     tiers: ["mid"],
     title: "Lowest Common Ancestor in a BST",
     fn: "lca_bst",
-    companies: ["Amazon", "Meta"],
+    companies: ["Amazon", "Meta", "Google", "Microsoft"],
     statement:
       "A binary search tree is given as a level-order array where null marks a missing child, along with two values present in it. Return the value of the deepest node that has both of them as descendants, where a node may be its own descendant.",
     example: "[6,2,8,0,4,7,9], p = 2, q = 8 -> 6",
@@ -149,7 +149,7 @@ export const TREES: Problem[] = [
     tiers: ["junior"],
     title: "Symmetric Binary Tree",
     fn: "is_symmetric",
-    companies: ["Microsoft"],
+    companies: ["Microsoft", "Amazon", "Google", "Meta"],
     statement:
       "A binary tree is given as a level-order array where null marks a missing child. Return true if it is a mirror of itself around its center.",
     example: "[1,2,2,3,4,4,3] -> true",
@@ -172,7 +172,7 @@ export const TREES: Problem[] = [
     tiers: ["mid"],
     title: "Lowest Common Ancestor in a Binary Tree",
     fn: "lca_general",
-    companies: ["Meta", "Apple"],
+    companies: ["Meta", "Apple", "Amazon", "Google"],
     statement:
       "A binary tree (not necessarily a search tree) is given as a level-order array where null marks a missing child, along with two values present in it, assumed unique. Return the value of the deepest node that has both as descendants, where a node may be its own descendant.",
     example: "[3,5,1,6,2,0,8,null,null,7,4], p = 5, q = 1 -> 3",
@@ -194,7 +194,7 @@ export const TREES: Problem[] = [
     tiers: ["senior"],
     title: "Maximum Path Sum in a Binary Tree",
     fn: "max_path_sum",
-    companies: ["Google"],
+    companies: ["Google", "Amazon", "Meta", "Microsoft"],
     statement:
       "A binary tree is given as a level-order array where null marks a missing child. A path is any sequence of nodes connected by edges, not necessarily passing through the root, and does not need to include the whole tree. Return the largest sum of node values along any path.",
     example: "[-10,9,20,null,null,15,7] -> 42",
@@ -217,7 +217,7 @@ export const TREES: Problem[] = [
     tiers: ["senior"],
     title: "Build a Tree From Preorder and Inorder Traversals",
     fn: "build_tree",
-    companies: ["Microsoft"],
+    companies: ["Microsoft", "Amazon", "Google"],
     statement:
       "Given the preorder and inorder traversals of a binary tree with unique values, reconstruct the tree. Return it as a level-order array with trailing nulls removed.",
     example: "preorder [3,9,20,15,7], inorder [9,3,15,20,7] -> [3,9,20,null,null,15,7]",

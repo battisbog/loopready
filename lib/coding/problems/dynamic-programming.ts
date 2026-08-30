@@ -8,7 +8,7 @@ export const DYNAMIC_PROGRAMMING: Problem[] = [
     tiers: ["junior"],
     title: "Climbing Stairs",
     fn: "climb_stairs",
-    companies: ["Amazon", "Apple"],
+    companies: ["Amazon", "Apple", "Google", "Meta", "Microsoft"],
     statement:
       "You are climbing a staircase of n steps and may take one or two steps at a time. Return how many distinct ways you can reach the top.",
     example: "n = 4 -> 5",
@@ -32,7 +32,7 @@ export const DYNAMIC_PROGRAMMING: Problem[] = [
     tiers: ["mid"],
     title: "Non-Adjacent Maximum Sum",
     fn: "rob",
-    companies: ["Amazon", "Google"],
+    companies: ["Amazon", "Google", "Meta", "Microsoft"],
     statement:
       "Given an array of non-negative numbers, choose a subset with the largest possible sum such that no two chosen entries are adjacent. Return that sum.",
     example: "[2,7,9,3,1] -> 12",
@@ -56,7 +56,7 @@ export const DYNAMIC_PROGRAMMING: Problem[] = [
     tiers: ["mid", "senior"],
     title: "Fewest Coins",
     fn: "coin_change",
-    companies: ["Amazon", "Meta", "Google"],
+    companies: ["Amazon", "Meta", "Google", "Microsoft"],
     statement:
       "Given coin denominations available in unlimited quantity and a target amount, return the fewest coins that sum exactly to the amount, or -1 if it cannot be made.",
     example: "coins [1,2,5], amount 11 -> 3",
@@ -80,7 +80,7 @@ export const DYNAMIC_PROGRAMMING: Problem[] = [
     tiers: ["senior"],
     title: "Longest Increasing Subsequence",
     fn: "length_of_lis",
-    companies: ["Google", "Amazon", "Microsoft"],
+    companies: ["Google", "Amazon", "Microsoft", "Meta"],
     statement:
       "Given an array of integers, return the length of the longest strictly increasing subsequence. The chosen elements need not be adjacent.",
     example: "[10,9,2,5,3,7,101,18] -> 4",
@@ -104,7 +104,7 @@ export const DYNAMIC_PROGRAMMING: Problem[] = [
     tiers: ["senior"],
     title: "Word Break",
     fn: "word_break",
-    companies: ["Amazon", "Meta", "Google"],
+    companies: ["Amazon", "Meta", "Google", "Microsoft"],
     statement:
       "Given a string and a dictionary of words, return true if the string can be split into a sequence of dictionary words. Words may be reused.",
     example: "\"applepen\", [\"apple\",\"pen\"] -> true",
@@ -128,7 +128,7 @@ export const DYNAMIC_PROGRAMMING: Problem[] = [
     tiers: ["junior", "mid"],
     title: "Unique Grid Paths",
     fn: "unique_paths",
-    companies: ["Amazon", "Google"],
+    companies: ["Amazon", "Google", "Meta", "Microsoft"],
     statement:
       "A robot starts at the top-left of an m by n grid and may move only right or down. Return how many distinct paths reach the bottom-right corner.",
     example: "3 by 7 -> 28",
@@ -152,7 +152,7 @@ export const DYNAMIC_PROGRAMMING: Problem[] = [
     tiers: ["senior"],
     title: "Edit Distance",
     fn: "min_distance",
-    companies: ["Google", "Amazon", "Microsoft"],
+    companies: ["Google", "Amazon", "Microsoft", "Meta", "Apple"],
     statement:
       "Given two strings, return the fewest single-character insertions, deletions or substitutions needed to turn the first into the second.",
     example: "\"horse\" -> \"ros\" is 3",
@@ -176,7 +176,7 @@ export const DYNAMIC_PROGRAMMING: Problem[] = [
     tiers: ["mid"],
     title: "Count Ways to Decode a Digit String",
     fn: "num_decodings",
-    companies: ["Meta", "Amazon"],
+    companies: ["Meta", "Amazon", "Google", "Microsoft"],
     statement:
       "A string of digits was encoded from letters A-Z using 1=A ... 26=Z. Return the number of ways it could have been decoded. A leading zero in any group makes that decoding invalid.",
     example: "\"226\" -> 3",
@@ -201,7 +201,7 @@ export const DYNAMIC_PROGRAMMING: Problem[] = [
     tiers: ["mid"],
     title: "Maximum Product Subarray",
     fn: "max_product",
-    companies: ["Amazon"],
+    companies: ["Amazon", "Google", "Meta", "Microsoft"],
     statement:
       "Given an array of integers, return the largest product of any contiguous subarray.",
     example: "[2,3,-2,4] -> 6",

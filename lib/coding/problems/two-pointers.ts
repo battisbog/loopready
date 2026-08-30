@@ -8,7 +8,7 @@ export const TWO_POINTERS: Problem[] = [
     tiers: ["junior"],
     title: "Valid Palindrome",
     fn: "is_palindrome",
-    companies: ["Meta", "Amazon"],
+    companies: ["Meta", "Amazon", "Google", "Microsoft", "Apple"],
     statement:
       "Given a string, return true if it reads the same forwards and backwards once you ignore punctuation and spacing and treat upper and lower case as equal.",
     example: "\"A man, a plan, a canal: Panama\" -> true",
@@ -33,7 +33,7 @@ export const TWO_POINTERS: Problem[] = [
     tiers: ["junior"],
     title: "Two Sum on a Sorted Array",
     fn: "two_sum_sorted",
-    companies: ["Amazon", "Microsoft"],
+    companies: ["Amazon", "Microsoft", "Google", "Meta"],
     statement:
       "Given an array sorted in ascending order and a target, return the 1-based positions of the two values that sum to the target. Exactly one pair exists. Use constant extra space.",
     example: "[2,7,11,15], target 9 -> [1,2]",
@@ -56,7 +56,7 @@ export const TWO_POINTERS: Problem[] = [
     tiers: ["mid", "senior"],
     title: "Three Sum",
     fn: "three_sum",
-    companies: ["Meta", "Amazon", "Google"],
+    companies: ["Meta", "Amazon", "Google", "Microsoft", "Apple"],
     statement:
       "Given an array of integers, find every unique triple of values that sums to zero. Each triple should appear once regardless of the order its members were found in.",
     example: "[-1,0,1,2,-1,-4] -> [[-1,-1,2],[-1,0,1]]",
@@ -80,7 +80,7 @@ export const TWO_POINTERS: Problem[] = [
     tiers: ["mid"],
     title: "Container With Most Water",
     fn: "max_area",
-    companies: ["Amazon", "Google", "Bloomberg"],
+    companies: ["Amazon", "Google", "Bloomberg", "Meta", "Microsoft", "Apple"],
     statement:
       "You are given an array where each value is the height of a vertical line at that index. Pick two lines so that the rectangle they form with the horizontal axis holds the most water, and return that area.",
     example: "[1,8,6,2,5,4,8,3,7] -> 49",
@@ -103,7 +103,7 @@ export const TWO_POINTERS: Problem[] = [
     tiers: ["mid"],
     title: "Trapping Rain Water",
     fn: "trap",
-    companies: ["Google", "Amazon", "Apple", "Microsoft", "Netflix"],
+    companies: ["Google", "Amazon", "Apple", "Microsoft", "Netflix", "Meta"],
     statement:
       "Given a list of non-negative integers representing an elevation map where each bar has width 1, return how much water it can trap after raining.",
     example: "[0,1,0,2,1,0,1,3,2,1,2,1] -> 6",
@@ -127,7 +127,7 @@ export const TWO_POINTERS: Problem[] = [
     tiers: ["junior"],
     title: "Merge Two Sorted Arrays",
     fn: "merge_sorted",
-    companies: ["Microsoft"],
+    companies: ["Microsoft", "Amazon", "Google", "Meta"],
     statement:
       "Given two arrays already sorted in ascending order, return one merged array in ascending order.",
     example: "[1,2,3], [2,5,6] -> [1,2,2,3,5,6]",
@@ -150,7 +150,7 @@ export const TWO_POINTERS: Problem[] = [
     tiers: ["mid"],
     title: "Sort an Array of Three Values",
     fn: "sort_colors",
-    companies: ["Microsoft"],
+    companies: ["Microsoft", "Amazon", "Google", "Meta", "Apple"],
     statement:
       "Given an array containing only the values 0, 1 and 2, return it sorted in a single pass without using a separate counting or sorting step.",
     example: "[2,0,2,1,1,0] -> [0,0,1,1,2,2]",

@@ -8,7 +8,7 @@ export const MATRIX: Problem[] = [
     tiers: ["mid"],
     title: "Rotate Image 90 Degrees",
     fn: "rotate_image",
-    companies: ["Amazon", "Microsoft", "Apple"],
+    companies: ["Amazon", "Microsoft", "Apple", "Google", "Meta"],
     statement:
       "Given an n x n matrix, return a new matrix rotated 90 degrees clockwise.",
     example: "[[1,2,3],[4,5,6],[7,8,9]] -> [[7,4,1],[8,5,2],[9,6,3]]",
@@ -30,7 +30,7 @@ export const MATRIX: Problem[] = [
     tiers: ["mid"],
     title: "Spiral Matrix Traversal",
     fn: "spiral_order",
-    companies: ["Google", "Microsoft", "Amazon"],
+    companies: ["Google", "Microsoft", "Amazon", "Meta", "Apple"],
     statement:
       "Given an m x n matrix, return all elements in spiral order, starting from the top-left and moving right.",
     example: "[[1,2,3],[4,5,6],[7,8,9]] -> [1,2,3,6,9,8,7,4,5]",
@@ -53,7 +53,7 @@ export const MATRIX: Problem[] = [
     tiers: ["mid"],
     title: "Set Matrix Zeroes",
     fn: "set_zeroes",
-    companies: ["Microsoft", "Amazon"],
+    companies: ["Microsoft", "Amazon", "Google", "Meta"],
     statement:
       "Given an m x n matrix, return a new matrix where any row or column that contained a 0 in the original is entirely zeroed out.",
     example: "[[1,1,1],[1,0,1],[1,1,1]] -> [[1,0,1],[0,0,0],[1,0,1]]",

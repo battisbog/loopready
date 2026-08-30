@@ -8,7 +8,7 @@ export const STACK: Problem[] = [
     tiers: ["junior"],
     title: "Valid Parentheses",
     fn: "is_valid",
-    companies: ["Amazon", "Meta", "Microsoft"],
+    companies: ["Amazon", "Meta", "Microsoft", "Google"],
     statement:
       "Given a string containing only the characters ()[]{}, determine if it is balanced. Brackets must close in the correct order and every closing bracket must match the most recent unclosed opening bracket of the same type.",
     example: "\"{[]}\" -> true,  \"(]\" -> false",
@@ -35,7 +35,7 @@ export const STACK: Problem[] = [
     tiers: ["mid"],
     title: "Evaluate Postfix Expression",
     fn: "eval_rpn",
-    companies: ["Amazon", "LinkedIn"],
+    companies: ["Amazon", "LinkedIn", "Google", "Meta", "Microsoft"],
     statement:
       "Evaluate an arithmetic expression given in postfix order, where each token is either an integer or one of + - * /. Division truncates toward zero.",
     example: "[\"2\",\"1\",\"+\",\"3\",\"*\"] -> 9",
@@ -59,7 +59,7 @@ export const STACK: Problem[] = [
     tiers: ["mid"],
     title: "Days Until a Warmer Day",
     fn: "daily_temperatures",
-    companies: ["Amazon", "Google"],
+    companies: ["Amazon", "Google", "Meta", "Microsoft"],
     statement:
       "Given daily temperatures, return an array where each position holds how many days you must wait for a warmer temperature. Use 0 where no warmer day follows.",
     example: "[73,74,75,71,69,72,76,73] -> [1,1,4,2,1,1,0,0]",
@@ -83,7 +83,7 @@ export const STACK: Problem[] = [
     tiers: ["senior"],
     title: "Largest Rectangle in a Histogram",
     fn: "largest_rectangle",
-    companies: ["Google", "Amazon"],
+    companies: ["Google", "Amazon", "Meta", "Microsoft"],
     statement:
       "Given bar heights of a histogram where every bar has width 1, return the area of the largest rectangle that fits entirely inside the bars.",
     example: "[2,1,5,6,2,3] -> 10",
@@ -108,7 +108,7 @@ export const STACK: Problem[] = [
     tiers: ["mid"],
     title: "Stack With Constant-Time Minimum",
     fn: "min_stack_results",
-    companies: ["Amazon", "Google", "Bloomberg"],
+    companies: ["Amazon", "Google", "Bloomberg", "Meta", "Microsoft"],
     statement:
       "You are given a list of operations, each one of [\"push\", value], [\"pop\"], [\"top\"] or [\"min\"]. Apply them to a stack and return the results of the top and min operations in order. Every operation must run in constant time.",
     example: "[[\"push\",-2],[\"push\",0],[\"push\",-3],[\"min\"],[\"pop\"],[\"top\"],[\"min\"]] -> [-3,0,-2]",

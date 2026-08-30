@@ -8,7 +8,7 @@ export const BINARY_SEARCH: Problem[] = [
     tiers: ["junior"],
     title: "Binary Search",
     fn: "search",
-    companies: ["Amazon", "Microsoft"],
+    companies: ["Amazon", "Microsoft", "Google", "Meta"],
     statement:
       "Given a sorted array of distinct integers and a target, return the index of the target or -1 if it is absent. Run in logarithmic time.",
     example: "[-1,0,3,5,9,12], target 9 -> 4",
@@ -33,7 +33,7 @@ export const BINARY_SEARCH: Problem[] = [
     tiers: ["mid"],
     title: "Search a Rotated Sorted Array",
     fn: "search_rotated",
-    companies: ["Amazon", "Meta", "Google"],
+    companies: ["Amazon", "Meta", "Google", "Microsoft"],
     statement:
       "A sorted array of distinct integers has been rotated at an unknown pivot. Given the rotated array and a target, return the target's index or -1. Run in logarithmic time.",
     example: "[4,5,6,7,0,1,2], target 0 -> 4",
@@ -57,7 +57,7 @@ export const BINARY_SEARCH: Problem[] = [
     tiers: ["mid"],
     title: "Minimum in a Rotated Sorted Array",
     fn: "find_min",
-    companies: ["Amazon", "Microsoft"],
+    companies: ["Amazon", "Microsoft", "Google", "Meta"],
     statement:
       "A sorted array of distinct integers has been rotated at an unknown pivot. Return its smallest value in logarithmic time.",
     example: "[4,5,6,7,0,1,2] -> 0",
@@ -81,7 +81,7 @@ export const BINARY_SEARCH: Problem[] = [
     tiers: ["senior"],
     title: "Minimum Rate to Finish in Time",
     fn: "min_rate",
-    companies: ["Google", "Amazon"],
+    companies: ["Google", "Amazon", "Meta", "Microsoft", "Apple"],
     statement:
       "You are given pile sizes and a number of hours. Each hour you may consume up to a fixed rate from a single pile, and a partly eaten pile still uses the whole hour. Return the smallest rate that clears every pile within the given hours.",
     example: "piles = [3,6,7,11], hours = 8 -> 4",

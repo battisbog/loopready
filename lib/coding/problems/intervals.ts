@@ -8,7 +8,7 @@ export const INTERVALS: Problem[] = [
     tiers: ["mid"],
     title: "Merge Overlapping Intervals",
     fn: "merge_intervals",
-    companies: ["Amazon", "Meta", "Google", "Bloomberg"],
+    companies: ["Amazon", "Meta", "Google", "Bloomberg", "Microsoft", "Apple"],
     statement:
       "Given a list of [start, end] intervals, merge every set that overlaps and return the resulting list sorted by start. Intervals that merely touch at an endpoint count as overlapping.",
     example: "[[1,3],[2,6],[8,10]] -> [[1,6],[8,10]]",
@@ -32,7 +32,7 @@ export const INTERVALS: Problem[] = [
     tiers: ["mid"],
     title: "Insert an Interval",
     fn: "insert_interval",
-    companies: ["Google", "Amazon", "LinkedIn"],
+    companies: ["Google", "Amazon", "LinkedIn", "Meta", "Microsoft"],
     statement:
       "Given a list of non-overlapping [start, end] intervals sorted by start, insert one new interval and merge where needed. Return the resulting list.",
     example: "[[1,3],[6,9]], insert [2,5] -> [[1,5],[6,9]]",
@@ -56,7 +56,7 @@ export const INTERVALS: Problem[] = [
     tiers: ["mid", "senior"],
     title: "Minimum Meeting Rooms",
     fn: "min_rooms",
-    companies: ["Amazon", "Meta", "Google", "Uber"],
+    companies: ["Amazon", "Meta", "Google", "Uber", "Microsoft", "Apple"],
     statement:
       "Given meeting times as [start, end] intervals, return the smallest number of rooms needed so that no two meetings share a room at the same time. A meeting ending exactly when another begins can reuse the room.",
     example: "[[0,30],[5,10],[15,20]] -> 2",
@@ -80,7 +80,7 @@ export const INTERVALS: Problem[] = [
     tiers: ["senior"],
     title: "Fewest Removals to Remove Overlap",
     fn: "erase_overlap",
-    companies: ["Google", "Amazon"],
+    companies: ["Google", "Amazon", "Microsoft"],
     statement:
       "Given a list of [start, end] intervals, return the minimum number you must remove so that none of the remainder overlap. Touching endpoints do not count as overlap.",
     example: "[[1,2],[2,3],[3,4],[1,3]] -> 1",

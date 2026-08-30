@@ -8,7 +8,7 @@ export const GRAPHS: Problem[] = [
     tiers: ["mid"],
     title: "Number of Islands",
     fn: "num_islands",
-    companies: ["Amazon", "Meta", "Google", "Microsoft"],
+    companies: ["Amazon", "Meta", "Google", "Microsoft", "Apple"],
     statement:
       "Given a grid of \"1\" for land and \"0\" for water, count the separate land masses. Cells join only horizontally or vertically.",
     example: "[[\"1\",\"1\",\"0\"],[\"0\",\"1\",\"0\"],[\"0\",\"0\",\"1\"]] -> 2",
@@ -31,7 +31,7 @@ export const GRAPHS: Problem[] = [
     tiers: ["mid"],
     title: "Largest Island",
     fn: "max_area_island",
-    companies: ["Amazon", "Google"],
+    companies: ["Amazon", "Google", "Meta"],
     statement:
       "Given a grid of 1 for land and 0 for water, return the number of cells in the largest connected land mass. Cells join only horizontally or vertically. Return 0 if there is no land.",
     example: "[[1,1,0],[0,1,0],[0,0,1]] -> 3",
@@ -54,7 +54,7 @@ export const GRAPHS: Problem[] = [
     tiers: ["senior"],
     title: "Course Prerequisites",
     fn: "can_finish",
-    companies: ["Amazon", "Meta", "Google"],
+    companies: ["Amazon", "Meta", "Google", "Microsoft", "Apple"],
     statement:
       "Given a number of courses labelled from zero and a list of [course, prerequisite] pairs, return true if there is an order that lets you take every course.",
     example: "2 courses, [[1,0]] -> true;  [[1,0],[0,1]] -> false",
@@ -78,7 +78,7 @@ export const GRAPHS: Problem[] = [
     tiers: ["mid"],
     title: "Spreading Rot",
     fn: "oranges_rotting",
-    companies: ["Amazon", "Google"],
+    companies: ["Amazon", "Google", "Meta", "Microsoft"],
     statement:
       "In a grid, 0 is empty, 1 is a fresh orange and 2 is a rotten one. Each minute, every fresh orange horizontally or vertically adjacent to a rotten one also rots. Return the minutes until none are fresh, or -1 if some can never rot.",
     example: "[[2,1,1],[1,1,0],[0,1,1]] -> 4",

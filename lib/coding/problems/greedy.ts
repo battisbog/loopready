@@ -8,7 +8,7 @@ export const GREEDY: Problem[] = [
     tiers: ["junior", "mid"],
     title: "Maximum Subarray Sum",
     fn: "max_subarray",
-    companies: ["Amazon", "Meta", "Microsoft", "LinkedIn"],
+    companies: ["Amazon", "Meta", "Microsoft", "LinkedIn", "Google", "Apple"],
     statement:
       "Given an array of integers, return the largest sum obtainable from any contiguous non-empty run of elements.",
     example: "[-2,1,-3,4,-1,2,1,-5,4] -> 6",
@@ -32,7 +32,7 @@ export const GREEDY: Problem[] = [
     tiers: ["mid"],
     title: "Jump Game",
     fn: "can_jump",
-    companies: ["Amazon", "Meta"],
+    companies: ["Amazon", "Meta", "Google", "Microsoft"],
     statement:
       "Given an array where each value is the maximum number of positions you may advance from that index, starting at index 0, return true if you can reach the final index.",
     example: "[2,3,1,1,4] -> true;  [3,2,1,0,4] -> false",
@@ -56,7 +56,7 @@ export const GREEDY: Problem[] = [
     tiers: ["senior"],
     title: "Circular Route Start",
     fn: "can_complete_circuit",
-    companies: ["Amazon", "Google"],
+    companies: ["Amazon", "Google", "Meta", "Microsoft"],
     statement:
       "Stations are arranged in a circle. Each has an amount of fuel available and a cost to travel to the next one. Starting empty, return the index you must begin at to complete one full loop, or -1 if no start works. A solution is unique when it exists.",
     example: "gas [1,2,3,4,5], cost [3,4,5,1,2] -> 3",
@@ -79,7 +79,7 @@ export const GREEDY: Problem[] = [
     tiers: ["mid"],
     title: "Partition a String Into Distinct Blocks",
     fn: "partition_labels",
-    companies: ["Amazon", "Meta"],
+    companies: ["Amazon", "Meta", "Microsoft"],
     statement:
       "Given a string, split it into the largest possible number of contiguous pieces so that no letter appears in more than one piece. Return the length of each piece in order.",
     example: "\"ababcbacadefegde\" -> [9, 7]",

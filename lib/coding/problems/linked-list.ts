@@ -8,7 +8,7 @@ export const LINKED_LIST: Problem[] = [
     tiers: ["junior"],
     title: "Reverse a Linked List",
     fn: "reverse_list",
-    companies: ["Amazon", "Meta", "Microsoft", "Apple"],
+    companies: ["Amazon", "Meta", "Microsoft", "Apple", "Google"],
     statement:
       "A singly linked list is given to you as an array of its values in order. Return an array of the values in reversed order. Discuss the pointer manipulation you would use on real nodes.",
     example: "[1,2,3,4,5] -> [5,4,3,2,1]",
@@ -31,7 +31,7 @@ export const LINKED_LIST: Problem[] = [
     tiers: ["junior"],
     title: "Merge Two Sorted Lists",
     fn: "merge_sorted",
-    companies: ["Amazon", "Microsoft", "Apple"],
+    companies: ["Amazon", "Microsoft", "Apple", "Google", "Meta"],
     statement:
       "Two sorted linked lists are given as arrays of their values. Return one sorted array containing every value from both.",
     example: "[1,2,4], [1,3,4] -> [1,1,2,3,4,4]",
@@ -54,7 +54,7 @@ export const LINKED_LIST: Problem[] = [
     tiers: ["mid"],
     title: "Detect a Cycle",
     fn: "has_cycle",
-    companies: ["Amazon", "Meta", "Bloomberg"],
+    companies: ["Amazon", "Meta", "Bloomberg", "Google", "Microsoft"],
     statement:
       "A linked list is described by an array of values plus an index that the last node points back to, or -1 for no cycle. Return true if the list contains a cycle. Explain how you would do it with constant extra space.",
     example: "values = [3,2,0,-4], tail connects to index 1 -> true",
@@ -78,7 +78,7 @@ export const LINKED_LIST: Problem[] = [
     tiers: ["mid"],
     title: "Remove the Nth Node From the End",
     fn: "remove_nth",
-    companies: ["Amazon", "Meta"],
+    companies: ["Amazon", "Meta", "Google", "Microsoft"],
     statement:
       "Given a linked list as an array of values and a number n, remove the nth node counting from the end and return the remaining values. Aim to do it in a single pass.",
     example: "[1,2,3,4,5], n = 2 -> [1,2,3,5]",
@@ -102,7 +102,7 @@ export const LINKED_LIST: Problem[] = [
     tiers: ["senior"],
     title: "Merge K Sorted Lists",
     fn: "merge_k",
-    companies: ["Amazon", "Google", "Meta", "Uber"],
+    companies: ["Amazon", "Google", "Meta", "Uber", "Microsoft", "Apple"],
     statement:
       "You are given several sorted linked lists, each as an array of its values. Return one sorted array containing every value from all of them.",
     example: "[[1,4,5],[1,3,4],[2,6]] -> [1,1,2,3,4,4,5,6]",
@@ -126,7 +126,7 @@ export const LINKED_LIST: Problem[] = [
     tiers: ["mid", "senior"],
     title: "Reorder a List",
     fn: "reorder",
-    companies: ["Meta", "Amazon"],
+    companies: ["Meta", "Amazon", "Google", "Microsoft"],
     statement:
       "A linked list is given as an array of its values. Reorder it by interleaving the first half with the reversed second half: first element, last element, second element, second-to-last, and so on. Return the resulting array.",
     example: "[1,2,3,4,5] -> [1,5,2,4,3]",
@@ -150,7 +150,7 @@ export const LINKED_LIST: Problem[] = [
     tiers: ["senior"],
     title: "LRU Cache Behaviour",
     fn: "lru_results",
-    companies: ["Amazon", "Meta", "Google", "Microsoft"],
+    companies: ["Amazon", "Meta", "Google", "Microsoft", "Apple", "Netflix"],
     statement:
       "You are given a capacity and a list of operations, each either [\"put\", key, value] or [\"get\", key]. Apply them to a cache that evicts the least recently used entry once it is over capacity. Both get and put count as a use. Return the list of results from the get operations, using -1 for a miss.",
     example: "capacity 2, [[\"put\",1,1],[\"put\",2,2],[\"get\",1],[\"put\",3,3],[\"get\",2]] -> [1,-1]",
@@ -173,7 +173,7 @@ export const LINKED_LIST: Problem[] = [
     tiers: ["junior"],
     title: "Add Two Numbers as Linked Lists",
     fn: "add_two_numbers",
-    companies: ["Microsoft"],
+    companies: ["Microsoft", "Amazon", "Google", "Meta"],
     statement:
       "Two non-negative integers are given as lists of digits in reverse order (least significant digit first), one digit per node. Return their sum in the same reverse-digit-order form.",
     example: "[2,4,3] + [5,6,4] -> [7,0,8]  (342 + 465 = 807)",

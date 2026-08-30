@@ -8,7 +8,7 @@ export const BACKTRACKING: Problem[] = [
     tiers: ["mid"],
     title: "All Subsets",
     fn: "subsets",
-    companies: ["Amazon", "Meta"],
+    companies: ["Amazon", "Meta", "Google", "Microsoft"],
     statement:
       "Given an array of distinct integers, return every possible subset including the empty one. The order of the subsets does not matter.",
     example: "[1,2] -> [[],[1],[2],[1,2]]",
@@ -31,7 +31,7 @@ export const BACKTRACKING: Problem[] = [
     tiers: ["mid"],
     title: "All Permutations",
     fn: "permutations",
-    companies: ["Amazon", "Microsoft"],
+    companies: ["Amazon", "Microsoft", "Google", "Meta"],
     statement:
       "Given an array of distinct integers, return every ordering of them. The order of the results does not matter.",
     example: "[1,2,3] -> six orderings",
@@ -54,7 +54,7 @@ export const BACKTRACKING: Problem[] = [
     tiers: ["mid", "senior"],
     title: "Combination Sum",
     fn: "combination_sum",
-    companies: ["Amazon", "Meta", "Airbnb"],
+    companies: ["Amazon", "Meta", "Airbnb", "Google", "Microsoft"],
     statement:
       "Given distinct positive integers and a target, return every unique combination that sums to the target. A number may be reused any number of times. Combinations differing only in order count as the same.",
     example: "[2,3,6,7], target 7 -> [[2,2,3],[7]]",
@@ -77,7 +77,7 @@ export const BACKTRACKING: Problem[] = [
     tiers: ["mid"],
     title: "Generate Balanced Parentheses",
     fn: "generate_parens",
-    companies: ["Amazon", "Google", "Uber"],
+    companies: ["Amazon", "Google", "Uber", "Meta", "Microsoft"],
     statement:
       "Given a count n, return every string of n opening and n closing brackets that is balanced. The order of the results does not matter.",
     example: "n = 2 -> [\"(())\",\"()()\"]",
@@ -100,7 +100,7 @@ export const BACKTRACKING: Problem[] = [
     tiers: ["mid"],
     title: "Letter Combinations of a Phone Number",
     fn: "letter_combinations",
-    companies: ["Meta", "Microsoft"],
+    companies: ["Meta", "Microsoft", "Amazon", "Google", "Apple"],
     statement:
       "Given a string of digits 2-9, return every possible letter combination the digits could represent on a phone keypad, in any order.",
     example: "\"23\" -> [\"ad\",\"ae\",\"af\",\"bd\",\"be\",\"bf\",\"cd\",\"ce\",\"cf\"]",
@@ -122,7 +122,7 @@ export const BACKTRACKING: Problem[] = [
     tiers: ["mid"],
     title: "Find a Single Word in a Letter Grid",
     fn: "word_exists",
-    companies: ["Amazon", "Microsoft", "Netflix"],
+    companies: ["Amazon", "Microsoft", "Netflix", "Google", "Meta"],
     statement:
       "Given a grid of letters and a single target word, return whether the word can be spelled by walking between horizontally or vertically adjacent cells without reusing a cell.",
     example: "[[\"A\",\"B\",\"C\",\"E\"],[\"S\",\"F\",\"C\",\"S\"],[\"A\",\"D\",\"E\",\"E\"]], \"ABCCED\" -> true",

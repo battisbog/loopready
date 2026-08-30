@@ -8,7 +8,7 @@ export const HEAP: Problem[] = [
     tiers: ["mid"],
     title: "Kth Largest Element",
     fn: "find_kth_largest",
-    companies: ["Amazon", "Meta", "Netflix"],
+    companies: ["Amazon", "Meta", "Netflix", "Google", "Microsoft", "Apple"],
     statement:
       "Given an unsorted array of integers and a number k, return the kth largest value counting duplicates as separate entries.",
     example: "[3,2,1,5,6,4], k = 2 -> 5",
@@ -53,7 +53,7 @@ export const HEAP: Problem[] = [
     tiers: ["senior"],
     title: "Task Scheduler With Cooldown",
     fn: "least_interval",
-    companies: ["Meta", "Amazon"],
+    companies: ["Meta", "Amazon", "Google", "Microsoft", "Apple"],
     statement:
       "Given a list of task labels and a cooldown n, each unit of time runs one task or idles. The same label cannot run again until n units have passed. Return the fewest units of time needed to run every task.",
     example: "[\"A\",\"A\",\"A\",\"B\",\"B\",\"B\"], n = 2 -> 8",
@@ -77,7 +77,7 @@ export const HEAP: Problem[] = [
     tiers: ["mid"],
     title: "Kth Smallest in a Sorted Matrix",
     fn: "kth_smallest_matrix",
-    companies: ["Google", "Amazon", "Bloomberg"],
+    companies: ["Google", "Amazon", "Bloomberg", "Meta"],
     statement:
       "Given an n x n matrix where every row and every column is sorted in ascending order, return the kth smallest element in the matrix.",
     example: "[[1,5,9],[10,11,13],[12,13,15]], k = 8 -> 13",
@@ -99,7 +99,7 @@ export const HEAP: Problem[] = [
     tiers: ["mid"],
     title: "Top K Frequent Words",
     fn: "top_k_frequent_words",
-    companies: ["Amazon", "Bloomberg"],
+    companies: ["Amazon", "Bloomberg", "Google"],
     statement:
       "Given a list of words and a number k, return the k most frequent words, ordered by frequency (highest first). Break ties alphabetically.",
     example: "[\"i\",\"love\",\"leetcode\",\"i\",\"love\",\"coding\"], k = 2 -> [\"i\",\"love\"]",
@@ -121,7 +121,7 @@ export const HEAP: Problem[] = [
     tiers: ["senior"],
     title: "Running Median of a Number Stream",
     fn: "find_medians",
-    companies: ["Amazon", "Google", "Meta"],
+    companies: ["Amazon", "Google", "Meta", "Microsoft", "Apple"],
     statement:
       "Numbers arrive one at a time. After each one is added, return the median of every number seen so far. Return the list of running medians, in the order the numbers arrived.",
     example: "[5, 15, 1] -> [5.0, 10.0, 5.0]",
