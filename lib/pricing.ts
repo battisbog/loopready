@@ -6,19 +6,29 @@
  * PayPal actually bills, and the customer is then charged a different number
  * than the one they agreed to.
  *
- * IMPORTANT — these values must exactly match the PayPal billing plan and
- * product amounts:
+ * IMPORTANT — these values must exactly match the PayPal billing plan
+ * amounts for the two SUBSCRIPTION plans:
  *   Voice    → recurring monthly plan, PAYPAL_PLAN_VOICE, amount 19.00 USD
  *   Premium  → recurring monthly plan, PAYPAL_PLAN_PREMIUM, amount 69.00 USD
- *   Video pack → one-time order, PAYPAL_PRICE_VIDEO_PACK, amount 19.00 USD
  *   Discount checkout → PAYPAL_PLAN_VOICE_DISCOUNT / _PREMIUM_DISCOUNT, same
  *     prices as above on both cycles by default -- see discountPlanId below.
  *
- * PayPal stores the amount on the plan itself, so changing a number here does
- * NOT change what is charged. Changing a price means creating a NEW PayPal
- * plan (amounts on an active plan cannot be edited freely) and updating the
- * corresponding env var. `assertPricingMatchesPayPal` verifies the live plan
- * against these values.
+ * PayPal stores the SUBSCRIPTION amount on the plan itself, so changing a
+ * number here does NOT change what those two charge. Changing one of those
+ * two prices means creating a NEW PayPal plan (amounts on an active plan
+ * cannot be edited freely) and updating the corresponding env var.
+ * `assertPricingMatchesPayPal` verifies the live plan against these values.
+ *
+ * Video pack is different: a one-time PayPal ORDER, priced inline from
+ * videoPack.amount at checkout time (app/api/paypal/order/route.ts) rather
+ * than a preset PayPal plan/price object -- there is no PAYPAL_PRICE_*
+ * env var backing it, so changing videoPack.amount alone is enough.
+ *
+ * videoPack is priced at real cost (Tavus Growth plan, $0.31/min, per a
+ * ~40-minute round) plus the LLM turn cost that still runs alongside video
+ * (see lib/cost.ts's realtime_turn) -- ~$12.40 Tavus + ~$0.65 LLM ≈ $13,
+ * priced at $12.90. Sold at cost, not a markup: this is one credit, not a
+ * multi-credit pack (see VIDEO_PACK_CREDITS in lib/tiers.ts).
  */
 
 export type PaidPlan = "voice" | "premium";
@@ -50,7 +60,7 @@ export const PRICING = {
   free: money("0.00", null),
   voice: money("19.00", "month"),
   premium: money("69.00", "month"),
-  videoPack: money("19.00", null),
+  videoPack: money("12.90", null),
 } as const;
 
 /** Env var holding the PayPal plan id for each paid plan. */
@@ -88,6 +98,10 @@ export function discountPlanId(plan: PaidPlan): string | undefined {
  *  than at each call site. */
 export const MIN_CHARGE_USD = 1;
 
+/** A code carries exactly one of these -- see the table's own check
+ *  constraint in supabase/migrations-discount-percent.sql. */
+export type Discount = { amountOff: number } | { percentOff: number };
+
 /**
  * The first-cycle price after a discount, or null if the code would take the
  * plan below the minimum chargeable amount -- callers should reject the code
@@ -97,9 +111,13 @@ export const MIN_CHARGE_USD = 1;
  */
 export function discountedFirstCyclePrice(
   plan: PaidPlan,
-  amountOff: number
+  discount: Discount
 ): string | null {
-  const price = Number(PRICING[plan].amount) - amountOff;
+  const base = Number(PRICING[plan].amount);
+  const price =
+    "percentOff" in discount
+      ? base * (1 - discount.percentOff / 100)
+      : base - discount.amountOff;
   if (price < MIN_CHARGE_USD) return null;
   return price.toFixed(2);
 }

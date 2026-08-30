@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { getSiteUrl } from "@/lib/site-url";
+import { sendWelcomeEmail } from "@/lib/email/welcome";
 
 /**
  * Resolves the origin to redirect back to.
@@ -18,6 +20,38 @@ function resolveOrigin(request: Request, fallbackOrigin: string): string {
     return `${proto}://${host}`;
   }
   return fallbackOrigin;
+}
+
+/**
+ * Sends the one-time welcome/discount email, at most once per account.
+ *
+ * welcome_email_sent_at IS NULL in the WHERE clause is the atomic claim: two
+ * callbacks for the same brand-new account racing (a double-tap on a magic
+ * link, or a retried OAuth exchange) can only have ONE of them win the
+ * update and see a row back, so only one ever sends -- same pattern as
+ * consume_demo_use / consume_trial_slot elsewhere in this codebase. This
+ * runs on EVERY successful login, not just signup, because there is no
+ * separate "just created an account" signal at this callback -- the claim
+ * itself is what makes repeat logins a no-op.
+ */
+async function maybeSendWelcomeEmail(userId: string, email: string): Promise<void> {
+  const admin = createAdminClient();
+  const { data, error } = await admin
+    .from("profiles")
+    .update({ welcome_email_sent_at: new Date().toISOString() })
+    .eq("id", userId)
+    .is("welcome_email_sent_at", null)
+    .select("email_notifications")
+    .maybeSingle();
+
+  if (error) {
+    console.error("[auth] welcome-email claim failed:", error.message);
+    return;
+  }
+  if (!data) return; // Already claimed by an earlier login -- not an error.
+  if (data.email_notifications === false) return;
+
+  await sendWelcomeEmail(email);
 }
 
 export async function GET(request: Request) {
@@ -80,6 +114,10 @@ export async function GET(request: Request) {
     const supabase = await createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user?.email) await maybeSendWelcomeEmail(user.id, user.email);
       return withCleared(NextResponse.redirect(`${origin}${next}`));
     }
     return NextResponse.redirect(

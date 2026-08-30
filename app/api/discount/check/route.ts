@@ -33,9 +33,25 @@ export async function POST(request: Request) {
   }
 
   const admin = createAdminClient();
+
+  // One redemption per account, ever, across every code -- checked here too
+  // (not just at actual redemption in /api/paypal/subscription) so the UI
+  // can say so up front rather than the customer typing a valid-looking code
+  // and only finding out it's rejected at checkout.
+  const { data: alreadyRedeemed, error: redeemedError } = await admin.rpc(
+    "has_redeemed_discount_code",
+    { p_user: user.id }
+  );
+  if (!redeemedError && alreadyRedeemed) {
+    return NextResponse.json({
+      valid: false,
+      error: "You've already used a discount code on this account.",
+    });
+  }
+
   const { data, error } = await admin
     .from("discount_codes")
-    .select("amount_off, active, max_uses, times_used, expires_at")
+    .select("amount_off, percent_off, active, max_uses, times_used, expires_at")
     .eq("code", code.trim().toUpperCase())
     .maybeSingle();
 
@@ -52,8 +68,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ valid: false, error: "That code has already been fully redeemed." });
   }
 
-  const amountOff = Number(data.amount_off);
-  const discounted = discountedFirstCyclePrice(plan as PaidPlan, amountOff);
+  // Exactly one of these is set -- enforced by the table's own check
+  // constraint (supabase/migrations-discount-percent.sql).
+  const amountOff = data.amount_off !== null ? Number(data.amount_off) : null;
+  const percentOff = data.percent_off !== null ? Number(data.percent_off) : null;
+  const discounted = discountedFirstCyclePrice(
+    plan as PaidPlan,
+    percentOff !== null ? { percentOff } : { amountOff: amountOff! }
+  );
   if (!discounted) {
     return NextResponse.json({
       valid: false,
@@ -64,6 +86,7 @@ export async function POST(request: Request) {
   return NextResponse.json({
     valid: true,
     amountOff,
+    percentOff,
     firstCyclePrice: discounted,
     regularPrice: PRICING[plan as PaidPlan].amount,
   });

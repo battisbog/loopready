@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+import { Sparkles } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -7,7 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/shadcn/dialog";
-import { Button } from "@/components/ui";
+import { Button } from "@/components/ui/shadcn/button";
 
 /**
  * The end of a first-ever session (see sessions.trial_capped). Rendered as a
@@ -19,22 +21,30 @@ import { Button } from "@/components/ui";
  * `open` only ever goes false→true, never back -- this is a one-way exit
  * screen, not a dismissible dialog, so there is no onOpenChange: there is
  * nothing to return to inside the capped session.
+ *
+ * The icon badge + centered layout is the standard shadcn "upgrade" dialog
+ * shape (an Icon in a tinted circle above the title), not a bespoke look --
+ * see e.g. the shadcn examples gallery's own alert/upsell dialogs.
  */
 export default function TrialCappedDialog({ open }: { open: boolean }) {
   return (
     <Dialog open={open}>
-      <DialogContent showCloseButton={false} className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="text-center text-xl">
+      <DialogContent showCloseButton={false} className="sm:max-w-sm">
+        <DialogHeader className="items-center text-center sm:text-center">
+          <div className="flex size-11 items-center justify-center rounded-full bg-accent-muted">
+            <Sparkles className="size-5 text-accent" />
+          </div>
+          <DialogTitle className="text-xl">
             That&rsquo;s a taste of a real interview
           </DialogTitle>
-          <DialogDescription className="text-center leading-relaxed">
+          <DialogDescription className="leading-relaxed">
             Full interviews run about 40 minutes and go as deep as a real
-            loop does. Pick a plan to run the whole thing — Free included.
+            loop does. Pick a plan to run the whole thing, free plan
+            included.
           </DialogDescription>
         </DialogHeader>
-        <Button href="/pricing" size="lg" className="mt-2 w-full">
-          Explore plans
+        <Button asChild variant="accent" size="lg" className="w-full">
+          <Link href="/pricing">Explore plans</Link>
         </Button>
       </DialogContent>
     </Dialog>

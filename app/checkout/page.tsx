@@ -37,9 +37,9 @@ function resolve(searchPlan?: string, searchProduct?: string): Purchase {
       price: PRICING.videoPack.display,
       dueToday: PRICING.videoPack.display,
       terms: "One-time payment. Credits never expire and do not renew.",
-      blurb: `A one-time pack of ${VIDEO_PACK_CREDITS} video interviews. Credits never expire.`,
+      blurb: `A one-time video interview credit, priced at cost. Credits never expire.`,
       features: [
-        `${VIDEO_PACK_CREDITS} video interviews`,
+        "1 video interview",
         "Added on top of any plan credits",
         "One-time payment, no subscription",
       ],

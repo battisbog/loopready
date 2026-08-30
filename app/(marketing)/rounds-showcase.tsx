@@ -73,82 +73,83 @@ export default function RoundsShowcase() {
         className="pointer-events-none absolute -bottom-16 left-1/4 h-56 w-56 rounded-full bg-accent-muted blur-[100px] opacity-60"
       />
 
-      <div className="relative grid items-start gap-8 lg:grid-cols-[minmax(0,0.7fr)_minmax(0,1.3fr)] lg:gap-10">
-        {/* ---- Tab list ---- */}
-        <div className="flex gap-2 overflow-x-auto lg:flex-col lg:gap-3">
+      <div className="relative">
+        {/* ---- Expanding tab row ----
+            Three tabs share one row, in a fixed left-to-right order that
+            never changes -- only each one's WIDTH changes on click. The
+            active tab claims most of the row (full title + description +
+            checklist); the other two collapse to a narrow title-only strip,
+            still fully visible and clickable, not hidden behind a chevron
+            or dropdown. `layout` on each button is what makes the width
+            change animate smoothly instead of snapping -- Framer Motion
+            (already a dependency here) interpolates the actual flexbox
+            geometry between renders, which is the standard way to build
+            this "shared position, one grows, others shrink" interaction. */}
+        <div className="flex gap-3">
           {ROUNDS.map((r) => {
             const isActive = r.key === active;
             return (
-              <button
+              <motion.button
                 key={r.key}
+                layout
+                transition={{ type: "spring", stiffness: 260, damping: 28 }}
                 type="button"
                 onClick={() => setActive(r.key)}
                 aria-pressed={isActive}
                 className={cn(
                   // isolate: this card always gets its own stacking context,
-                  // so nothing painted inside a SIBLING card (the Signal
-                  // rail's warn-toned Flagged callout, an unrelated element
-                  // entirely) can ever be composited as if it belonged to
-                  // this one. That was the actual bug -- not this card's own
-                  // styling, but the lack of a hard stacking boundary between
-                  // cards while several independent animations (Framer
-                  // Motion's crossfade, two different Tailwind keyframe
-                  // animations, a custom one) were all running at once
-                  // nearby, which is exactly the kind of cross-contamination
-                  // `isolate` exists to rule out.
-                  "isolate shrink-0 rounded-lg border px-4 py-3.5 text-left transition-all duration-200 lg:shrink",
+                  // so nothing painted inside a SIBLING card (an unrelated
+                  // element entirely) can ever be composited as if it
+                  // belonged to this one, while several independent
+                  // animations (this layout spring, the preview's crossfade,
+                  // the caret blink) are all running at once nearby.
+                  "isolate flex min-w-0 flex-col overflow-hidden rounded-lg border border-l-2 px-4 py-3.5 text-left transition-colors duration-200",
                   isActive
-                    ? // Tailwind's own `ring` utility instead of a hand-tuned
-                      // multi-layer box-shadow string. A hand-rolled shadow
-                      // is exactly the kind of thing that renders "uneven"
-                      // under real compositing -- a wide blur radius painted
-                      // via an arbitrary value has no guarantee of staying
-                      // crisp or symmetric the way a first-party, extensively
-                      // battle-tested utility does.
-                      "border-accent-border bg-accent-muted ring-2 ring-accent ring-offset-2 ring-offset-base"
-                    : "border-line bg-surface hover:border-line-strong hover:bg-elevated"
+                    ? "flex-[3] border-line-strong border-l-accent bg-accent-muted"
+                    : "flex-1 border-line border-l-line hover:border-line-strong hover:border-l-line-strong hover:bg-elevated"
                 )}
               >
-                <div className="flex items-center gap-2">
-                  <span
-                    className={cn(
-                      "text-sm font-semibold",
-                      isActive ? "text-accent" : "text-primary"
-                    )}
-                  >
-                    {r.title}
-                  </span>
-                  <Badge tone={isActive ? "accent" : "neutral"} className="ml-auto lg:hidden">
-                    Live
-                  </Badge>
-                </div>
-                <p className="mt-1.5 hidden max-w-sm text-sm leading-relaxed text-secondary lg:block">
-                  {r.body}
-                </p>
-                {/* Unconditional now: all three cards show the full checklist
-                    regardless of active state, so the gap between active and
-                    inactive is the glow/border alone, not a content deficit.
-                    An inactive card that showed less used to read as an
-                    unfinished draft of the active one, not a deliberate
-                    resting state. */}
-                <ul className="mt-3 hidden space-y-1.5 lg:block">
-                  {r.points.map((p) => (
-                    <li
-                      key={p}
-                      className="flex items-start gap-2 text-xs text-secondary"
+                <motion.span
+                  layout="position"
+                  className={cn(
+                    "truncate text-sm font-semibold",
+                    isActive ? "text-accent" : "text-primary"
+                  )}
+                >
+                  {r.title}
+                </motion.span>
+                <AnimatePresence>
+                  {isActive && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.2 }}
                     >
-                      <span className="mt-0.5 text-accent">✓</span>
-                      {p}
-                    </li>
-                  ))}
-                </ul>
-              </button>
+                      <p className="mt-1.5 text-sm leading-relaxed text-secondary">
+                        {r.body}
+                      </p>
+                      <ul className="mt-3 space-y-1.5">
+                        {r.points.map((p) => (
+                          <li
+                            key={p}
+                            className="flex items-start gap-2 text-xs text-secondary"
+                          >
+                            <span className="mt-0.5 text-accent">✓</span>
+                            {p}
+                          </li>
+                        ))}
+                      </ul>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.button>
             );
           })}
         </div>
 
         {/* ---- Live preview ---- */}
-        <div className="isolate overflow-hidden rounded-lg border border-line bg-base shadow-xl shadow-[var(--shadow-md)]">
+        <div className="isolate mt-8 overflow-hidden rounded-lg border border-line bg-base shadow-xl shadow-[var(--shadow-md)]">
           <BrowserChrome url={`loopready.io/session · ${round.title.toLowerCase().replace(" ", "-")}`} />
           <div className="relative min-h-[24rem]">
             <AnimatePresence mode="wait">

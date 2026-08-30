@@ -74,14 +74,21 @@ export async function POST(request: Request) {
       "redeem_discount_code",
       { p_code: discountCode.trim(), p_user: user.id }
     );
-    const result = redemption?.[0] as { ok?: boolean; amount_off?: number } | undefined;
+    const result = redemption?.[0] as
+      | { ok?: boolean; amount_off?: number | null; percent_off?: number | null }
+      | undefined;
     if (redeemError || !result?.ok) {
       return NextResponse.json(
         { error: "That code isn't valid, has expired, or has already been fully redeemed." },
         { status: 400 }
       );
     }
-    const firstCyclePrice = discountedFirstCyclePrice(plan as PaidPlan, result.amount_off!);
+    const firstCyclePrice = discountedFirstCyclePrice(
+      plan as PaidPlan,
+      result.percent_off != null
+        ? { percentOff: result.percent_off }
+        : { amountOff: result.amount_off! }
+    );
     if (!firstCyclePrice) {
       return NextResponse.json(
         { error: "That code doesn't apply to this plan. Contact support to have it restored." },

@@ -5,7 +5,8 @@ import { Button, Field, Input } from "@/components/ui";
 
 export interface AppliedDiscount {
   code: string;
-  amountOff: number;
+  amountOff: number | null;
+  percentOff: number | null;
   firstCyclePrice: string;
 }
 
@@ -49,10 +50,13 @@ export default function DiscountCode({
         return;
       }
       setStatus("applied");
-      setMessage(`Code applied — $${data.firstCyclePrice} for your first month.`);
+      const off =
+        data.percentOff != null ? `${data.percentOff}% off` : `$${data.amountOff} off`;
+      setMessage(`Code applied — ${off}, $${data.firstCyclePrice} for your first month.`);
       onApplied({
         code: trimmed,
-        amountOff: data.amountOff,
+        amountOff: data.amountOff ?? null,
+        percentOff: data.percentOff ?? null,
         firstCyclePrice: data.firstCyclePrice,
       });
     } catch {

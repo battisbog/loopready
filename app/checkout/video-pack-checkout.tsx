@@ -54,24 +54,24 @@ export default function VideoPackCheckout({
           <Badge tone="accent">{total}</Badge>
         </div>
 
-        {/* Quantity -- each pack is {creditsPerPack} credits for {unitPrice};
-            the stepper multiplies packs, not individual credits, so the
-            price always lines up with a whole number of packs. */}
+        {/* Quantity -- each unit is {creditsPerPack} credit(s) for {unitPrice};
+            the stepper multiplies units, so the price always lines up with a
+            whole number of units. creditsPerPack is 1 by default (one video
+            credit at a time, priced at cost -- see lib/pricing.ts), so this
+            reads as "credits" directly rather than a pack concept. */}
         <div className="mt-5 flex items-center justify-between rounded-lg border border-line bg-elevated px-4 py-3">
           <div>
             <p className="text-sm font-medium text-primary">
-              {quantity} pack{quantity === 1 ? "" : "s"}
+              {totalCredits} credit{totalCredits === 1 ? "" : "s"}
             </p>
-            <p className="text-xs text-muted">
-              {creditsPerPack} credits per pack &middot; {formatUsd(unit)} each
-            </p>
+            <p className="text-xs text-muted">{formatUsd(unit)} each</p>
           </div>
           <div className="flex items-center gap-1">
             <ShadcnButton
               type="button"
               variant="outline"
               size="icon-sm"
-              aria-label="One fewer pack"
+              aria-label="One fewer credit"
               onClick={() => setQuantity((q) => Math.max(MIN_QUANTITY, q - 1))}
               disabled={quantity <= MIN_QUANTITY}
             >
@@ -84,7 +84,7 @@ export default function VideoPackCheckout({
               type="button"
               variant="outline"
               size="icon-sm"
-              aria-label="One more pack"
+              aria-label="One more credit"
               onClick={() => setQuantity((q) => Math.min(MAX_QUANTITY, q + 1))}
               disabled={quantity >= MAX_QUANTITY}
             >

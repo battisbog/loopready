@@ -39,8 +39,9 @@ export const PREMIUM_VIDEO_ALLOWANCE = Number(
   process.env.PREMIUM_VIDEO_ALLOWANCE ?? 3
 );
 
-/** Credits added by a one-time video pack purchase. */
-export const VIDEO_PACK_CREDITS = Number(process.env.VIDEO_PACK_CREDITS ?? 3);
+/** Credits added by a one-time video-credit purchase. One credit at a time,
+ *  priced at real cost -- see lib/pricing.ts's videoPack comment. */
+export const VIDEO_PACK_CREDITS = Number(process.env.VIDEO_PACK_CREDITS ?? 1);
 
 /**
  * Video access is deliberately NOT a field here.

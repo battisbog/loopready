@@ -106,6 +106,27 @@ export function planTurn(
     // the problem, but mark the phase as started.
   }
 
+  // True only on the single turn right after their self-intro, for a
+  // non-behavioral round (phase was "format" and there was no behavioral
+  // opener above). Without an explicit note here, codingSystemPrompt /
+  // designSystemPrompt read like the round is already underway -- nothing in
+  // them says "this is the very first reply, present the problem now" -- so
+  // the model has no signal that further questions about the candidate's
+  // background are off the table. Mirrors the same fix in
+  // lib/realtime/conversation.ts's buildInstructions, made after a live
+  // trial session asked about the candidate's projects again right where the
+  // problem should have been presented.
+  const justIntroduced = phase === "format";
+  const transitionNote = justIntroduced
+    ? `
+
+They have just introduced themselves. Their background is now closed -- do
+not ask anything more about their experience, projects, or resume. In this
+reply, acknowledge their intro in one short line, then present the problem
+conversationally in your own words and ask how they want to approach it. Do
+not read it out verbatim and do not start critiquing anything yet.`
+    : "";
+
   if (session.round_type === "system_design") {
     const artifact = (session.artifact ?? {}) as DesignArtifact;
     const design = getDesignPrompt(artifact.promptId);
@@ -125,7 +146,7 @@ export function planTurn(
       return { system: closing.system, controlToken: null, normal: closing.state, onControl: null };
     }
     return {
-      system: designSystemPrompt(design, artifact, ctx),
+      system: designSystemPrompt(design, artifact, ctx) + transitionNote,
       controlToken: "[DONE]",
       normal: {
         questionIndex: next,
@@ -156,7 +177,7 @@ export function planTurn(
       return { system: closing.system, controlToken: null, normal: closing.state, onControl: null };
     }
     return {
-      system: codingSystemPrompt(problem, artifact, ctx),
+      system: codingSystemPrompt(problem, artifact, ctx) + transitionNote,
       controlToken: "[DONE]",
       normal: {
         questionIndex: next,

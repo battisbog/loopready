@@ -308,13 +308,27 @@ Finish by handing back to them, then stop and listen.` +
       );
     }
     // Working rounds present the problem here rather than asking a question.
+    //
+    // "They have just confirmed they are ready" used to describe this turn,
+    // but they have not -- this is the reply to their SELF-INTRO. That
+    // mismatch between the instruction and what the transcript actually
+    // shows, combined with ACKNOWLEDGE_RULE's own "if their answer was thin,
+    // probe the gap with a question" fallback below, gave the model a live
+    // excuse to keep probing the intro (more questions about their
+    // experience/projects) instead of moving on -- caught in a real trial
+    // session, not assumed. The override line makes the transition
+    // unambiguous and wins against that pull explicitly.
     return (
       roundPrompt(session, state, ctx) +
       `
 
-They have just confirmed they are ready. In this reply, present the problem
-conversationally in your own words and ask how they want to approach it. Do not
-read it out verbatim and do not start critiquing anything yet.` +
+They have just introduced themselves. Their background is now closed -- do not
+ask anything more about their experience, projects, or resume, no matter how
+brief their intro was; ACKNOWLEDGE_RULE's "probe the gap" fallback does not
+apply here. In this reply, acknowledge their intro in one short line, then
+present the problem conversationally in your own words and ask how they want
+to approach it. Do not read it out verbatim and do not start critiquing
+anything yet.` +
       ACKNOWLEDGE_RULE +
       PACING_RULES +
       SPOKEN_RULES

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Search, Target, ClipboardList, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -89,8 +90,45 @@ export default async function Landing() {
   const heroCtaHref = signedIn ? "/dashboard" : "/trial/start";
   const heroCtaLabel = signedIn ? "Go to dashboard" : "Try it free";
 
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: "LoopReady",
+    applicationCategory: "EducationalApplication",
+    operatingSystem: "Web",
+    description:
+      "Practice a real behavioral, coding, or system design interview out loud against an AI interviewer calibrated to your target company and level.",
+    offers: [
+      {
+        "@type": "Offer",
+        name: "Free",
+        price: "0",
+        priceCurrency: "USD",
+      },
+      {
+        "@type": "Offer",
+        name: "Voice",
+        price: PRICING.voice.amount,
+        priceCurrency: PRICING.voice.currency,
+      },
+      {
+        "@type": "Offer",
+        name: "Premium",
+        price: PRICING.premium.amount,
+        priceCurrency: PRICING.premium.currency,
+      },
+    ],
+  };
+
   return (
     <div className="relative flex min-h-screen flex-col overflow-x-hidden">
+      {/* Machine-readable description of the product for search engines --
+          lets a result show price/category instead of a plain link. Rendered
+          server-side, not user-visible. */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
       {/* Ambient glow, moved out of <header> and up to the page's own root.
           It used to live inside header's `overflow-hidden` at
           top-[-18rem] -- which never actually worked: overflow-hidden clips
@@ -145,13 +183,7 @@ export default async function Landing() {
               </div>
 
               <p className="mt-4 text-xs text-muted">
-                {/* Sourced from PRICING, never typed as a literal: a hardcoded
-                    price here would silently drift from what PayPal bills.
-                    This line used to read "Free while in early access · No
-                    credit card", which was a free claim sitting directly above
-                    a section selling monthly plans. */}
-                Free plan, no credit card · Paid from{" "}
-                {PRICING.voice.displayWithInterval}
+                Free plan, no credit card required
               </p>
             </div>
 
@@ -244,16 +276,19 @@ export default async function Landing() {
           </p>
         </div>
 
-        <div className="mt-14 grid gap-5 md:grid-cols-3">
+        <div className="mt-14 grid gap-10 md:grid-cols-3">
           <Card
+            icon={Search}
             title="An interviewer that actually probes"
             body="It does not accept your first answer. If a story is vague, it asks what exactly you did, what would have happened if you hadn't, and how you measured it. These are the same follow-ups a bar raiser uses."
           />
           <Card
+            icon={Target}
             title="Shaped to your target"
             body="An Amazon SDE III round scores your answers against the Leadership Principles at a senior bar. A Google L4 round probes Googliness and structured problem solving. The questions and the bar both change."
           />
           <Card
+            icon={ClipboardList}
             title="A debrief, not a compliment"
             body="You get the notes a real interviewer writes after you leave the room: the signal they'd report, what was missing from each answer, and a rewritten version of your weakest story."
           />
@@ -570,11 +605,22 @@ export default async function Landing() {
   );
 }
 
-function Card({ title, body }: { title: string; body: string }) {
+function Card({
+  icon: Icon,
+  title,
+  body,
+}: {
+  icon: LucideIcon;
+  title: string;
+  body: string;
+}) {
   return (
-    <div className="rounded-lg border border-line bg-surface p-5 transition-colors hover:border-line-strong">
-      <h3 className="text-base font-semibold text-primary">{title}</h3>
-      <p className="mt-3 text-sm leading-relaxed text-secondary">{body}</p>
+    <div className="flex flex-col">
+      <div className="mb-4 flex size-12 items-center justify-center rounded-full bg-accent-muted">
+        <Icon size={22} className="text-accent" />
+      </div>
+      <h3 className="text-lg font-semibold text-primary">{title}</h3>
+      <p className="mt-2 text-sm leading-relaxed text-secondary">{body}</p>
     </div>
   );
 }

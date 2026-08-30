@@ -1,0 +1,45 @@
+timestamp,school,email,status
+2026-08-30T11:20:20.314Z,"Self Test",ishkiwashka@gmail.com,sent
+2026-08-30T12:21:50.025Z,"Stanford",test@example.com,sent
+2026-08-30T12:22:22.998Z,"Stanford",test@example.com,failed
+2026-08-30T12:22:52.936Z,"Stanford",annieee@stanford.edu,sent
+2026-08-30T12:22:57.114Z,"Carnegie Mellon",careers@cs.cmu.edu,sent
+2026-08-30T12:23:01.303Z,"UC Berkeley",ess@berkeley.edu,sent
+2026-08-30T12:23:05.485Z,"Princeton",careerdevelopment@princeton.edu,sent
+2026-08-30T12:23:09.958Z,"UIUC",officers@acm.illinois.edu,sent
+2026-08-30T12:23:14.167Z,"UT Austin",pres@texasacm.org,sent
+2026-08-30T12:23:18.342Z,"UC San Diego",contact@acmucsd.org,sent
+2026-08-30T12:23:22.528Z,"UCLA",acm@ucla.edu,sent
+2026-08-30T12:23:26.726Z,"Columbia",careereducation@columbia.edu,sent
+2026-08-30T12:23:30.904Z,"University of Washington",engrhire@uw.edu,sent
+2026-08-30T12:23:35.101Z,"UW-Madison",sacm@cs.wisc.edu,sent
+2026-08-30T12:23:39.261Z,"USC",uscacm@gmail.com,sent
+2026-08-30T12:23:43.468Z,"Purdue",acm@purdue.edu,sent
+2026-08-30T12:23:47.654Z,"Brown",Emily_Nolan@brown.edu,sent
+2026-08-30T12:24:13.008Z,"Kansas State",ksuacm@ksu.edu,sent
+2026-08-30T12:24:17.229Z,"University of Iowa",acm@uiowa.edu,sent
+2026-08-30T12:24:21.438Z,"Iowa State",mgraham@iastate.edu,sent
+2026-08-30T12:24:25.652Z,"Penn State",president@acm.psu.edu,sent
+2026-08-30T12:24:29.874Z,"University of Minnesota",csdesk@umn.edu,sent
+2026-08-30T12:24:34.061Z,"University of South Florida",acmofusf@gmail.com,sent
+2026-08-30T12:24:38.256Z,"Colorado State",info@cs.colostate.edu,sent
+2026-08-30T12:24:42.423Z,"University of Utah",ugrad-help@cs.utah.edu,sent
+2026-08-30T12:24:46.653Z,"Loyola University Chicago",vbourne@luc.edu,sent
+2026-08-30T12:24:50.846Z,"University of Missouri",muengradvising@missouri.edu,sent
+2026-08-30T12:24:55.048Z,"University of Tennessee",eecs-info@utk.edu,sent
+2026-08-30T12:24:59.224Z,"Ohio State",acmwosu@gmail.com,sent
+2026-08-30T12:25:03.421Z,"Clemson",acm@cs.clemson.edu,sent
+2026-08-30T12:25:07.598Z,"UCF",acm.cecs.ucf@gmail.com,sent
+2026-08-30T12:25:11.764Z,"University of Georgia",ugaacm@uga.edu,sent
+2026-08-30T12:25:15.967Z,"Case Western Reserve",acmcwru@case.edu,sent
+2026-08-30T12:25:20.169Z,"Drexel",drexelcswomen@gmail.com,sent
+2026-08-30T12:25:24.361Z,"University of Delaware",jjain@udel.edu,sent
+2026-08-30T12:25:28.546Z,"University of Maryland",acm.cs.umd@gmail.com,sent
+2026-08-30T12:25:32.745Z,"University of Cincinnati",acmwuc@gmail.com,sent
+2026-08-30T12:25:36.973Z,"University of Virginia",careercenter@virginia.edu,sent
+2026-08-30T12:25:41.161Z,"University of Pittsburgh",careers@pitt.edu,sent
+2026-08-30T12:25:45.576Z,"Boston University",cds-admin@bu.edu,sent
+2026-08-30T12:25:52.858Z,"UC Irvine",nunezje@uci.edu,sent
+2026-08-30T12:25:57.455Z,"UC Davis",csugadvising@ucdavis.edu,sent
+2026-08-30T12:26:01.653Z,"Baylor",mary_chandler@baylor.edu,sent
+2026-08-30T12:26:05.944Z,"Kent State",ugradinfo@cs.kent.edu,sent
