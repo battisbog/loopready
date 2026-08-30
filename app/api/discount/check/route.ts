@@ -33,6 +33,22 @@ export async function POST(request: Request) {
   }
 
   const admin = createAdminClient();
+
+  // One redemption per account, ever, across every code -- checked here too
+  // (not just at actual redemption in /api/paypal/subscription) so the UI
+  // can say so up front rather than the customer typing a valid-looking code
+  // and only finding out it's rejected at checkout.
+  const { data: alreadyRedeemed, error: redeemedError } = await admin.rpc(
+    "has_redeemed_discount_code",
+    { p_user: user.id }
+  );
+  if (!redeemedError && alreadyRedeemed) {
+    return NextResponse.json({
+      valid: false,
+      error: "You've already used a discount code on this account.",
+    });
+  }
+
   const { data, error } = await admin
     .from("discount_codes")
     .select("amount_off, active, max_uses, times_used, expires_at")
