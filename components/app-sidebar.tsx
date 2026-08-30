@@ -24,6 +24,7 @@ import {
 const NAV = [
   { href: "/dashboard", label: "Dashboard", icon: IconHome },
   { href: "/start", label: "Start interview", icon: IconPlay },
+  { href: "/problems", label: "Problems", icon: IconBook },
   { href: "/history", label: "History", icon: IconClock },
   { href: "/feedback", label: "Feedback", icon: IconChat },
 ];
@@ -242,6 +243,15 @@ function IconPlay({ className }: { className?: string }) {
     <svg {...iconProps(className)}>
       <circle cx="12" cy="12" r="9" />
       <path d="M10 8.5v7l6-3.5-6-3.5Z" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+function IconBook({ className }: { className?: string }) {
+  return (
+    <svg {...iconProps(className)}>
+      <path d="M4 5.5a2 2 0 0 1 2-2h6v15H6a2 2 0 0 0-2 2v-15Z" />
+      <path d="M20 5.5a2 2 0 0 0-2-2h-6v15h6a2 2 0 0 1 2 2v-15Z" />
     </svg>
   );
 }
