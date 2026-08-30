@@ -1,6 +1,22 @@
+import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { Badge, Card, Field, PageShell, Section, Select } from "@/components/ui";
+import { Badge, Field, PageShell, Section, Select } from "@/components/ui";
+import {
+  Card as ShadcnCard,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/shadcn/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/shadcn/table";
+import { Code2, Network, MessageCircle } from "lucide-react";
 import { ROUND_LABEL, ROUND_TYPES, type RoundType } from "@/lib/interview/rounds";
 import { COMPANY_PROFILES } from "@/lib/interview/companies";
 import { PROBLEMS } from "@/lib/coding/problems";
@@ -114,41 +130,33 @@ function CodingList({ companyName }: { companyName: string }) {
     : PROBLEMS;
 
   return (
-    <Section title={`${items.length} coding problem${items.length === 1 ? "" : "s"}`}>
-      {items.length === 0 ? (
-        <EmptyState />
-      ) : (
-        <div className="grid gap-3 md:grid-cols-2">
-          {items.map((p) => (
-            <Card key={p.id} className="p-5">
-              <div className="flex items-start justify-between gap-3">
-                <h3 className="text-sm font-semibold text-primary">{p.title}</h3>
-                <Badge tone="outline">{p.pattern.replace(/-/g, " ")}</Badge>
-              </div>
-              <p className="mt-2 text-sm leading-relaxed text-secondary">{p.statement}</p>
-              <p className="mt-2 text-xs leading-relaxed text-muted">{p.example}</p>
-              <TagRow tiers={p.tiers} companies={p.companies} />
-            </Card>
-          ))}
-        </div>
-      )}
-    </Section>
+    <ListTable
+      icon={Code2}
+      title={`${items.length} coding problem${items.length === 1 ? "" : "s"}`}
+      headers={["Problem", "Pattern", "Tiers", "Companies"]}
+      rows={items.map((p) => [
+        <TitleCell key="title" title={p.title} subtitle={p.statement} />,
+        <Badge key="pattern" tone="outline">
+          {p.pattern.replace(/-/g, " ")}
+        </Badge>,
+        <TagList key="tiers" values={p.tiers.map((t) => TIER_LABEL[t] ?? t)} />,
+        <TagList key="companies" values={p.companies} />,
+      ])}
+    />
   );
 }
 
 function DesignList() {
   return (
-    <Section title={`${DESIGN_PROMPTS.length} system design prompt${DESIGN_PROMPTS.length === 1 ? "" : "s"}`}>
-      <div className="grid gap-3 md:grid-cols-2">
-        {DESIGN_PROMPTS.map((d) => (
-          <Card key={d.id} className="p-5">
-            <h3 className="text-sm font-semibold text-primary">{d.title}</h3>
-            <p className="mt-2 text-sm leading-relaxed text-secondary">{d.statement}</p>
-            <TagRow tiers={d.tiers} />
-          </Card>
-        ))}
-      </div>
-    </Section>
+    <ListTable
+      icon={Network}
+      title={`${DESIGN_PROMPTS.length} system design prompt${DESIGN_PROMPTS.length === 1 ? "" : "s"}`}
+      headers={["Prompt", "Tiers"]}
+      rows={DESIGN_PROMPTS.map((d) => [
+        <TitleCell key="title" title={d.title} subtitle={d.statement} />,
+        <TagList key="tiers" values={d.tiers.map((t) => TIER_LABEL[t] ?? t)} />,
+      ])}
+    />
   );
 }
 
@@ -158,51 +166,108 @@ function BehavioralList({ companyName }: { companyName: string }) {
     : QUESTION_BANK;
 
   return (
-    <Section title={`${items.length} behavioral question${items.length === 1 ? "" : "s"}`}>
-      {items.length === 0 ? (
-        <EmptyState />
-      ) : (
-        <div className="grid gap-3 md:grid-cols-2">
-          {items.map((q, i) => (
-            <Card key={i} className="p-5">
-              <div className="flex items-start justify-between gap-3">
-                <p className="text-sm leading-relaxed text-primary">{q.text}</p>
-              </div>
-              <div className="mt-2">
-                <Badge tone="outline">{q.competency}</Badge>
-              </div>
-              <TagRow tiers={q.tiers} companies={q.companies} />
-            </Card>
-          ))}
-        </div>
-      )}
+    <ListTable
+      icon={MessageCircle}
+      title={`${items.length} behavioral question${items.length === 1 ? "" : "s"}`}
+      headers={["Question", "Competency", "Tiers", "Companies"]}
+      rows={items.map((q, i) => [
+        <p
+          key={`q-${i}`}
+          className="max-w-md line-clamp-2 text-sm leading-relaxed text-foreground"
+        >
+          {q.text}
+        </p>,
+        <Badge key="competency" tone="outline">
+          {q.competency}
+        </Badge>,
+        <TagList key="tiers" values={(q.tiers ?? []).map((t) => TIER_LABEL[t] ?? t)} />,
+        <TagList key="companies" values={q.companies ?? []} />,
+      ])}
+    />
+  );
+}
+
+/**
+ * Same shell the dashboard uses for its Full loops / Sessions tables (one
+ * Card, an icon + title header, a shadcn Table below with hairline row
+ * dividers) -- rows are pre-rendered cell content rather than raw data, so
+ * this one component serves all three round types despite each having a
+ * different column shape.
+ */
+function ListTable({
+  icon: Icon,
+  title,
+  headers,
+  rows,
+}: {
+  icon: typeof Code2;
+  title: string;
+  headers: string[];
+  rows: ReactNode[][];
+}) {
+  return (
+    <Section title={title}>
+      <ShadcnCard className="gap-0 py-0">
+        <CardHeader className="flex flex-row items-center gap-2 border-b border-border py-4">
+          <Icon size={16} className="text-foreground" />
+          <CardTitle className="text-sm font-medium text-foreground">{title}</CardTitle>
+        </CardHeader>
+        <CardContent className="px-0">
+          {rows.length === 0 ? (
+            <div className="px-4 py-12 text-center">
+              <p className="text-sm font-medium text-primary">No problems match this filter</p>
+              <p className="mt-1.5 text-sm text-secondary">
+                Try a different company, or clear the filter.
+              </p>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow className="hover:bg-transparent">
+                  {headers.map((h) => (
+                    <TableHead key={h} className="px-4">
+                      {h}
+                    </TableHead>
+                  ))}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {rows.map((cells, i) => (
+                  <TableRow key={i}>
+                    {cells.map((cell, j) => (
+                      <TableCell key={j} className="px-4 align-top">
+                        {cell}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </ShadcnCard>
     </Section>
   );
 }
 
-function TagRow({ tiers, companies }: { tiers?: string[]; companies?: string[] }) {
-  if (!tiers?.length && !companies?.length) return null;
+function TitleCell({ title, subtitle }: { title: string; subtitle: string }) {
   return (
-    <div className="mt-3 flex flex-wrap gap-1.5">
-      {tiers?.map((t) => (
-        <Badge key={t} tone="neutral">
-          {TIER_LABEL[t] ?? t}
-        </Badge>
-      ))}
-      {companies?.map((c) => (
-        <Badge key={c} tone="neutral">
-          {c}
-        </Badge>
-      ))}
+    <div className="max-w-md">
+      <p className="text-sm font-medium text-foreground">{title}</p>
+      <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">{subtitle}</p>
     </div>
   );
 }
 
-function EmptyState() {
+function TagList({ values }: { values: string[] }) {
+  if (!values.length) return null;
   return (
-    <Card className="py-12 text-center">
-      <p className="text-sm font-medium text-primary">No problems match this filter</p>
-      <p className="mt-1.5 text-sm text-secondary">Try a different company, or clear the filter.</p>
-    </Card>
+    <div className="flex flex-wrap gap-1.5">
+      {values.map((v) => (
+        <Badge key={v} tone="neutral">
+          {v}
+        </Badge>
+      ))}
+    </div>
   );
 }
