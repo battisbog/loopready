@@ -34,9 +34,13 @@ function welcomeHtml(): string {
     Here's $10 off your first month, on us. Use this code at checkout:
   </p>
 
-  <p style="font-size: 22px; font-weight: 700; letter-spacing: 0.08em; color: #047857; margin: 0 0 24px;">
-    ${WELCOME_DISCOUNT_CODE}
-  </p>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin: 0 0 24px;">
+    <tr>
+      <td style="background: #f4f4f5; border: 1px dashed #a1a1aa; border-radius: 8px; padding: 16px; text-align: center;">
+        <span style="font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 22px; font-weight: 700; letter-spacing: 0.08em; color: #047857;">${WELCOME_DISCOUNT_CODE}</span>
+      </td>
+    </tr>
+  </table>
 
   <p style="margin: 0;">
     <a href="${pricingUrl}" style="display: inline-block; background: ${ACCENT}; color: ${ACCENT_FG}; font-size: 15px; font-weight: 600; text-decoration: none; padding: 12px 24px; border-radius: 8px;">See plans &rarr;</a>
@@ -69,7 +73,7 @@ export async function sendWelcomeEmail(to: string): Promise<void> {
     const { error } = await resendClient().emails.send({
       from: EMAIL_FROM,
       to,
-      subject: "$10 off your first month at LoopReady",
+      subject: "Here's $10 on us!",
       html: welcomeHtml(),
       text: welcomeText(),
     });
