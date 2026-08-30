@@ -26,9 +26,9 @@
  *
  * videoPack is priced at real cost (Tavus Growth plan, $0.31/min, per a
  * ~40-minute round) plus the LLM turn cost that still runs alongside video
- * (see lib/cost.ts's realtime_turn) -- ~$12.40 Tavus + ~$0.65 LLM ≈ $13.
- * Sold at cost, not a markup: this is one credit, not a multi-credit pack
- * (see VIDEO_PACK_CREDITS in lib/tiers.ts).
+ * (see lib/cost.ts's realtime_turn) -- ~$12.40 Tavus + ~$0.65 LLM ≈ $13,
+ * priced at $12.90. Sold at cost, not a markup: this is one credit, not a
+ * multi-credit pack (see VIDEO_PACK_CREDITS in lib/tiers.ts).
  */
 
 export type PaidPlan = "voice" | "premium";
@@ -60,7 +60,7 @@ export const PRICING = {
   free: money("0.00", null),
   voice: money("19.00", "month"),
   premium: money("69.00", "month"),
-  videoPack: money("13.00", null),
+  videoPack: money("12.90", null),
 } as const;
 
 /** Env var holding the PayPal plan id for each paid plan. */
