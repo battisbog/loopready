@@ -96,17 +96,16 @@ export default function RoundsShowcase() {
                   // animations, a custom one) were all running at once
                   // nearby, which is exactly the kind of cross-contamination
                   // `isolate` exists to rule out.
-                  "isolate shrink-0 rounded-lg border px-4 py-3.5 text-left transition-all duration-200 lg:shrink",
+                  "isolate shrink-0 rounded-lg border border-l-2 px-4 py-3.5 text-left transition-colors duration-200 lg:shrink",
                   isActive
-                    ? // Tailwind's own `ring` utility instead of a hand-tuned
-                      // multi-layer box-shadow string. A hand-rolled shadow
-                      // is exactly the kind of thing that renders "uneven"
-                      // under real compositing -- a wide blur radius painted
-                      // via an arbitrary value has no guarantee of staying
-                      // crisp or symmetric the way a first-party, extensively
-                      // battle-tested utility does.
-                      "border-accent-border bg-accent-muted ring-2 ring-accent ring-offset-2 ring-offset-base"
-                    : "border-line bg-surface hover:border-line-strong hover:bg-elevated"
+                    ? // A left accent bar plus a tinted fill -- the standard
+                      // shadcn "active nav item" shape (e.g. a settings
+                      // sidebar's selected row), not a glow. The ring+offset
+                      // treatment this replaced was doing real work (see the
+                      // isolate comment above) but read as neon against the
+                      // rest of this otherwise restrained page.
+                      "border-line-strong border-l-accent bg-accent-muted"
+                    : "border-line border-l-line hover:border-line-strong hover:border-l-line-strong hover:bg-elevated"
                 )}
               >
                 <div className="flex items-center gap-2">
