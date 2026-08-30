@@ -89,8 +89,45 @@ export default async function Landing() {
   const heroCtaHref = signedIn ? "/dashboard" : "/trial/start";
   const heroCtaLabel = signedIn ? "Go to dashboard" : "Try it free";
 
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: "LoopReady",
+    applicationCategory: "EducationalApplication",
+    operatingSystem: "Web",
+    description:
+      "Practice a real behavioral, coding, or system design interview out loud against an AI interviewer calibrated to your target company and level.",
+    offers: [
+      {
+        "@type": "Offer",
+        name: "Free",
+        price: "0",
+        priceCurrency: "USD",
+      },
+      {
+        "@type": "Offer",
+        name: "Voice",
+        price: PRICING.voice.amount,
+        priceCurrency: PRICING.voice.currency,
+      },
+      {
+        "@type": "Offer",
+        name: "Premium",
+        price: PRICING.premium.amount,
+        priceCurrency: PRICING.premium.currency,
+      },
+    ],
+  };
+
   return (
     <div className="relative flex min-h-screen flex-col overflow-x-hidden">
+      {/* Machine-readable description of the product for search engines --
+          lets a result show price/category instead of a plain link. Rendered
+          server-side, not user-visible. */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
       {/* Ambient glow, moved out of <header> and up to the page's own root.
           It used to live inside header's `overflow-hidden` at
           top-[-18rem] -- which never actually worked: overflow-hidden clips
