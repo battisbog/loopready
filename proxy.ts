@@ -19,6 +19,10 @@ const PUBLIC_PATHS = [
   // Uptime monitors have no session. The route itself returns only a bare
   // status to anonymous callers and detail to signed-in ones.
   "/api/health",
+  // Vercel Cron invokes this with no session; the route itself verifies the
+  // CRON_SECRET bearer token, so proxy auth would only ever block the one
+  // caller that's actually supposed to reach it.
+  "/api/cron/reddit-scan",
   // Signup must be reachable before a session exists.
   "/api/auth/signup",
   "/terms",
