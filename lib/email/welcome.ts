@@ -10,6 +10,15 @@ export const WELCOME_DISCOUNT_CODE = "WELCOME10";
  * transactional email uses a light shell with the brand's real accent green
  * (app/globals.css --accent #10b981) rather than trying to reproduce the
  * product's dark UI. All styles inline: email clients strip <style> blocks.
+ *
+ * Deliberately has NO small/gray disclaimer paragraph at the end. Confirmed
+ * by live test (send three variants to a real Gmail inbox) that a trailing
+ * `font-size: 13px; color: #a1a1aa` paragraph is exactly what triggers
+ * Gmail's "Show trimmed content" collapse -- it pattern-matches as a
+ * signature/footer block and hides it (and sometimes the whole message)
+ * behind a "..." toggle. If disclosure language is needed again, keep it in
+ * welcomeText() only, or style it plainly (same size/color as body text) --
+ * never as a smaller, lighter, separated block.
  */
 function welcomeHtml(): string {
   const pricingUrl = `${getSiteUrl()}/pricing`;
@@ -29,12 +38,8 @@ function welcomeHtml(): string {
     ${WELCOME_DISCOUNT_CODE}
   </p>
 
-  <p style="margin: 0 0 24px;">
+  <p style="margin: 0;">
     <a href="${pricingUrl}" style="display: inline-block; background: ${ACCENT}; color: ${ACCENT_FG}; font-size: 15px; font-weight: 600; text-decoration: none; padding: 12px 24px; border-radius: 8px;">See plans &rarr;</a>
-  </p>
-
-  <p style="font-size: 13px; line-height: 1.6; color: #a1a1aa; margin: 0;">
-    You're getting this because you just signed up for LoopReady. You can turn off account emails any time in Settings.
   </p>
 </div>`.trim();
 }
