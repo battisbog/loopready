@@ -298,18 +298,25 @@ export default async function Landing() {
       {/* ---------- Rounds ---------- */}
       <section id="rounds" className="border-t border-line bg-base/60">
         <div className="mx-auto w-full max-w-6xl px-6 py-24">
-          <div className="max-w-3xl">
-            <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-              The whole loop, one engine.
-            </h2>
-            <p className="mt-5 text-lg leading-relaxed text-secondary">
-              Run a single round, or the full loop back to back under one
-              configuration, with the same company and level carried through every
-              round.
-            </p>
-          </div>
+          <div className="grid gap-10 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.35fr)] lg:gap-16">
+            <div className="lg:sticky lg:top-24 lg:self-start">
+              <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
+                The whole loop, one engine.
+              </h2>
+              <p className="mt-5 text-lg leading-relaxed text-secondary">
+                Run a single round, or the full loop back to back under one
+                configuration, with the same company and level carried through every
+                round.
+              </p>
+            </div>
 
-          <RoundsShowcase />
+            {/* lg:-mt-12 cancels RoundsShowcase's own mt-12 -- that spacing
+                is for stacking below the heading (mobile/tablet), not for
+                sitting beside it in this column at lg+. */}
+            <div className="lg:-mt-12">
+              <RoundsShowcase />
+            </div>
+          </div>
         </div>
       </section>
 
