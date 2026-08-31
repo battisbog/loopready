@@ -6,6 +6,10 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { getUserTier } from "@/lib/tiers";
 import { COMPANY_PROFILES } from "@/lib/interview/companies";
 import { PRICING } from "@/lib/pricing";
+import { PROBLEMS } from "@/lib/coding/problems";
+import { DESIGN_PROMPTS } from "@/lib/design/prompts";
+import { QUESTION_BANK } from "@/lib/interview/questions";
+import { AnimatedNumber } from "@/components/ui/animated-number";
 import CompanyTabs from "./(marketing)/company-tabs";
 import Nav from "./(marketing)/nav";
 import Pricing from "./(marketing)/pricing";
@@ -68,11 +72,28 @@ export default async function Landing() {
    * what requires an account, which is the one place the requirement belongs.
    */
   const signedIn = Boolean(user);
+  const admin = createAdminClient();
   // So a subscriber sees "Your current plan" on the card they already pay for
   // rather than a buy button for something they own.
-  const currentTier = user
-    ? await getUserTier(createAdminClient(), user.id)
-    : undefined;
+  const currentTier = user ? await getUserTier(admin, user.id) : undefined;
+
+  // Trust-numbers banner. Every figure here is either a real, live-queried
+  // count or a literal, honestly-labeled 0 -- never a rounded-up or invented
+  // number. "Interviews completed" is the true total (including the
+  // founder's own testing, not filtered out) precisely because a small real
+  // number is more credible long-term than a padded one. "Offers received"
+  // is 0 because there is no outcome-tracking mechanism anywhere in this
+  // codebase yet -- shown plainly as 0, not hidden.
+  const { count: interviewsCompleted } = await admin
+    .from("sessions")
+    .select("id", { count: "exact", head: true })
+    .eq("status", "completed");
+  const offersReceived = 0;
+  const bankSize = PROBLEMS.length + DESIGN_PROMPTS.length + QUESTION_BANK.length;
+  const calibrations = COMPANIES.reduce(
+    (sum, key) => sum + Object.keys(COMPANY_PROFILES[key].levels).length,
+    0
+  );
 
   // "Start free" is meaningless to someone who already has an account, so the
   // primary CTA becomes the way back into the app for them. Used by the
@@ -258,6 +279,19 @@ export default async function Landing() {
               </span>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* ---------- Trust numbers ----------
+          Every figure here is real (see the queries/computations above this
+          component's return) or a literal 0 -- no padding, no "+" unless the
+          real number genuinely clears a round threshold. */}
+      <section className="border-b border-line">
+        <div className="mx-auto grid w-full max-w-5xl grid-cols-2 gap-8 px-6 py-12 sm:grid-cols-4">
+          <TrustStat value={interviewsCompleted ?? 0} label="Interviews completed" />
+          <TrustStat value={offersReceived} label="Offers received" />
+          <TrustStat value={bankSize} label="Questions & problems" />
+          <TrustStat value={calibrations} label="Company/level calibrations" />
         </div>
       </section>
 
@@ -608,6 +642,19 @@ export default async function Landing() {
           </div>
         </div>
       </footer>
+    </div>
+  );
+}
+
+/** One number in the trust banner. No "+" suffix -- every value here is the
+ *  real, unpadded count, including 0. */
+function TrustStat({ value, label }: { value: number; label: string }) {
+  return (
+    <div className="text-center">
+      <p className="text-3xl font-semibold tracking-tight text-primary sm:text-4xl">
+        <AnimatedNumber value={value} />
+      </p>
+      <p className="mt-1.5 text-xs text-muted sm:text-sm">{label}</p>
     </div>
   );
 }
