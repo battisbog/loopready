@@ -190,4 +190,28 @@ export const LINKED_LIST: Problem[] = [
     strongAnswerCovers:
       "Simulated grade-school addition, one digit at a time with a carry, stopping only when both lists AND the carry are exhausted -- the carry-after-both-lists-end case (999...+9999) is what a version that stops too early misses.",
   },
+  {
+    id: "odd-even-linked-list",
+    pattern: "linked-list",
+    tiers: ["mid"],
+    title: "Group Odd and Even Positioned Nodes",
+    fn: "odd_even_list",
+    companies: ["Amazon", "Google", "Meta", "Microsoft", "Apple"],
+    statement:
+      "A singly linked list is given to you as an array of its values in order. Regroup it so every node originally at an odd 1-indexed position comes first (in their original relative order), followed by every node originally at an even position (also in their original relative order). Return the result as an array.",
+    example: "[1,2,3,4,5] -> [1,3,5,2,4]",
+    signatures: {
+      python: "def odd_even_list(values):\n    # your code here\n    pass\n",
+      javascript: "function odd_even_list(values) {\n  // your code here\n}\n",
+    },
+    tests: [
+      { args: [[1, 2, 3, 4, 5]], expected: [1, 3, 5, 2, 4] },
+      { args: [[2, 1, 3, 5, 6, 4, 7]], expected: [2, 3, 6, 7, 1, 5, 4] },
+      { args: [[]], expected: [] },
+      { args: [[1]], expected: [1] },
+      { args: [[1, 2]], expected: [1, 2] },
+    ],
+    strongAnswerCovers:
+      "Rewires the list in place with two running pointers (one walking the odd chain, one the even chain) in a single O(n) pass with O(1) extra space, then splices the even chain onto the tail of the odd chain -- rather than allocating a new list or making two full passes.",
+  },
 ];

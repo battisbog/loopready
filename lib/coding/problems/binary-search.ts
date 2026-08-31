@@ -195,4 +195,50 @@ export const BINARY_SEARCH: Problem[] = [
     strongAnswerCovers:
       "Reaches for binary search using the slope between adjacent elements to discard half the array each step, once pushed to beat the O(n) linear scan.",
   },
+  {
+    id: "single-non-duplicate",
+    pattern: "binary-search",
+    tiers: ["mid", "senior"],
+    title: "Single Element in a Sorted Array",
+    fn: "single_non_duplicate",
+    companies: ["Amazon", "Google", "Meta", "Microsoft"],
+    statement:
+      "Given a sorted array where every value appears exactly twice except for one value that appears once, return that single value.",
+    example: "[1,1,2,3,3,4,4,8,8] -> 2",
+    signatures: {
+      python: "def single_non_duplicate(nums):\n    # your code here\n    pass\n",
+      javascript: "function single_non_duplicate(nums) {\n  // your code here\n}\n",
+    },
+    tests: [
+      { args: [[1, 1, 2, 3, 3, 4, 4, 8, 8]], expected: 2 },
+      { args: [[3, 3, 7, 7, 10, 11, 11]], expected: 10 },
+      { args: [[1]], expected: 1 },
+      { args: [[1, 1, 2, 2, 3]], expected: 3 },
+    ],
+    strongAnswerCovers:
+      "Uses binary search on the parity of the index: before the single element every pair starts at an even index, after it every pair starts at an odd index, so checking whether mid's partner sits to its left or right tells you which half to discard. Accepts a plain linear XOR scan as correct but not the O(log n) answer being asked for.",
+  },
+  {
+    id: "search-2d-matrix-ii",
+    pattern: "binary-search",
+    tiers: ["mid", "senior"],
+    title: "Search a 2D Matrix II",
+    fn: "search_matrix_ii",
+    companies: ["Amazon", "Google", "Meta", "Microsoft"],
+    statement:
+      "Given a grid of integers where every row is sorted left to right and every column is sorted top to bottom (but, unlike a fully sorted grid, the rows are not sorted relative to each other), return true if a target value exists anywhere in the grid.",
+    example: "matrix = [[1,4,7,11,15],[2,5,8,12,19],[3,6,9,16,22],[10,13,14,17,24],[18,21,23,26,30]], target = 5 -> true",
+    signatures: {
+      python: "def search_matrix_ii(matrix, target):\n    # your code here\n    pass\n",
+      javascript: "function search_matrix_ii(matrix, target) {\n  // your code here\n}\n",
+    },
+    tests: [
+      { args: [[[1, 4, 7, 11, 15], [2, 5, 8, 12, 19], [3, 6, 9, 16, 22], [10, 13, 14, 17, 24], [18, 21, 23, 26, 30]], 5], expected: true },
+      { args: [[[1, 4, 7, 11, 15], [2, 5, 8, 12, 19], [3, 6, 9, 16, 22], [10, 13, 14, 17, 24], [18, 21, 23, 26, 30]], 20], expected: false },
+      { args: [[[1]], 1], expected: true },
+      { args: [[[]], 1], expected: false },
+    ],
+    strongAnswerCovers:
+      "Starts at the top-right corner and eliminates a full row or column on every comparison: moves left when the current value is too big, down when it is too small. Explain why this only works from a corner where one direction increases and the other decreases -- starting at the top-left or searching each row independently loses the O(m+n) bound this problem is actually testing.",
+  },
 ];

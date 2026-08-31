@@ -142,4 +142,28 @@ export const GRAPHS: Problem[] = [
     strongAnswerCovers:
       "Treats this as shortest-path-in-an-unweighted-graph and reaches for BFS rather than DFS to guarantee the minimum step count, and can discuss the cost of generating each word's 26xlength neighbors.",
   },
+  {
+    id: "course-order",
+    pattern: "graphs",
+    tiers: ["senior"],
+    title: "Find a Valid Course Order",
+    fn: "find_order",
+    companies: ["Amazon", "Google", "Meta", "Microsoft"],
+    statement:
+      "Given a number of courses labelled from zero and a list of [course, prerequisite] pairs, return an order in which every course can be taken with its prerequisites already completed, or an empty array if no valid order exists.",
+    example: "3 courses, [[1,0],[2,1]] -> [0,1,2]",
+    signatures: {
+      python: "def find_order(n, prereqs):\n    # your code here\n    pass\n",
+      javascript: "function find_order(n, prereqs) {\n  // your code here\n}\n",
+    },
+    tests: [
+      { args: [4, [[1, 0], [2, 1], [3, 2]]], expected: [0, 1, 2, 3] },
+      { args: [1, []], expected: [0] },
+      { args: [2, [[1, 0]]], expected: [0, 1] },
+      { args: [2, [[1, 0], [0, 1]]], expected: [] },
+      { args: [3, [[1, 0], [2, 1]]], expected: [0, 1, 2] },
+    ],
+    strongAnswerCovers:
+      "Builds on cycle detection (Course Prerequisites) by actually recording a topological order -- Kahn's algorithm (repeatedly removing zero-indegree nodes) or a DFS post-order reversal. An empty result must mean a genuine cycle was detected, not just an empty input; test cases here are deliberately chains with only one valid order, so any correct topological sort produces the exact expected array rather than one of several equally valid orderings.",
+  },
 ];

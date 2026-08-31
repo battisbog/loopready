@@ -148,4 +148,26 @@ export const STACK: Problem[] = [
     strongAnswerCovers:
       "Uses a stack of indices (or a DP array) rather than a naive running balance counter, and can explain why seeding the stack with -1 correctly handles a valid run that starts at index 0.",
   },
+  {
+    id: "next-greater-element",
+    pattern: "stack",
+    tiers: ["junior", "mid"],
+    title: "Next Greater Element",
+    fn: "next_greater_element",
+    companies: ["Amazon", "Google", "Meta", "Microsoft"],
+    statement:
+      "You are given two arrays of distinct integers: a query list and a reference list that contains every value in the query list somewhere within it. For each value in the query list, find the first value to its right in the reference list that is strictly greater, or -1 if there is none. Return the results in query order.",
+    example: "query=[4,1,2], reference=[1,3,4,2] -> [-1,3,-1]",
+    signatures: {
+      python: "def next_greater_element(query, reference):\n    # your code here\n    pass\n",
+      javascript: "function next_greater_element(query, reference) {\n  // your code here\n}\n",
+    },
+    tests: [
+      { args: [[4, 1, 2], [1, 3, 4, 2]], expected: [-1, 3, -1] },
+      { args: [[2, 4], [1, 2, 3, 4]], expected: [3, -1] },
+      { args: [[1], [1]], expected: [-1] },
+    ],
+    strongAnswerCovers:
+      "Makes one pass over the reference list with a decreasing stack, popping every value smaller than the current one and recording the current value as their answer -- computing this once for the whole reference list rather than re-scanning from each query value's position, which is the naive O(n*m) approach.",
+  },
 ];

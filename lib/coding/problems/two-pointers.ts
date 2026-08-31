@@ -262,4 +262,49 @@ export const TWO_POINTERS: Problem[] = [
     strongAnswerCovers:
       "Sorts first, then reduces to two nested loops plus a two-pointer sweep, and explicitly skips duplicates at all three levels to avoid repeated quadruples rather than deduplicating the result afterward.",
   },
+  {
+    id: "longest-palindromic-substring",
+    pattern: "two-pointers",
+    tiers: ["mid"],
+    title: "Longest Palindromic Substring",
+    fn: "longest_palindrome",
+    companies: ["Amazon", "Google", "Meta", "Microsoft", "Apple"],
+    statement:
+      "Given a string, return its longest substring that reads the same forwards and backwards.",
+    example: "\"cbbd\" -> \"bb\"",
+    signatures: {
+      python: "def longest_palindrome(s):\n    # your code here\n    pass\n",
+      javascript: "function longest_palindrome(s) {\n  // your code here\n}\n",
+    },
+    tests: [
+      { args: ["cbbd"], expected: "bb" },
+      { args: ["racecar"], expected: "racecar" },
+      { args: ["a"], expected: "a" },
+      { args: ["abcba"], expected: "abcba" },
+    ],
+    strongAnswerCovers:
+      "Expands outward from each of the 2n-1 possible centers (including the gap between two characters, for even-length palindromes) rather than checking every substring, and can state the resulting O(n^2) time / O(1) space bound. A DP table over every (i, j) pair is an accepted but weaker alternative they should be able to name and compare.",
+  },
+  {
+    id: "three-sum-closest",
+    pattern: "two-pointers",
+    tiers: ["mid"],
+    title: "3Sum Closest",
+    fn: "three_sum_closest",
+    companies: ["Amazon", "Google", "Meta", "Microsoft"],
+    statement:
+      "Given an array of integers and a target, return the sum of the three numbers whose total is closest to the target.",
+    example: "[-1,2,1,-4], target 1 -> 2 (from -1 + 2 + 1)",
+    signatures: {
+      python: "def three_sum_closest(nums, target):\n    # your code here\n    pass\n",
+      javascript: "function three_sum_closest(nums, target) {\n  // your code here\n}\n",
+    },
+    tests: [
+      { args: [[-1, 2, 1, -4], 1], expected: 2 },
+      { args: [[0, 0, 0], 1], expected: 0 },
+      { args: [[1, 1, 1, 0], -100], expected: 2 },
+    ],
+    strongAnswerCovers:
+      "Sorts first, then fixes one number and sweeps the other two inward with two pointers, moving the pointer on the side that would shrink the gap to the target -- the same skeleton as Three Sum, tracking a running best difference instead of collecting exact-match triplets.",
+  },
 ];

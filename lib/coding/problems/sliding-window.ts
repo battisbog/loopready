@@ -147,4 +147,27 @@ export const SLIDING_WINDOW: Problem[] = [
     strongAnswerCovers:
       "Reaches for a monotonic deque of indices rather than recomputing each window's maximum from scratch, and can explain why the deque stays in decreasing value order and why stale indices fall off the front.",
   },
+  {
+    id: "max-consecutive-ones-flips",
+    pattern: "sliding-window",
+    tiers: ["mid"],
+    title: "Longest Run of Ones With K Flips",
+    fn: "longest_ones",
+    companies: ["Amazon", "Google", "Meta", "Microsoft"],
+    statement:
+      "Given a binary array and an integer k, return the length of the longest contiguous run of 1s obtainable by flipping at most k zeros to ones.",
+    example: "[1,1,1,0,0,0,1,1,1,1,0], k=2 -> 6",
+    signatures: {
+      python: "def longest_ones(nums, k):\n    # your code here\n    pass\n",
+      javascript: "function longest_ones(nums, k) {\n  // your code here\n}\n",
+    },
+    tests: [
+      { args: [[1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0], 2], expected: 6 },
+      { args: [[0, 0, 1, 1, 1, 0, 0], 0], expected: 3 },
+      { args: [[1, 1, 1, 1], 0], expected: 4 },
+      { args: [[], 1], expected: 0 },
+    ],
+    strongAnswerCovers:
+      "A window that grows on the right and only shrinks from the left once the zero-count inside it exceeds k, rather than resetting on every zero -- the window never needs to shrink below its previous best length, so a naive reset-based scan is the tell for a candidate who has not internalised the technique.",
+  },
 ];

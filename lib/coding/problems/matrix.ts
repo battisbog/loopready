@@ -70,4 +70,26 @@ export const MATRIX: Problem[] = [
     strongAnswerCovers:
       "A first pass to record which rows/columns contain a zero, then a second pass to zero them, avoids the bug of zeroing a cell and then reading that zero as a NEW trigger later in the same pass. The O(1)-extra-space version stores the flags in the matrix's own first row and column instead of two sets.",
   },
+  {
+    id: "distance-to-nearest-zero",
+    pattern: "matrix",
+    tiers: ["mid", "senior"],
+    title: "Distance to the Nearest Zero",
+    fn: "nearest_zero_distances",
+    companies: ["Amazon", "Google", "Meta", "Microsoft"],
+    statement:
+      "Given a grid of 0s and 1s, return a grid of the same shape where each cell holds the shortest number of up/down/left/right steps to the nearest 0 (a 0 cell holds 0).",
+    example: "[[0,0,0],[0,1,0],[1,1,1]] -> [[0,0,0],[0,1,0],[1,2,1]]",
+    signatures: {
+      python: "def nearest_zero_distances(grid):\n    # your code here\n    pass\n",
+      javascript: "function nearest_zero_distances(grid) {\n  // your code here\n}\n",
+    },
+    tests: [
+      { args: [[[0, 0, 0], [0, 1, 0], [1, 1, 1]]], expected: [[0, 0, 0], [0, 1, 0], [1, 2, 1]] },
+      { args: [[[0]]], expected: [[0]] },
+      { args: [[[1, 0]]], expected: [[1, 0]] },
+    ],
+    strongAnswerCovers:
+      "Starts a single multi-source BFS from every 0 cell at once, rather than running a separate BFS/DFS outward from each 1 cell -- that per-cell approach is correct but revisits the same ground repeatedly and is the naive answer this problem is designed to push past. Can state the O(rows*cols) bound multi-source BFS achieves.",
+  },
 ];

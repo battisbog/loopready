@@ -219,4 +219,50 @@ export const DYNAMIC_PROGRAMMING: Problem[] = [
     strongAnswerCovers:
       "The twist over Maximum Subarray: a negative number can turn the smallest running product into the largest, so both a running max AND a running min must be tracked. Losing the running min is the near-universal bug on a first attempt.",
   },
+  {
+    id: "partition-equal-subset-sum",
+    pattern: "dynamic-programming",
+    tiers: ["mid", "senior"],
+    title: "Partition Into Two Equal-Sum Groups",
+    fn: "can_partition",
+    companies: ["Amazon", "Google", "Meta", "Microsoft"],
+    statement:
+      "Given an array of positive integers, return true if it can be split into two groups with equal sums.",
+    example: "[1,5,11,5] -> true (11 alone, and 1+5+5)",
+    signatures: {
+      python: "def can_partition(nums):\n    # your code here\n    pass\n",
+      javascript: "function can_partition(nums) {\n  // your code here\n}\n",
+    },
+    tests: [
+      { args: [[1, 5, 11, 5]], expected: true },
+      { args: [[1, 2, 3, 5]], expected: false },
+      { args: [[4, 4]], expected: true },
+      { args: [[1, 2, 5]], expected: false },
+    ],
+    strongAnswerCovers:
+      "Recognizes this as subset-sum in disguise: an odd total sum makes it immediately impossible, otherwise the question is whether some subset sums to exactly half the total. Builds a 1D boolean DP over achievable sums (0/1 knapsack shape) rather than trying every subset directly, and iterates the sum dimension DOWNWARD when updating in place so each number is only used once.",
+  },
+  {
+    id: "longest-common-subsequence",
+    pattern: "dynamic-programming",
+    tiers: ["mid"],
+    title: "Longest Common Subsequence",
+    fn: "lcs_length",
+    companies: ["Amazon", "Google", "Meta", "Microsoft"],
+    statement:
+      "Given two strings, return the length of their longest common subsequence -- a sequence of characters that appears in both strings in the same relative order, but not necessarily contiguously.",
+    example: "\"abcde\", \"ace\" -> 3 (\"ace\")",
+    signatures: {
+      python: "def lcs_length(a, b):\n    # your code here\n    pass\n",
+      javascript: "function lcs_length(a, b) {\n  // your code here\n}\n",
+    },
+    tests: [
+      { args: ["abcde", "ace"], expected: 3 },
+      { args: ["abc", "abc"], expected: 3 },
+      { args: ["abc", "def"], expected: 0 },
+      { args: ["", "abc"], expected: 0 },
+    ],
+    strongAnswerCovers:
+      "Builds a 2D DP table where cell (i, j) is the LCS length of the first i characters of a and the first j of b: a match extends the diagonal by one, a mismatch takes the better of dropping one character from either string. Distinguishes this clearly from Edit Distance, which counts operations rather than a shared subsequence, when asked how the two relate.",
+  },
 ];

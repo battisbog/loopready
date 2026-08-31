@@ -2710,6 +2710,275 @@ def find_peak(nums):
 )
 
 
+# ─────────────────────────────────────────────── second leetcode-companywise batch
+problem(
+    id="longest-palindromic-substring", pattern="two-pointers", tiers=["mid"], title="Longest Palindromic Substring",
+    fn="longest_palindrome", companies=["Amazon", "Google", "Meta", "Microsoft", "Apple"],
+    statement="Given a string, return its longest substring that reads the same forwards and backwards.",
+    example='"cbbd" -> "bb"',
+    params="s",
+    tests=[["cbbd"],["racecar"],["a"],["abcba"]],
+    solution="""
+def longest_palindrome(s):
+    if not s:
+        return ""
+    best = s[0]
+    def expand(l, r):
+        while l >= 0 and r < len(s) and s[l] == s[r]:
+            l -= 1
+            r += 1
+        return s[l + 1:r]
+    for i in range(len(s)):
+        odd = expand(i, i)
+        if len(odd) > len(best):
+            best = odd
+        even = expand(i, i + 1)
+        if len(even) > len(best):
+            best = even
+    return best
+""",
+    covers="Expands outward from each of the 2n-1 possible centers (including the gap between two characters, for even-length palindromes) rather than checking every substring, and can state the resulting O(n^2) time / O(1) space bound. A DP table over every (i, j) pair is an accepted but weaker alternative they should be able to name and compare.",
+)
+problem(
+    id="three-sum-closest", pattern="two-pointers", tiers=["mid"], title="3Sum Closest",
+    fn="three_sum_closest", companies=["Amazon", "Google", "Meta", "Microsoft"],
+    statement="Given an array of integers and a target, return the sum of the three numbers whose total is closest to the target.",
+    example="[-1,2,1,-4], target 1 -> 2 (from -1 + 2 + 1)",
+    params="nums, target",
+    tests=[[[-1,2,1,-4],1],[[0,0,0],1],[[1,1,1,0],-100]],
+    solution="""
+def three_sum_closest(nums, target):
+    nums = sorted(nums)
+    best = nums[0] + nums[1] + nums[2]
+    for i in range(len(nums) - 2):
+        l, r = i + 1, len(nums) - 1
+        while l < r:
+            total = nums[i] + nums[l] + nums[r]
+            if abs(total - target) < abs(best - target):
+                best = total
+            if total == target:
+                return total
+            elif total < target:
+                l += 1
+            else:
+                r -= 1
+    return best
+""",
+    covers="Sorts first, then fixes one number and sweeps the other two inward with two pointers, moving the pointer on the side that would shrink the gap to the target -- the same skeleton as Three Sum, tracking a running best difference instead of collecting exact-match triplets.",
+)
+problem(
+    id="max-consecutive-ones-flips", pattern="sliding-window", tiers=["mid"], title="Longest Run of Ones With K Flips",
+    fn="longest_ones", companies=["Amazon", "Google", "Meta", "Microsoft"],
+    statement="Given a binary array and an integer k, return the length of the longest contiguous run of 1s obtainable by flipping at most k zeros to ones.",
+    example="[1,1,1,0,0,0,1,1,1,1,0], k=2 -> 6",
+    params="nums, k",
+    tests=[[[1,1,1,0,0,0,1,1,1,1,0],2],[[0,0,1,1,1,0,0],0],[[1,1,1,1],0],[[],1]],
+    solution="""
+def longest_ones(nums, k):
+    left = 0
+    zeros = 0
+    best = 0
+    for right in range(len(nums)):
+        if nums[right] == 0:
+            zeros += 1
+        while zeros > k:
+            if nums[left] == 0:
+                zeros -= 1
+            left += 1
+        best = max(best, right - left + 1)
+    return best
+""",
+    covers="A window that grows on the right and only shrinks from the left once the zero-count inside it exceeds k, rather than resetting on every zero -- the window never needs to shrink below its previous best length, so a naive reset-based scan is the tell for a candidate who has not internalised the technique.",
+)
+problem(
+    id="single-non-duplicate", pattern="binary-search", tiers=["mid", "senior"], title="Single Element in a Sorted Array",
+    fn="single_non_duplicate", companies=["Amazon", "Google", "Meta", "Microsoft"],
+    statement="Given a sorted array where every value appears exactly twice except for one value that appears once, return that single value.",
+    example="[1,1,2,3,3,4,4,8,8] -> 2",
+    params="nums",
+    tests=[[[1,1,2,3,3,4,4,8,8]],[[3,3,7,7,10,11,11]],[[1]],[[1,1,2,2,3]]],
+    solution="""
+def single_non_duplicate(nums):
+    lo, hi = 0, len(nums) - 1
+    while lo < hi:
+        mid = (lo + hi) // 2
+        if mid % 2 == 1:
+            mid -= 1
+        if nums[mid] == nums[mid + 1]:
+            lo = mid + 2
+        else:
+            hi = mid
+    return nums[lo]
+""",
+    covers="Uses binary search on the parity of the index: before the single element every pair starts at an even index, after it every pair starts at an odd index, so checking whether mid's partner sits to its left or right tells you which half to discard. Accepts a plain linear XOR scan as correct but not the O(log n) answer being asked for.",
+)
+problem(
+    id="search-2d-matrix-ii", pattern="binary-search", tiers=["mid", "senior"], title="Search a 2D Matrix II",
+    fn="search_matrix_ii", companies=["Amazon", "Google", "Meta", "Microsoft"],
+    statement="Given a grid of integers where every row is sorted left to right and every column is sorted top to bottom (but, unlike a fully sorted grid, the rows are not sorted relative to each other), return true if a target value exists anywhere in the grid.",
+    example="matrix = [[1,4,7,11,15],[2,5,8,12,19],[3,6,9,16,22],[10,13,14,17,24],[18,21,23,26,30]], target = 5 -> true",
+    params="matrix, target",
+    tests=[
+        [[[1,4,7,11,15],[2,5,8,12,19],[3,6,9,16,22],[10,13,14,17,24],[18,21,23,26,30]],5],
+        [[[1,4,7,11,15],[2,5,8,12,19],[3,6,9,16,22],[10,13,14,17,24],[18,21,23,26,30]],20],
+        [[[1]],1],
+        [[[]],1],
+    ],
+    solution="""
+def search_matrix_ii(matrix, target):
+    if not matrix or not matrix[0]:
+        return False
+    row, col = 0, len(matrix[0]) - 1
+    while row < len(matrix) and col >= 0:
+        v = matrix[row][col]
+        if v == target:
+            return True
+        if v > target:
+            col -= 1
+        else:
+            row += 1
+    return False
+""",
+    covers="Starts at the top-right corner and eliminates a full row or column on every comparison: moves left when the current value is too big, down when it is too small. Explain why this only works from a corner where one direction increases and the other decreases -- starting at the top-left or searching each row independently loses the O(m+n) bound this problem is actually testing.",
+)
+problem(
+    id="next-greater-element", pattern="stack", tiers=["junior", "mid"], title="Next Greater Element",
+    fn="next_greater_element", companies=["Amazon", "Google", "Meta", "Microsoft"],
+    statement="You are given two arrays of distinct integers: a query list and a reference list that contains every value in the query list somewhere within it. For each value in the query list, find the first value to its right in the reference list that is strictly greater, or -1 if there is none. Return the results in query order.",
+    example="query=[4,1,2], reference=[1,3,4,2] -> [-1,3,-1]",
+    params="query, reference",
+    tests=[[[4,1,2],[1,3,4,2]],[[2,4],[1,2,3,4]],[[1],[1]]],
+    solution="""
+def next_greater_element(query, reference):
+    next_greater = {}
+    stack = []
+    for v in reference:
+        while stack and stack[-1] < v:
+            next_greater[stack.pop()] = v
+        stack.append(v)
+    return [next_greater.get(q, -1) for q in query]
+""",
+    covers="Makes one pass over the reference list with a decreasing stack, popping every value smaller than the current one and recording the current value as their answer -- computing this once for the whole reference list rather than re-scanning from each query value's position, which is the naive O(n*m) approach.",
+)
+problem(
+    id="distance-to-nearest-zero", pattern="matrix", tiers=["mid", "senior"], title="Distance to the Nearest Zero",
+    fn="nearest_zero_distances", companies=["Amazon", "Google", "Meta", "Microsoft"],
+    statement="Given a grid of 0s and 1s, return a grid of the same shape where each cell holds the shortest number of up/down/left/right steps to the nearest 0 (a 0 cell holds 0).",
+    example="[[0,0,0],[0,1,0],[1,1,1]] -> [[0,0,0],[0,1,0],[1,2,1]]",
+    params="grid",
+    tests=[[[[0,0,0],[0,1,0],[1,1,1]]],[[[0]]],[[[1,0]]]],
+    solution="""
+def nearest_zero_distances(grid):
+    from collections import deque
+    if not grid or not grid[0]:
+        return grid
+    rows, cols = len(grid), len(grid[0])
+    dist = [[-1] * cols for _ in range(rows)]
+    q = deque()
+    for r in range(rows):
+        for c in range(cols):
+            if grid[r][c] == 0:
+                dist[r][c] = 0
+                q.append((r, c))
+    while q:
+        r, c = q.popleft()
+        for dr, dc in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            nr, nc = r + dr, c + dc
+            if 0 <= nr < rows and 0 <= nc < cols and dist[nr][nc] == -1:
+                dist[nr][nc] = dist[r][c] + 1
+                q.append((nr, nc))
+    return dist
+""",
+    covers="Starts a single multi-source BFS from every 0 cell at once, rather than running a separate BFS/DFS outward from each 1 cell -- that per-cell approach is correct but revisits the same ground repeatedly and is the naive answer this problem is designed to push past. Can state the O(rows*cols) bound multi-source BFS achieves.",
+)
+problem(
+    id="course-order", pattern="graphs", tiers=["senior"], title="Find a Valid Course Order",
+    fn="find_order", companies=["Amazon", "Google", "Meta", "Microsoft"],
+    statement="Given a number of courses labelled from zero and a list of [course, prerequisite] pairs, return an order in which every course can be taken with its prerequisites already completed, or an empty array if no valid order exists.",
+    example="3 courses, [[1,0],[2,1]] -> [0,1,2]",
+    params="n, prereqs",
+    tests=[[4,[[1,0],[2,1],[3,2]]],[1,[]],[2,[[1,0]]],[2,[[1,0],[0,1]]],[3,[[1,0],[2,1]]]],
+    solution="""
+def find_order(n, prereqs):
+    from collections import deque
+    indegree = [0] * n
+    adj = [[] for _ in range(n)]
+    for course, pre in prereqs:
+        adj[pre].append(course)
+        indegree[course] += 1
+    q = deque(i for i in range(n) if indegree[i] == 0)
+    order = []
+    while q:
+        node = q.popleft()
+        order.append(node)
+        for nxt in adj[node]:
+            indegree[nxt] -= 1
+            if indegree[nxt] == 0:
+                q.append(nxt)
+    return order if len(order) == n else []
+""",
+    covers="Builds on cycle detection (Course Prerequisites) by actually recording a topological order -- Kahn's algorithm (repeatedly removing zero-indegree nodes) or a DFS post-order reversal. An empty result must mean a genuine cycle was detected, not just an empty input; test cases here are deliberately chains with only one valid order, so any correct topological sort produces the exact expected array rather than one of several equally valid orderings.",
+)
+problem(
+    id="odd-even-linked-list", pattern="linked-list", tiers=["mid"], title="Group Odd and Even Positioned Nodes",
+    fn="odd_even_list", companies=["Amazon", "Google", "Meta", "Microsoft", "Apple"],
+    statement="A singly linked list is given to you as an array of its values in order. Regroup it so every node originally at an odd 1-indexed position comes first (in their original relative order), followed by every node originally at an even position (also in their original relative order). Return the result as an array.",
+    example="[1,2,3,4,5] -> [1,3,5,2,4]",
+    params="values",
+    tests=[[[1,2,3,4,5]],[[2,1,3,5,6,4,7]],[[]],[[1]],[[1,2]]],
+    solution="""
+def odd_even_list(values):
+    odd = values[0::2]
+    even = values[1::2]
+    return odd + even
+""",
+    covers="Rewires the list in place with two running pointers (one walking the odd chain, one the even chain) in a single O(n) pass with O(1) extra space, then splices the even chain onto the tail of the odd chain -- rather than allocating a new list or making two full passes.",
+)
+problem(
+    id="partition-equal-subset-sum", pattern="dynamic-programming", tiers=["mid", "senior"], title="Partition Into Two Equal-Sum Groups",
+    fn="can_partition", companies=["Amazon", "Google", "Meta", "Microsoft"],
+    statement="Given an array of positive integers, return true if it can be split into two groups with equal sums.",
+    example="[1,5,11,5] -> true (11 alone, and 1+5+5)",
+    params="nums",
+    tests=[[[1,5,11,5]],[[1,2,3,5]],[[4,4]],[[1,2,5]]],
+    solution="""
+def can_partition(nums):
+    total = sum(nums)
+    if total % 2 != 0:
+        return False
+    target = total // 2
+    achievable = {0}
+    for n in nums:
+        achievable |= {s + n for s in achievable if s + n <= target}
+        if target in achievable:
+            return True
+    return target in achievable
+""",
+    covers="Recognizes this as subset-sum in disguise: an odd total sum makes it immediately impossible, otherwise the question is whether some subset sums to exactly half the total. Builds a 1D boolean DP over achievable sums (0/1 knapsack shape) rather than trying every subset directly, and iterates the sum dimension DOWNWARD when updating in place so each number is only used once.",
+)
+problem(
+    id="longest-common-subsequence", pattern="dynamic-programming", tiers=["mid"], title="Longest Common Subsequence",
+    fn="lcs_length", companies=["Amazon", "Google", "Meta", "Microsoft"],
+    statement="Given two strings, return the length of their longest common subsequence -- a sequence of characters that appears in both strings in the same relative order, but not necessarily contiguously.",
+    example='"abcde", "ace" -> 3 ("ace")',
+    params="a, b",
+    tests=[["abcde","ace"],["abc","abc"],["abc","def"],["","abc"]],
+    solution="""
+def lcs_length(a, b):
+    m, n = len(a), len(b)
+    dp = [[0] * (n + 1) for _ in range(m + 1)]
+    for i in range(1, m + 1):
+        for j in range(1, n + 1):
+            if a[i - 1] == b[j - 1]:
+                dp[i][j] = dp[i - 1][j - 1] + 1
+            else:
+                dp[i][j] = max(dp[i - 1][j], dp[i][j - 1])
+    return dp[m][n]
+""",
+    covers="Builds a 2D DP table where cell (i, j) is the LCS length of the first i characters of a and the first j of b: a match extends the diagonal by one, a mismatch takes the better of dropping one character from either string. Distinguishes this clearly from Edit Distance, which counts operations rather than a shared subsequence, when asked how the two relate.",
+)
+
+
 # ───────────────────────────────────────────────────────── verification
 def verify():
     fails = []
