@@ -16,6 +16,10 @@ import { cn } from "@/lib/cn";
 interface RoundDef {
   key: "coding" | "system_design" | "behavioral";
   title: string;
+  /** Shorter label for the mobile pill tab bar, where all three labels must
+   *  fit on one line -- "System design" is the only one long enough to need
+   *  this. Falls back to `title` when absent. */
+  mobileTitle?: string;
   body: string;
   points: string[];
 }
@@ -34,6 +38,7 @@ const ROUNDS: RoundDef[] = [
   {
     key: "system_design",
     title: "System design",
+    mobileTitle: "System",
     body: "An architecture canvas the interviewer can see and push back on, referencing your components by name and challenging hand-waving about scale.",
     points: [
       "Drag-and-drop components",
@@ -85,7 +90,7 @@ export default function RoundsShowcase() {
             (already a dependency here) interpolates the actual flexbox
             geometry between renders, which is the standard way to build
             this "shared position, one grows, others shrink" interaction. */}
-        <div className="flex gap-3">
+        <div className="hidden gap-3 lg:flex">
           {ROUNDS.map((r) => {
             const isActive = r.key === active;
             return (
@@ -148,10 +153,57 @@ export default function RoundsShowcase() {
           })}
         </div>
 
+        {/* ---- Mobile tab bar + content panel ----
+            Below `lg`, the expanding-tab-row above is hidden entirely and
+            replaced with two genuinely SEPARATE elements: a single-row pill
+            tab bar containing only short labels (never card content, never
+            an empty box for the inactive tabs -- the bug this replaces), and
+            one content panel below it that renders only the active round.
+            Content here is intentionally shorter than the desktop card
+            (fewer bullets, clamped body) so the live-preview mockup right
+            below it is reachable without a full extra screen of scrolling. */}
+        <div className="lg:hidden">
+          <div className="flex w-full gap-1 rounded-full border border-line bg-surface p-1">
+            {ROUNDS.map((r) => {
+              const isActive = r.key === active;
+              return (
+                <button
+                  key={r.key}
+                  type="button"
+                  onClick={() => setActive(r.key)}
+                  aria-pressed={isActive}
+                  className={cn(
+                    "flex-1 rounded-full px-2 py-2 text-center text-xs font-medium transition-colors duration-200",
+                    isActive
+                      ? "bg-accent text-accent-fg"
+                      : "text-muted hover:text-secondary"
+                  )}
+                >
+                  {r.mobileTitle ?? r.title}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="mt-4 rounded-lg border border-line-strong border-l-2 border-l-accent bg-accent-muted px-4 py-3.5">
+            <p className="line-clamp-2 text-sm leading-relaxed text-secondary">
+              {round.body}
+            </p>
+            <ul className="mt-2.5 space-y-1.5">
+              {round.points.slice(0, 2).map((p) => (
+                <li key={p} className="flex items-start gap-2 text-xs text-secondary">
+                  <span className="mt-0.5 text-accent">✓</span>
+                  {p}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
         {/* ---- Live preview ---- */}
-        <div className="isolate mt-8 overflow-hidden rounded-lg border border-line bg-base shadow-xl shadow-[var(--shadow-md)]">
+        <div className="isolate mt-6 overflow-hidden rounded-lg border border-line bg-base shadow-xl shadow-[var(--shadow-md)] lg:mt-8">
           <BrowserChrome url={`loopready.io/session · ${round.title.toLowerCase().replace(" ", "-")}`} />
-          <div className="relative min-h-[24rem]">
+          <div className="relative min-h-[18rem] lg:min-h-[24rem]">
             <AnimatePresence mode="wait">
               <motion.div
                 key={active}
