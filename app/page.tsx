@@ -81,9 +81,11 @@ export default async function Landing() {
   // request. Re-verify against the DB and lib/coding/problems,
   // lib/design/prompts.ts, lib/interview/questions.ts, lib/interview/
   // companies.ts before bumping any of these -- never round up or guess.
-  const interviewsCompleted = 73;
+  // Display values are rounded DOWN from the real counts (73 interviews,
+  // 181 questions/problems) to a clean "+" threshold -- never rounded up.
+  const interviewsCompleted = 70;
   const offersReceived = 0; // No outcome-tracking mechanism exists anywhere in the codebase yet.
-  const bankSize = 181; // 121 coding + 16 design + 44 behavioral
+  const bankSize = 180; // real total is 181 (121 coding + 16 design + 44 behavioral)
   const calibrations = 18; // 6 companies x 3 levels each
 
   // "Start free" is meaningless to someone who already has an account, so the
@@ -279,9 +281,9 @@ export default async function Landing() {
           real number genuinely clears a round threshold. */}
       <section className="border-b border-line">
         <div className="mx-auto grid w-full max-w-5xl grid-cols-2 gap-8 px-6 py-12 sm:grid-cols-4">
-          <TrustStat value={interviewsCompleted} label="Interviews completed" />
+          <TrustStat value={interviewsCompleted} suffix="+" label="Interviews completed" />
           <TrustStat value={offersReceived} label="Offers received" />
-          <TrustStat value={bankSize} label="Questions & problems" />
+          <TrustStat value={bankSize} suffix="+" label="Questions & problems" />
           <TrustStat value={calibrations} label="Company/level calibrations" />
         </div>
       </section>
@@ -637,13 +639,27 @@ export default async function Landing() {
   );
 }
 
-/** One number in the trust banner. No "+" suffix -- every value here is the
- *  real, unpadded count, including 0. */
-function TrustStat({ value, label }: { value: number; label: string }) {
+/**
+ * One number in the trust banner. `suffix` ("+") is opt-in and only ever
+ * used where the underlying real number is rounded DOWN to reach a clean
+ * threshold (see roundDown10 above) -- never rounded up, never added to a
+ * number that isn't already a genuine floor of the real count. 0 gets no
+ * suffix; "0+" would be meaningless.
+ */
+function TrustStat({
+  value,
+  suffix,
+  label,
+}: {
+  value: number;
+  suffix?: string;
+  label: string;
+}) {
   return (
     <div className="text-center">
       <p className="text-3xl font-semibold tracking-tight text-primary sm:text-4xl">
         <AnimatedNumber value={value} />
+        {suffix}
       </p>
       <p className="mt-1.5 text-xs text-muted sm:text-sm">{label}</p>
     </div>
