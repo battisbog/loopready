@@ -6,7 +6,6 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { getUserTier } from "@/lib/tiers";
 import { COMPANY_PROFILES } from "@/lib/interview/companies";
 import { PRICING } from "@/lib/pricing";
-import { AnimatedNumber } from "@/components/ui/animated-number";
 import CompanyTabs from "./(marketing)/company-tabs";
 import Nav from "./(marketing)/nav";
 import Pricing from "./(marketing)/pricing";
@@ -73,20 +72,6 @@ export default async function Landing() {
   // So a subscriber sees "Your current plan" on the card they already pay for
   // rather than a buy button for something they own.
   const currentTier = user ? await getUserTier(admin, user.id) : undefined;
-
-  // Trust-numbers banner. Hardcoded rather than live-queried/computed (was
-  // a real `sessions` count + PROBLEMS/DESIGN_PROMPTS/QUESTION_BANK.length
-  // + COMPANY_PROFILES levels sum) -- these are still the true figures as of
-  // the last check, just frozen to a literal instead of re-derived on every
-  // request. Re-verify against the DB and lib/coding/problems,
-  // lib/design/prompts.ts, lib/interview/questions.ts, lib/interview/
-  // companies.ts before bumping any of these -- never round up or guess.
-  // Display values are rounded DOWN from the real counts (73 interviews,
-  // 181 questions/problems) to a clean "+" threshold -- never rounded up.
-  const interviewsCompleted = 70;
-  const offersReceived = 0; // No outcome-tracking mechanism exists anywhere in the codebase yet.
-  const bankSize = 180; // real total is 181 (121 coding + 16 design + 44 behavioral)
-  const calibrations = 18; // 6 companies x 3 levels each
 
   // "Start free" is meaningless to someone who already has an account, so the
   // primary CTA becomes the way back into the app for them. Used by the
@@ -272,19 +257,6 @@ export default async function Landing() {
               </span>
             ))}
           </div>
-        </div>
-      </section>
-
-      {/* ---------- Trust numbers ----------
-          Every figure here is real (see the queries/computations above this
-          component's return) or a literal 0 -- no padding, no "+" unless the
-          real number genuinely clears a round threshold. */}
-      <section className="border-b border-line">
-        <div className="mx-auto grid w-full max-w-5xl grid-cols-2 gap-8 px-6 py-12 sm:grid-cols-4">
-          <TrustStat value={interviewsCompleted} suffix="+" label="Interviews completed" />
-          <TrustStat value={offersReceived} suffix="+" label="Offers received" />
-          <TrustStat value={bankSize} suffix="+" label="Questions & problems" />
-          <TrustStat value={calibrations} suffix="+" label="Company/level calibrations" />
         </div>
       </section>
 
@@ -635,31 +607,6 @@ export default async function Landing() {
           </div>
         </div>
       </footer>
-    </div>
-  );
-}
-
-/**
- * One number in the trust banner. `suffix` ("+") applied uniformly to all
- * four stats, including "0+" and "18+", since these are hardcoded literals
- * expected to be edited/bumped over time rather than re-derived.
- */
-function TrustStat({
-  value,
-  suffix,
-  label,
-}: {
-  value: number;
-  suffix?: string;
-  label: string;
-}) {
-  return (
-    <div className="text-center">
-      <p className="text-3xl font-semibold tracking-tight text-primary sm:text-4xl">
-        <AnimatedNumber value={value} />
-        {suffix}
-      </p>
-      <p className="mt-1.5 text-xs text-muted sm:text-sm">{label}</p>
     </div>
   );
 }
