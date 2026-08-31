@@ -51,6 +51,118 @@ export function DiamondStack({ className }: { className?: string }) {
   );
 }
 
+/* ------------------------------------------------------------------
+   Round-type figures (the "FIG 0.x" columns in rounds-showcase.tsx).
+
+   Larger and more load-bearing than the decorative shapes above -- these
+   are the only visual each column gets -- but they follow the same rules:
+   abstract geometry, single 1px currentColor stroke, no fill, no hue. Each
+   evokes its round rather than illustrating it literally; a laptop icon for
+   "Coding" would be clipart, and this page has a real product mockup
+   directly below for anyone who wants literal.
+   ------------------------------------------------------------------ */
+
+/**
+ * Coding: three isometric slabs stacked into a tower.
+ *
+ * Each slab is a rhombus top face plus a short skirt on its two front edges,
+ * which is what reads the flat diamond as a solid with thickness. Stacked,
+ * they suggest blocks of code composing into something.
+ */
+export function IsoBlocks({ className }: { className?: string }) {
+  // One slab per entry: y is the top vertex, and every other point is
+  // derived from it, so the three stay identical in shape and spacing.
+  const slabs = [8, 42, 76];
+  return (
+    <svg
+      viewBox="0 0 120 120"
+      fill="none"
+      aria-hidden
+      className={`pointer-events-none ${className ?? ""}`}
+    >
+      <g stroke="currentColor" strokeWidth="1" strokeLinejoin="round">
+        {slabs.map((y) => (
+          <g key={y}>
+            {/* top face */}
+            <path d={`M60 ${y} 108 ${y + 24} 60 ${y + 48} 12 ${y + 24}z`} />
+            {/* front-left and front-right skirt, plus the near vertical edge */}
+            <path
+              d={`M12 ${y + 24}v8l48 24 48-24v-8M60 ${y + 48}v8`}
+            />
+          </g>
+        ))}
+      </g>
+    </svg>
+  );
+}
+
+/**
+ * System design: a node graph -- a hub wired to five satellites, with a
+ * partial ring around the outside. Diamonds rather than circles for the
+ * nodes, so it stays in the same isometric family as the other two figures.
+ */
+export function NodeWeb({ className }: { className?: string }) {
+  const hub = { x: 60, y: 60 };
+  const satellites = [
+    { x: 60, y: 12 },
+    { x: 14, y: 42 },
+    { x: 106, y: 42 },
+    { x: 32, y: 102 },
+    { x: 88, y: 102 },
+  ];
+  /** Small diamond, drawn around a point. */
+  const node = (x: number, y: number, r: number) =>
+    `M${x} ${y - r} ${x + r} ${y} ${x} ${y + r} ${x - r} ${y}z`;
+
+  return (
+    <svg
+      viewBox="0 0 120 120"
+      fill="none"
+      aria-hidden
+      className={`pointer-events-none ${className ?? ""}`}
+    >
+      <g stroke="currentColor" strokeWidth="1" strokeLinejoin="round">
+        {/* spokes first, so the node marks sit on top of the line ends */}
+        {satellites.map((s) => (
+          <path key={`${s.x}-${s.y}`} d={`M${hub.x} ${hub.y}L${s.x} ${s.y}`} />
+        ))}
+        {/* two perimeter hops -- enough to read as a network rather than a
+            star, without closing into a solid ring */}
+        <path d="M14 42 32 102M106 42 88 102" />
+        {satellites.map((s) => (
+          <path key={`n-${s.x}-${s.y}`} d={node(s.x, s.y, 7)} />
+        ))}
+        <path d={node(hub.x, hub.y, 11)} />
+      </g>
+    </svg>
+  );
+}
+
+/**
+ * Behavioral: two offset planes with a circulation between them -- two
+ * people, two turns, and the back-and-forth that connects them. The arcs run
+ * in opposite directions on purpose; a single arc would read as one-way.
+ */
+export function ExchangeArcs({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 120 120"
+      fill="none"
+      aria-hidden
+      className={`pointer-events-none ${className ?? ""}`}
+    >
+      <g stroke="currentColor" strokeWidth="1" strokeLinejoin="round">
+        {/* the two planes */}
+        <path d="M44 22 80 40 44 58 8 40z" />
+        <path d="M76 62 112 80 76 98 40 80z" />
+        {/* the exchange: one arc out, one back */}
+        <path d="M26 50Q22 80 48 88" />
+        <path d="M94 70Q98 40 72 32" />
+      </g>
+    </svg>
+  );
+}
+
 /** A grid of dots that fades out -- texture rather than a shape. */
 export function DotGrid({ className }: { className?: string }) {
   return (

@@ -1,25 +1,41 @@
 "use client";
 
-import { useState } from "react";
-import { AnimatePresence, motion } from "motion/react";
+import { motion } from "motion/react";
+import type { ComponentType } from "react";
 import { BrowserChrome } from "./dashboard-mockup";
-import { Badge } from "@/components/ui";
-import { cn } from "@/lib/cn";
+import { ExchangeArcs, IsoBlocks, NodeWeb } from "./line-art";
 
 /**
- * Replaces three identical "icon, title, bullet list" cards with a tabbed
- * live-preview: pick a round on the left, see what it actually looks like on
- * the right. The three rounds are LoopReady's whole differentiator, so they
- * get a showcase rather than the same card shape as every other SaaS
- * features section on the internet.
+ * The three rounds, as a flat three-column figure set.
+ *
+ * This replaced a tabbed/expanding-card version. The tabs were doing real
+ * damage: two of the three rounds were always collapsed to a title, so the
+ * section spent its space animating rather than saying what the product
+ * does, and the mobile variant needed a whole second layout to stay legible.
+ * Three plain columns say all three things at once, in less space, with no
+ * interaction to discover.
+ *
+ * Deliberately flat -- no card fill, no radius, no shadow, hairline dividers
+ * only. The columns are typography and line-art on the page background; the
+ * one boxed element in this section is the product mockup below, which is
+ * where the visual weight belongs.
  */
 interface RoundDef {
   key: "coding" | "system_design" | "behavioral";
+  /** Plate number, in the manner of a figure in a manual. */
+  fig: string;
   title: string;
-  /** Shorter label for the mobile pill tab bar, where all three labels must
-   *  fit on one line -- "System design" is the only one long enough to need
-   *  this. Falls back to `title` when absent. */
-  mobileTitle?: string;
+  /** The single line under the title. One sentence, hard limit -- the whole
+   *  point of this layout is that all three are scannable at a glance. */
+  blurb: string;
+  Icon: ComponentType<{ className?: string }>;
+  /**
+   * Long-form copy from the previous card design. Nothing renders these now;
+   * they are kept because the detail is accurate and hard-won, and re-siting
+   * it (a comparison table, the /pricing feature list, a docs page) should be
+   * a copy-paste rather than a rewrite. Delete if it is still unused once
+   * that decision is made.
+   */
   body: string;
   points: string[];
 }
@@ -27,7 +43,10 @@ interface RoundDef {
 const ROUNDS: RoundDef[] = [
   {
     key: "coding",
+    fig: "FIG 0.1",
     title: "Coding",
+    blurb: "A live editor the interviewer reads as you type, running against real tests.",
+    Icon: IsoBlocks,
     body: "A live editor the interviewer reads as you type, running your code against real test cases, with the same questions about approach and complexity you get on the day.",
     points: [
       "Python and JavaScript",
@@ -37,8 +56,10 @@ const ROUNDS: RoundDef[] = [
   },
   {
     key: "system_design",
+    fig: "FIG 0.2",
     title: "System design",
-    mobileTitle: "System",
+    blurb: "An architecture canvas the interviewer can see, name components on, and push back against.",
+    Icon: NodeWeb,
     body: "An architecture canvas the interviewer can see and push back on, referencing your components by name and challenging hand-waving about scale.",
     points: [
       "Drag-and-drop components",
@@ -48,7 +69,10 @@ const ROUNDS: RoundDef[] = [
   },
   {
     key: "behavioral",
+    fig: "FIG 0.3",
     title: "Behavioral",
+    blurb: "Questions across competencies, answered by voice, with real follow-up probing.",
+    Icon: ExchangeArcs,
     body: "Three questions across different competencies, each with real follow-up probing. Answered by voice, graded against your target company's values.",
     points: [
       "Voice in, voice out",
@@ -58,10 +82,31 @@ const ROUNDS: RoundDef[] = [
   },
 ];
 
-export default function RoundsShowcase() {
-  const [active, setActive] = useState<RoundDef["key"]>("coding");
-  const round = ROUNDS.find((r) => r.key === active)!;
+/** One column. Identical markup in both layouts -- only the wrapper that
+ *  positions it (grid cell vs. carousel slide) differs. */
+function RoundFigure({ round }: { round: RoundDef }) {
+  const { Icon } = round;
+  return (
+    <>
+      <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted">
+        {round.fig}
+      </span>
+      {/* text-muted, not text-line-strong: at a 1px stroke on near-black,
+          border-weight grey reads as a smudge rather than a drawing. Muted
+          still sits a step below the blurb's --text-secondary, so the
+          hierarchy runs title > blurb > figure as intended. */}
+      <Icon className="mt-7 h-24 w-24 text-muted" />
+      <h3 className="mt-7 text-lg font-semibold tracking-tight text-primary">
+        {round.title}
+      </h3>
+      <p className="mt-2 max-w-[34ch] text-sm leading-relaxed text-secondary">
+        {round.blurb}
+      </p>
+    </>
+  );
+}
 
+export default function RoundsShowcase() {
   return (
     // relative + the two absolutely-positioned blurred blobs below give the
     // whole showcase ambient depth instead of floating flat against the page
@@ -79,146 +124,60 @@ export default function RoundsShowcase() {
       />
 
       <div className="relative">
-        {/* ---- Expanding tab row ----
-            Three tabs share one row, in a fixed left-to-right order that
-            never changes -- only each one's WIDTH changes on click. The
-            active tab claims most of the row (full title + description +
-            checklist); the other two collapse to a narrow title-only strip,
-            still fully visible and clickable, not hidden behind a chevron
-            or dropdown. `layout` on each button is what makes the width
-            change animate smoothly instead of snapping -- Framer Motion
-            (already a dependency here) interpolates the actual flexbox
-            geometry between renders, which is the standard way to build
-            this "shared position, one grows, others shrink" interaction. */}
-        <div className="hidden gap-3 lg:flex">
-          {ROUNDS.map((r) => {
-            const isActive = r.key === active;
-            return (
-              <motion.button
-                key={r.key}
-                layout
-                transition={{ type: "spring", stiffness: 260, damping: 28 }}
-                type="button"
-                onClick={() => setActive(r.key)}
-                aria-pressed={isActive}
-                className={cn(
-                  // isolate: this card always gets its own stacking context,
-                  // so nothing painted inside a SIBLING card (an unrelated
-                  // element entirely) can ever be composited as if it
-                  // belonged to this one, while several independent
-                  // animations (this layout spring, the preview's crossfade,
-                  // the caret blink) are all running at once nearby.
-                  "isolate flex min-w-0 flex-col overflow-hidden rounded-lg border border-l-2 px-4 py-3.5 text-left transition-colors duration-200",
-                  isActive
-                    ? "flex-[3] border-line-strong border-l-accent bg-accent-muted"
-                    : "flex-1 border-line border-l-line hover:border-line-strong hover:border-l-line-strong hover:bg-elevated"
-                )}
-              >
-                <motion.span
-                  layout="position"
-                  className={cn(
-                    "truncate text-sm font-semibold",
-                    isActive ? "text-accent" : "text-primary"
-                  )}
-                >
-                  {r.title}
-                </motion.span>
-                <AnimatePresence>
-                  {isActive && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      exit={{ opacity: 0, height: 0 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <p className="mt-1.5 text-sm leading-relaxed text-secondary">
-                        {r.body}
-                      </p>
-                      <ul className="mt-3 space-y-1.5">
-                        {r.points.map((p) => (
-                          <li
-                            key={p}
-                            className="flex items-start gap-2 text-xs text-secondary"
-                          >
-                            <span className="mt-0.5 text-accent">✓</span>
-                            {p}
-                          </li>
-                        ))}
-                      </ul>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </motion.button>
-            );
-          })}
+        {/* ---- Figures: three columns, md and up ----
+            divide-x draws the hairline BETWEEN columns only (no border on
+            the outer edges), which is the whole look -- three things sharing
+            one plane, not three boxes. Padding is symmetric except at the
+            two ends, so the first column's text starts flush with the
+            section's left edge and the last ends flush with its right. */}
+        <div className="hidden grid-cols-3 divide-x divide-line md:grid">
+          {ROUNDS.map((r) => (
+            <div
+              key={r.key}
+              className="flex flex-col px-7 first:pl-0 last:pr-0"
+            >
+              <RoundFigure round={r} />
+            </div>
+          ))}
         </div>
 
-        {/* ---- Mobile tab bar + content panel ----
-            Below `lg`, the expanding-tab-row above is hidden entirely and
-            replaced with two genuinely SEPARATE elements: a single-row pill
-            tab bar containing only short labels (never card content, never
-            an empty box for the inactive tabs -- the bug this replaces), and
-            one content panel below it that renders only the active round.
-            Content here is intentionally shorter than the desktop card
-            (fewer bullets, clamped body) so the live-preview mockup right
-            below it is reachable without a full extra screen of scrolling. */}
-        <div className="lg:hidden">
-          <div className="flex w-full gap-1 rounded-full border border-line bg-surface p-1">
-            {ROUNDS.map((r) => {
-              const isActive = r.key === active;
-              return (
-                <button
-                  key={r.key}
-                  type="button"
-                  onClick={() => setActive(r.key)}
-                  aria-pressed={isActive}
-                  className={cn(
-                    "flex-1 rounded-full px-2 py-2 text-center text-xs font-medium transition-colors duration-200",
-                    isActive
-                      ? "bg-accent text-accent-fg"
-                      : "text-muted hover:text-secondary"
-                  )}
-                >
-                  {r.mobileTitle ?? r.title}
-                </button>
-              );
-            })}
-          </div>
+        {/* ---- Figures: carousel, below md ----
+            Three columns will not fit on a phone at a readable size, and
+            stacking them costs a full screen of scrolling before the mockup
+            below is reachable. A snap carousel keeps the set to one screen
+            and keeps all three equally available -- the peek of the next
+            column past the right edge is the affordance that says so.
 
-          <div className="mt-4 rounded-lg border border-line-strong border-l-2 border-l-accent bg-accent-muted px-4 py-3.5">
-            <p className="line-clamp-2 text-sm leading-relaxed text-secondary">
-              {round.body}
-            </p>
-            <ul className="mt-2.5 space-y-1.5">
-              {round.points.slice(0, 2).map((p) => (
-                <li key={p} className="flex items-start gap-2 text-xs text-secondary">
-                  <span className="mt-0.5 text-accent">✓</span>
-                  {p}
-                </li>
-              ))}
-            </ul>
-          </div>
+            Width is under 100% ON PURPOSE: that remainder IS the peek. */}
+        <div
+          className="flex snap-x snap-mandatory gap-0 overflow-x-auto pb-2 md:hidden [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        >
+          {ROUNDS.map((r) => (
+            <div
+              key={r.key}
+              className="flex w-[82%] shrink-0 snap-start flex-col border-l border-line pl-6 pr-6 first:border-l-0 first:pl-0"
+            >
+              <RoundFigure round={r} />
+            </div>
+          ))}
         </div>
 
-        {/* ---- Live preview ---- */}
-        <div className="isolate mt-6 overflow-hidden rounded-lg border border-line bg-base shadow-xl shadow-[var(--shadow-md)] lg:mt-8">
-          <BrowserChrome url={`loopready.io/session · ${round.title.toLowerCase().replace(" ", "-")}`} />
-          <div className="relative min-h-[18rem] lg:min-h-[24rem]">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={active}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-                className="absolute inset-0"
-              >
-                {active === "coding" && <CodingPreview />}
-                {active === "system_design" && <SystemDesignPreview />}
-                {active === "behavioral" && <BehavioralPreview />}
-              </motion.div>
-            </AnimatePresence>
-          </div>
+        {/* ---- Product mockup ----
+            One static panel now rather than one per round. With the tabs
+            gone there is no selection for it to follow, and cycling it on a
+            timer would be movement the reader did not ask for. The coding
+            round is the one shown because it is the only round whose panel
+            demonstrates all three things at once -- interviewer, work
+            surface, and the signal rail scoring it -- which is the claim the
+            figures above are making. */}
+        <div className="isolate mt-10 overflow-hidden rounded-lg border border-line bg-base shadow-xl shadow-[var(--shadow-md)] lg:mt-12">
+          <BrowserChrome url="loopready.io/session · coding" />
+          {/* No min-height. The tabbed version needed one because its panels
+              were absolutely positioned for the crossfade and so had no
+              height of their own; a single static panel sizes itself, and
+              forcing the old floor here just left dead space under the
+              shortest column. */}
+          <CodingPreview />
         </div>
       </div>
     </div>
@@ -387,134 +346,3 @@ function SignalRail({
   );
 }
 
-/** A small architecture graph, drawn with real SVG lines rather than an
- *  imported diagram image, so it can sit on the token palette and scale
- *  cleanly like everything else on the page. */
-function SystemDesignPreview() {
-  const nodes = [
-    { id: "client", label: "Client", x: 40, y: 90 },
-    { id: "lb", label: "Load balancer", x: 220, y: 90 },
-    { id: "api", label: "API", x: 400, y: 40 },
-    { id: "cache", label: "Cache", x: 400, y: 140 },
-    { id: "db", label: "Postgres", x: 530, y: 90, w: 100 },
-  ];
-  const edges: [string, string][] = [
-    ["client", "lb"],
-    ["lb", "api"],
-    ["lb", "cache"],
-    ["api", "db"],
-    ["cache", "db"],
-  ];
-  const at = (id: string) => nodes.find((n) => n.id === id)!;
-  const NODE_W = 90;
-
-  return (
-    <div className="flex h-full flex-col">
-      <div className="border-b border-line px-4 py-2 text-[11px] text-muted">
-        Architecture canvas
-      </div>
-      <div className="flex-1 overflow-hidden bg-inset p-4">
-        <svg viewBox="0 0 640 180" className="h-full w-full" aria-hidden>
-          {edges.map(([a, b]) => {
-            const from = at(a);
-            const to = at(b);
-            const fromW = from.w ?? NODE_W;
-            return (
-              <line
-                key={`${a}-${b}`}
-                x1={from.x + fromW}
-                y1={from.y + 14}
-                x2={to.x}
-                y2={to.y + 14}
-                stroke="var(--border-strong)"
-                strokeWidth={1.5}
-              />
-            );
-          })}
-          {nodes.map((n) => (
-            <g key={n.id} transform={`translate(${n.x}, ${n.y})`}>
-              <rect
-                width={n.w ?? NODE_W}
-                height={28}
-                rx={6}
-                fill="var(--bg-surface)"
-                stroke={n.id === "cache" ? "var(--accent-border)" : "var(--border-subtle)"}
-                strokeWidth={1.5}
-              />
-              <text
-                x={(n.w ?? NODE_W) / 2}
-                y={18}
-                textAnchor="middle"
-                fontSize={10}
-                fill={n.id === "cache" ? "var(--accent)" : "var(--text-primary)"}
-                fontFamily="var(--font-geist-sans, sans-serif)"
-              >
-                {n.label}
-              </text>
-            </g>
-          ))}
-        </svg>
-      </div>
-      <div className="mt-auto border-t border-line bg-surface px-4 py-2.5 text-[11px] text-secondary">
-        &ldquo;You added a cache. What invalidates it when Postgres changes?&rdquo;
-      </div>
-    </div>
-  );
-}
-
-/** Transcript with competency badges, distinct from the free-text lines used
- *  in the hero panel so this round reads as its own thing at a glance. */
-function BehavioralPreview() {
-  return (
-    <div className="flex h-full flex-col">
-      <div className="flex items-center gap-2 border-b border-line px-4 py-2 text-[11px] text-muted">
-        <Badge tone="outline">Ownership</Badge>
-        <Badge tone="outline">Amazon · SDE II</Badge>
-      </div>
-      <div className="flex-1 space-y-4 px-4 py-4">
-        <TranscriptLine role="interviewer">
-          Tell me about a time you owned something that failed.
-        </TranscriptLine>
-        <TranscriptLine role="candidate">
-          A migration I led caused a partial outage. I rolled it back,
-          root-caused a missing index, and shipped the fix within the day.
-        </TranscriptLine>
-        <TranscriptLine role="interviewer">
-          What would have happened if you had been on vacation that week?
-        </TranscriptLine>
-      </div>
-      <div className="mt-auto border-t border-line bg-surface px-4 py-2.5 text-[11px] text-secondary">
-        Probing for ownership without a safety net — a second follow-up, not
-        the first.
-      </div>
-    </div>
-  );
-}
-
-function TranscriptLine({
-  role,
-  children,
-}: {
-  role: "interviewer" | "candidate";
-  children: string;
-}) {
-  const interviewer = role === "interviewer";
-  return (
-    <div className="flex gap-2.5">
-      <span
-        className={cn(
-          "mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full",
-          interviewer ? "bg-accent" : "bg-accent-cool"
-        )}
-      />
-      <p
-        className={cn(
-          "text-sm leading-relaxed",
-          interviewer ? "text-secondary" : "text-primary"
-        )}
-      >
-        {children}
-      </p>
-    </div>
-  );
-}
