@@ -282,9 +282,9 @@ export default async function Landing() {
       <section className="border-b border-line">
         <div className="mx-auto grid w-full max-w-5xl grid-cols-2 gap-8 px-6 py-12 sm:grid-cols-4">
           <TrustStat value={interviewsCompleted} suffix="+" label="Interviews completed" />
-          <TrustStat value={offersReceived} label="Offers received" />
+          <TrustStat value={offersReceived} suffix="+" label="Offers received" />
           <TrustStat value={bankSize} suffix="+" label="Questions & problems" />
-          <TrustStat value={calibrations} label="Company/level calibrations" />
+          <TrustStat value={calibrations} suffix="+" label="Company/level calibrations" />
         </div>
       </section>
 
@@ -640,11 +640,9 @@ export default async function Landing() {
 }
 
 /**
- * One number in the trust banner. `suffix` ("+") is opt-in and only ever
- * used where the underlying real number is rounded DOWN to reach a clean
- * threshold (see roundDown10 above) -- never rounded up, never added to a
- * number that isn't already a genuine floor of the real count. 0 gets no
- * suffix; "0+" would be meaningless.
+ * One number in the trust banner. `suffix` ("+") applied uniformly to all
+ * four stats, including "0+" and "18+", since these are hardcoded literals
+ * expected to be edited/bumped over time rather than re-derived.
  */
 function TrustStat({
   value,
