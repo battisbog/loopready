@@ -12,18 +12,24 @@ const buttonVariants = cva(
         default: "bg-primary text-primary-foreground hover:bg-primary/90",
         destructive:
           "bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:bg-destructive/60 dark:focus-visible:ring-destructive/40",
+        // hover:bg-accent-muted, NOT the registry's hover:bg-accent. Since
+        // --accent went neutral (near-white), a full accent fill on hover
+        // would flip a quiet outline button to a solid white plate with dark
+        // text -- far too loud for a secondary action sitting next to the
+        // primary CTA. The tinted fill is the neutral system's "slightly
+        // lifted surface" instead.
         outline:
-          "border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
+          "border bg-background shadow-xs hover:bg-accent-muted dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
         secondary:
           "bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        ghost:
-          "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
+        ghost: "hover:bg-accent-muted",
         link: "text-primary underline-offset-4 hover:underline",
         // This app's own --color-primary means body text (near-white), not a
         // brand fill, so the registry's "default" variant above renders wrong
-        // here (a near-white button). "accent" is the real primary-CTA variant
-        // for this app: solid emerald, same look components/ui/button.tsx's
-        // old hand-rolled "primary" variant had, now as a proper cva entry.
+        // here. "accent" is the real primary-CTA variant for this app: now a
+        // solid near-white pill with near-black text (Linear's "Sign up"
+        // treatment), since --accent/--accent-fg went neutral. Same cva entry
+        // as before -- only the token values beneath it changed.
         accent:
           "bg-accent text-accent-fg shadow-[var(--shadow-accent)] hover:bg-accent-hover",
         // Soft/tinted destructive, for a lower-emphasis "danger" action

@@ -44,10 +44,12 @@ export function HoverBorderGradient({
       "radial-gradient(16.2% 41.199999999999996% at 100% 50%, hsl(0, 0%, 100%) 0%, rgba(255, 255, 255, 0) 100%)",
   };
 
-  // Registry default highlighted blue (#3275F8) on hover -- swapped for our
-  // own accent green so the glow reads as this product's, not a stock demo.
+  // Registry default highlighted blue (#3275F8) on hover -- swapped for a
+  // bright neutral so the glow matches this product's black/white system
+  // rather than reading as a stock demo (and previously, before the palette
+  // went neutral, an accent green).
   const highlight =
-    "radial-gradient(75% 181.15942028985506% at 50% 50%, #10b981 0%, rgba(16, 185, 129, 0) 100%)";
+    "radial-gradient(75% 181.15942028985506% at 50% 50%, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0) 100%)";
 
   useEffect(() => {
     if (!hovered) {

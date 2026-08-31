@@ -16,6 +16,7 @@ import { Reveal } from "./(marketing)/reveal";
 import ScrollCue from "./(marketing)/scroll-cue";
 import HowItWorks from "./(marketing)/how-it-works";
 import RoundsShowcase from "./(marketing)/rounds-showcase";
+import { DiamondStack, DotGrid, IsoCube } from "./(marketing)/line-art";
 import FaqAccordion from "./(marketing)/faq-accordion";
 
 const FAQ_ITEMS = [
@@ -137,13 +138,19 @@ export default async function Landing() {
           nav was sitting on flat bg-base with nothing behind it.
           A true radial-gradient rather than a solid circle + blur() also
           replaces the old "blob with a blurred edge" look -- a gradient
-          fades by definition, so there is no shape boundary to soften. */}
+          fades by definition, so there is no shape boundary to soften.
+
+          Now a soft white wash rather than the old emerald bloom: the page
+          is a neutral black/white system, so the glow reads as light falling
+          on the page instead of a brand colour sitting on top of it. Lower
+          opacity than the green was, because white carries much further
+          against near-black than a mid-tone hue does. */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-x-0 top-0 z-0 h-[50rem]"
         style={{
           background:
-            "radial-gradient(ellipse 85% 55% at 50% -5%, rgb(16 185 129 / 0.16), rgb(16 185 129 / 0.05) 45%, transparent 72%)",
+            "radial-gradient(ellipse 85% 55% at 50% -5%, rgb(250 250 250 / 0.07), rgb(250 250 250 / 0.025) 45%, transparent 72%)",
         }}
       />
 
@@ -155,33 +162,41 @@ export default async function Landing() {
             browser chrome makes `100vh` taller than what is actually visible,
             which would push the scroll cue off the bottom of the very screen
             it exists to guide. 4rem is the sticky nav above it. */}
-        <div className="relative mx-auto flex min-h-[calc(100svh-4rem)] w-full max-w-3xl flex-col items-center justify-center px-6 pb-12 pt-16 text-center">
+        <div className="relative mx-auto flex min-h-[calc(100svh-4rem)] w-full max-w-5xl flex-col items-center justify-center px-6 pb-12 pt-16 text-center">
           <div className="rise">
               <span className="inline-flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-1 text-xs text-secondary">
                 <span className="h-1.5 w-1.5 rounded-full bg-accent-hover" />
                 Video interviews · Calibrated to company and level
               </span>
 
-              {/* Scaled up now that nothing shares the viewport with it. */}
-              <h1 className="mt-8 text-5xl font-semibold leading-[1.05] tracking-tight sm:text-6xl lg:text-7xl">
+              {/* Scaled up now that nothing shares the viewport with it, and
+                  scaled up again for the neutral palette: with no accent hue
+                  doing the work, SIZE and weight are what carry the hero.
+                  tracking-[-0.03em] is tighter than Tailwind's tracking-tight
+                  -- large display type needs proportionally more negative
+                  tracking than body text to look correctly spaced. */}
+              {/* text-balance so the explicit <br /> is the ONLY break: at
+                  these sizes an auto-wrap mid-clause ("Practice the /
+                  interview.") reads as a mistake rather than a line break. */}
+              <h1 className="mt-10 text-balance text-5xl font-semibold leading-[1.05] tracking-[-0.03em] sm:text-6xl lg:text-7xl">
                 Practice the interview.
                 <br />
-                <span className="text-accent">Not the questions.</span>
+                <span className="text-secondary">Not the questions.</span>
               </h1>
 
-              <p className="mx-auto mt-7 max-w-xl text-lg leading-relaxed text-secondary sm:text-xl">
+              <p className="mx-auto mt-9 max-w-xl text-lg leading-relaxed text-secondary sm:text-xl">
                 An AI interviewer that pushes back, adapts to you, and tells
                 you if you&rsquo;d pass.
               </p>
 
-              <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
+              <div className="mt-14 flex flex-col items-center justify-center gap-3 sm:flex-row">
                 <Button href={heroCtaHref} size="lg">
                   {heroCtaLabel}
                 </Button>
                 <DemoVideoModal ctaHref={ctaHref} ctaLabel={ctaLabel} />
               </div>
 
-              <p className="mt-4 text-xs text-muted">
+              <p className="mt-6 text-xs text-muted">
                 Free plan, no credit card required
               </p>
             </div>
@@ -241,13 +256,23 @@ export default async function Landing() {
         </div>
       </section>
 
-      {/* ---------- Companies ---------- */}
-      <section className="border-y border-line bg-base/60">
-        <div className="mx-auto w-full max-w-6xl px-6 py-10">
+      {/* ---------- Companies ----------
+          The line-art flanking this strip fills what were two empty gutters
+          either side of a centred list. Hidden below lg: on narrow screens
+          there are no gutters to fill, and the shapes would crowd the logos
+          instead of framing them. */}
+      <section className="relative overflow-hidden border-y border-line bg-base/60">
+        <IsoCube
+          className="absolute -left-8 top-1/2 hidden h-32 w-28 -translate-y-1/2 text-line-strong opacity-50 lg:block"
+        />
+        <DiamondStack
+          className="absolute -right-6 top-1/2 hidden h-28 w-28 -translate-y-1/2 text-line-strong opacity-50 lg:block"
+        />
+        <div className="relative mx-auto w-full max-w-6xl px-6 py-14">
           <p className="text-center text-xs uppercase tracking-[0.2em] text-muted">
             Calibrated to the bar at
           </p>
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-x-10 gap-y-4">
+          <div className="mt-7 flex flex-wrap items-center justify-center gap-x-10 gap-y-4">
             {COMPANIES.map((key) => (
               <span
                 key={key}
@@ -544,14 +569,18 @@ export default async function Landing() {
           aria-hidden
           className="pointer-events-none absolute left-1/2 top-1/2 h-[24rem] w-[48rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent-muted blur-[100px]"
         />
-        <div className="relative mx-auto w-full max-w-3xl px-6 py-24 text-center">
-          <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
+        {/* Dot texture behind the final CTA, at the two corners the centred
+            copy leaves empty. Sits above the blur but below the text. */}
+        <DotGrid className="absolute -left-10 -top-10 hidden h-52 w-52 text-line-strong opacity-60 md:block" />
+        <DotGrid className="absolute -bottom-10 -right-10 hidden h-52 w-52 text-line-strong opacity-60 md:block" />
+        <div className="relative mx-auto w-full max-w-3xl px-6 py-32 text-center">
+          <h2 className="text-4xl font-semibold tracking-[-0.02em] sm:text-5xl">
             Find out where you&rsquo;d get dinged.
           </h2>
-          <p className="mx-auto mt-5 max-w-xl text-lg text-secondary">
+          <p className="mx-auto mt-6 max-w-xl text-lg leading-loose text-secondary">
             Fifteen minutes now beats a rejection email later.
           </p>
-          <Button href={ctaHref} size="lg" className="mt-8">
+          <Button href={ctaHref} size="lg" className="mt-10">
             {ctaLabel}
           </Button>
         </div>
