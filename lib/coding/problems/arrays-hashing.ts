@@ -214,4 +214,74 @@ export const ARRAYS_HASHING: Problem[] = [
     strongAnswerCovers:
       "The O(1)-space trick: the answer must be between 1 and n+1, so each value can be placed at its own index (cyclic sort) using the array itself as the hash set. A hash-set solution is O(n) space and a fine warm-up, but the constraint is specifically there to push past it.",
   },
+  {
+    id: "subarray-sum-k",
+    pattern: "arrays-hashing",
+    tiers: ["mid"],
+    title: "Subarray Sum Equals K",
+    fn: "subarray_sum_k",
+    companies: ["Amazon", "Google", "Meta", "Microsoft", "Apple"],
+    statement:
+      "Given an array of integers (which may include negative numbers) and a target k, return how many contiguous subarrays sum to exactly k.",
+    example: "nums = [1, 1, 1], k = 2 -> 2 (the two subarrays [1,1])",
+    signatures: {
+      python: "def subarray_sum_k(nums, k):\n    # your code here\n    pass\n",
+      javascript: "function subarray_sum_k(nums, k) {\n  // your code here\n}\n",
+    },
+    tests: [
+      { args: [[1, 1, 1], 2], expected: 2 },
+      { args: [[1, 2, 3], 3], expected: 2 },
+      { args: [[1, -1, 0], 0], expected: 3 },
+      { args: [[-1, -1, 1], 0], expected: 1 },
+      { args: [[3, 4, 7, 2, -3, 1, 4, 2], 7], expected: 4 },
+    ],
+    strongAnswerCovers:
+      "Recognizes the need for a running sum with a hash map of seen sums rather than a nested O(n^2) scan. Explains why seeding the map with {0: 1} is necessary, and handles negative numbers correctly.",
+  },
+  {
+    id: "valid-sudoku",
+    pattern: "arrays-hashing",
+    tiers: ["mid"],
+    title: "Validate a Sudoku Board",
+    fn: "is_valid_sudoku",
+    companies: ["Amazon", "Google", "Meta", "Microsoft", "Apple"],
+    statement:
+      "Given a 9x9 Sudoku board as a grid of single-character strings (with '.' marking an empty cell), return true if the filled-in cells satisfy Sudoku's rules: no repeated digit 1-9 in any row, column, or 3x3 sub-box. The board does not need to be solvable overall, only currently consistent.",
+    example: "A board with two '5's in the same row is invalid -> false",
+    signatures: {
+      python: "def is_valid_sudoku(board):\n    # your code here\n    pass\n",
+      javascript: "function is_valid_sudoku(board) {\n  // your code here\n}\n",
+    },
+    tests: [
+      { args: [[["5", "3", "4", "6", "7", "8", "9", "1", "2"], ["6", "7", "2", "1", "9", "5", "3", "4", "8"], ["1", "9", "8", "3", "4", "2", "5", "6", "7"], ["8", "5", "9", "7", "6", "1", "4", "2", "3"], ["4", "2", "6", "8", "5", "3", "7", "9", "1"], ["7", "1", "3", "9", "2", "4", "8", "5", "6"], ["9", "6", "1", "5", "3", "7", "2", "8", "4"], ["2", "8", "7", "4", "1", "9", "6", "3", "5"], ["3", "4", "5", "2", "8", "6", "1", "7", "9"]]], expected: true },
+      { args: [[["5", "3", "4", "6", "7", "8", "9", "1", "5"], ["6", "7", "2", "1", "9", "5", "3", "4", "8"], ["1", "9", "8", "3", "4", "2", "5", "6", "7"], ["8", "5", "9", "7", "6", "1", "4", "2", "3"], ["4", "2", "6", "8", "5", "3", "7", "9", "1"], ["7", "1", "3", "9", "2", "4", "8", "5", "6"], ["9", "6", "1", "5", "3", "7", "2", "8", "4"], ["2", "8", "7", "4", "1", "9", "6", "3", "5"], ["3", "4", "5", "2", "8", "6", "1", "7", "9"]]], expected: false },
+      { args: [[[".", ".", ".", ".", ".", ".", ".", ".", "."], [".", ".", ".", ".", ".", ".", ".", ".", "."], [".", ".", ".", ".", ".", ".", ".", ".", "."], [".", ".", ".", ".", ".", ".", ".", ".", "."], [".", ".", ".", ".", ".", ".", ".", ".", "."], [".", ".", ".", ".", ".", ".", ".", ".", "."], [".", ".", ".", ".", ".", ".", ".", ".", "."], [".", ".", ".", ".", ".", ".", ".", ".", "."], [".", ".", ".", ".", ".", ".", ".", ".", "."]]], expected: true },
+    ],
+    strongAnswerCovers:
+      "Tracks seen digits per row, column, and 3x3 box in a single pass rather than three separate passes, and gets the box-index formula (row // 3) * 3 + col // 3 right without trial and error.",
+  },
+  {
+    id: "majority-element",
+    pattern: "arrays-hashing",
+    tiers: ["junior"],
+    title: "Find the Majority Element",
+    fn: "majority_element",
+    companies: ["Amazon", "Google", "Meta", "Microsoft"],
+    statement:
+      "Given an array of integers where one value appears more than n/2 times, return that value.",
+    example: "[2,2,1,1,1,2,2] -> 2",
+    signatures: {
+      python: "def majority_element(nums):\n    # your code here\n    pass\n",
+      javascript: "function majority_element(nums) {\n  // your code here\n}\n",
+    },
+    tests: [
+      { args: [[2, 2, 1, 1, 1, 2, 2]], expected: 2 },
+      { args: [[3, 2, 3]], expected: 3 },
+      { args: [[1]], expected: 1 },
+      { args: [[6, 5, 5]], expected: 5 },
+      { args: [[1, 1, 1, 2, 2]], expected: 1 },
+    ],
+    strongAnswerCovers:
+      "Reaches for Boyer-Moore voting for O(1) space when pushed to do better than a hash map, and can explain why a guaranteed majority element keeps the running counter from ever fully cancelling out.",
+  },
 ];

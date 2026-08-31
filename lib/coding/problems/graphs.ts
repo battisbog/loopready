@@ -118,4 +118,28 @@ export const GRAPHS: Problem[] = [
     strongAnswerCovers:
       "The inversion is the interview: search UPHILL from each coast instead of downhill from every cell, turning O((mn)^2) into O(mn).",
   },
+  {
+    id: "word-ladder-length",
+    pattern: "graphs",
+    tiers: ["senior"],
+    title: "Shortest Word Transformation",
+    fn: "ladder_length",
+    companies: ["Amazon", "Google", "Meta", "Microsoft", "Apple"],
+    statement:
+      "Given a start word, an end word, and a list of allowed words, return the number of words in the shortest transformation sequence from start to end, changing exactly one letter per step, where every intermediate word must be in the allowed list. Return 0 if no such sequence exists.",
+    example: "begin = \"hit\", end = \"cog\", words = [\"hot\",\"dot\",\"dog\",\"lot\",\"log\",\"cog\"] -> 5",
+    signatures: {
+      python: "def ladder_length(begin_word, end_word, word_list):\n    # your code here\n    pass\n",
+      javascript: "function ladder_length(begin_word, end_word, word_list) {\n  // your code here\n}\n",
+    },
+    tests: [
+      { args: ["hit", "cog", ["hot", "dot", "dog", "lot", "log", "cog"]], expected: 5 },
+      { args: ["hit", "cog", ["hot", "dot", "dog", "lot", "log"]], expected: 0 },
+      { args: ["a", "c", ["a", "b", "c"]], expected: 2 },
+      { args: ["hot", "dog", ["hot", "dog"]], expected: 0 },
+      { args: ["same", "same", ["same"]], expected: 1 },
+    ],
+    strongAnswerCovers:
+      "Treats this as shortest-path-in-an-unweighted-graph and reaches for BFS rather than DFS to guarantee the minimum step count, and can discuss the cost of generating each word's 26xlength neighbors.",
+  },
 ];

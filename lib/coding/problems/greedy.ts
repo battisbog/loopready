@@ -97,4 +97,28 @@ export const GREEDY: Problem[] = [
     strongAnswerCovers:
       "Precomputing each letter's last index, then extending the current window to the furthest last-index seen. The greedy cut when the scan index reaches the window end is the insight.",
   },
+  {
+    id: "best-time-stock-ii",
+    pattern: "greedy",
+    tiers: ["junior"],
+    title: "Best Time to Buy and Sell, Unlimited Trades",
+    fn: "max_profit_multi",
+    companies: ["Amazon", "Google", "Meta", "Microsoft", "Apple"],
+    statement:
+      "Given an array of daily stock prices, return the maximum profit achievable by buying and selling any number of times, holding at most one share at a time.",
+    example: "[7,1,5,3,6,4] -> 7, buying at 1 and selling at 5 (profit 4), then buying at 3 and selling at 6 (profit 3)",
+    signatures: {
+      python: "def max_profit_multi(prices):\n    # your code here\n    pass\n",
+      javascript: "function max_profit_multi(prices) {\n  // your code here\n}\n",
+    },
+    tests: [
+      { args: [[7, 1, 5, 3, 6, 4]], expected: 7 },
+      { args: [[1, 2, 3, 4, 5]], expected: 4 },
+      { args: [[7, 6, 4, 3, 1]], expected: 0 },
+      { args: [[]], expected: 0 },
+      { args: [[5]], expected: 0 },
+    ],
+    strongAnswerCovers:
+      "Recognizes that summing every positive day-over-day gain is equivalent to buying at every local minimum and selling at every local maximum, without tracking explicit buy/sell state.",
+  },
 ];

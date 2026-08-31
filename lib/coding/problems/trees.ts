@@ -233,4 +233,76 @@ export const TREES: Problem[] = [
     strongAnswerCovers:
       "Preorder gives roots in the order to build them; inorder gives, for a known root, exactly which values fall in its left versus right subtree. A hash map from value to inorder index turns the naive O(n) subtree search into O(1), which is the difference between an O(n^2) and an O(n) solution.",
   },
+  {
+    id: "nodes-distance-k",
+    pattern: "trees",
+    tiers: ["senior"],
+    title: "All Nodes at Distance K",
+    fn: "nodes_at_distance_k",
+    companies: ["Amazon", "Meta", "Microsoft", "Apple"],
+    statement:
+      "A binary tree is given as a level-order array where null marks a missing child, along with a target value present in the tree and a distance k. Return the values of all nodes that are exactly k edges away from the target node, in any order.",
+    example: "[3,5,1,6,2,0,8,null,null,7,4], target = 5, k = 2 -> [7, 4, 1] (order may vary)",
+    signatures: {
+      python: "def nodes_at_distance_k(tree, target, k):\n    # your code here\n    pass\n",
+      javascript: "function nodes_at_distance_k(tree, target, k) {\n  // your code here\n}\n",
+    },
+    tests: [
+      { args: [[3, 5, 1, 6, 2, 0, 8, null, null, 7, 4], 5, 2], expected: [7, 4, 1], unordered: true },
+      { args: [[3, 5, 1, 6, 2, 0, 8, null, null, 7, 4], 5, 0], expected: [5], unordered: true },
+      { args: [[1], 1, 0], expected: [1], unordered: true },
+      { args: [[1], 1, 1], expected: [], unordered: true },
+      { args: [[0, 1], 0, 1], expected: [1], unordered: true },
+    ],
+    strongAnswerCovers:
+      "Recognizes a tree alone only supports downward traversal, so parent pointers (or treating it as an undirected graph) are needed to search in every direction, then runs a plain BFS out from the target.",
+  },
+  {
+    id: "diameter-binary-tree",
+    pattern: "trees",
+    tiers: ["mid"],
+    title: "Diameter of a Binary Tree",
+    fn: "diameter_of_tree",
+    companies: ["Amazon", "Google", "Meta", "Microsoft"],
+    statement:
+      "A binary tree is given as a level-order array where null marks a missing child. Return the length, in edges, of the longest path between any two nodes in the tree -- the path does not need to pass through the root.",
+    example: "[1,2,3,4,5] -> 3",
+    signatures: {
+      python: "def diameter_of_tree(tree):\n    # your code here\n    pass\n",
+      javascript: "function diameter_of_tree(tree) {\n  // your code here\n}\n",
+    },
+    tests: [
+      { args: [[1, 2, 3, 4, 5]], expected: 3 },
+      { args: [[1]], expected: 0 },
+      { args: [[]], expected: 0 },
+      { args: [[1, 2]], expected: 1 },
+      { args: [[1, null, 2, null, 3]], expected: 2 },
+    ],
+    strongAnswerCovers:
+      "Recognizes the diameter is a path through some node's left and right subtrees, not necessarily the root, and computes it in one post-order pass rather than recomputing height at every node separately.",
+  },
+  {
+    id: "right-side-view",
+    pattern: "trees",
+    tiers: ["mid"],
+    title: "Binary Tree Right Side View",
+    fn: "right_side_view",
+    companies: ["Amazon", "Google", "Meta", "Microsoft"],
+    statement:
+      "A binary tree is given as a level-order array where null marks a missing child. Return the values visible when looking at the tree from the right side, ordered from the top level down -- the last node processed at each level.",
+    example: "[1,2,3,null,5,null,4] -> [1, 3, 4]",
+    signatures: {
+      python: "def right_side_view(tree):\n    # your code here\n    pass\n",
+      javascript: "function right_side_view(tree) {\n  // your code here\n}\n",
+    },
+    tests: [
+      { args: [[1, 2, 3, null, 5, null, 4]], expected: [1, 3, 4] },
+      { args: [[1, null, 3]], expected: [1, 3] },
+      { args: [[]], expected: [] },
+      { args: [[1, 2]], expected: [1, 2] },
+      { args: [[1, 2, 3, 4]], expected: [1, 3, 4] },
+    ],
+    strongAnswerCovers:
+      "Performs a level-order BFS and keeps the last node processed at each level, rather than a right-first DFS -- should be able to explain the DFS version too if asked to avoid the queue.",
+  },
 ];

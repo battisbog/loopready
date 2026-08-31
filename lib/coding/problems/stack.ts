@@ -124,4 +124,28 @@ export const STACK: Problem[] = [
     strongAnswerCovers:
       "Keeping a parallel stack of running minimums is the standard answer. Scanning for the min on each query is O(n) and fails the constant-time requirement. Ask what happens with duplicate minimums on pop.",
   },
+  {
+    id: "longest-valid-parentheses",
+    pattern: "stack",
+    tiers: ["senior"],
+    title: "Longest Valid Parentheses Run",
+    fn: "longest_valid_parens",
+    companies: ["Amazon", "Google", "Meta", "Microsoft"],
+    statement:
+      "Given a string containing only '(' and ')', return the length of the longest contiguous substring that forms valid, properly matched parentheses.",
+    example: "\"(()\" -> 2",
+    signatures: {
+      python: "def longest_valid_parens(s):\n    # your code here\n    pass\n",
+      javascript: "function longest_valid_parens(s) {\n  // your code here\n}\n",
+    },
+    tests: [
+      { args: ["(()"], expected: 2 },
+      { args: [")()())"], expected: 4 },
+      { args: [""], expected: 0 },
+      { args: ["()(()"], expected: 2 },
+      { args: ["()()"], expected: 4 },
+    ],
+    strongAnswerCovers:
+      "Uses a stack of indices (or a DP array) rather than a naive running balance counter, and can explain why seeding the stack with -1 correctly handles a valid run that starts at index 0.",
+  },
 ];

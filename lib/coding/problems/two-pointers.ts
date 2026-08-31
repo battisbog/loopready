@@ -167,4 +167,99 @@ export const TWO_POINTERS: Problem[] = [
     strongAnswerCovers:
       "The Dutch national flag three-way partition, in one pass with three pointers. The trap is advancing mid after a swap with high -- that swap can bring in an unexamined 0, so mid must NOT advance in that branch, unlike the swap-with-low branch where it's safe to.",
   },
+  {
+    id: "rotate-array",
+    pattern: "two-pointers",
+    tiers: ["junior"],
+    title: "Rotate an Array",
+    fn: "rotate_array",
+    companies: ["Amazon", "Google", "Meta", "Microsoft", "Apple"],
+    statement:
+      "Given an array and a number k, rotate the array to the right by k steps and return the resulting array.",
+    example: "nums = [1,2,3,4,5,6,7], k = 3 -> [5,6,7,1,2,3,4]",
+    signatures: {
+      python: "def rotate_array(nums, k):\n    # your code here\n    pass\n",
+      javascript: "function rotate_array(nums, k) {\n  // your code here\n}\n",
+    },
+    tests: [
+      { args: [[1, 2, 3, 4, 5, 6, 7], 3], expected: [5, 6, 7, 1, 2, 3, 4] },
+      { args: [[1, 2], 3], expected: [2, 1] },
+      { args: [[1], 0], expected: [1] },
+      { args: [[], 5], expected: [] },
+      { args: [[1, 2, 3, 4], 4], expected: [1, 2, 3, 4] },
+    ],
+    strongAnswerCovers:
+      "Reaches for the reverse-three-times in-place trick (or explicitly discusses the space/time trade-off of a fresh array) rather than rotating one step at a time, and correctly reduces k modulo the array length.",
+  },
+  {
+    id: "remove-duplicates-sorted",
+    pattern: "two-pointers",
+    tiers: ["junior"],
+    title: "Deduplicate a Sorted Array",
+    fn: "remove_duplicates",
+    companies: ["Amazon", "Google", "Meta", "Microsoft"],
+    statement:
+      "Given a sorted array of integers, return a new array with duplicate values removed, keeping only the first occurrence of each value in order.",
+    example: "[1,1,2,2,3] -> [1,2,3]",
+    signatures: {
+      python: "def remove_duplicates(nums):\n    # your code here\n    pass\n",
+      javascript: "function remove_duplicates(nums) {\n  // your code here\n}\n",
+    },
+    tests: [
+      { args: [[1, 1, 2, 2, 3]], expected: [1, 2, 3] },
+      { args: [[]], expected: [] },
+      { args: [[1]], expected: [1] },
+      { args: [[1, 1, 1, 1]], expected: [1] },
+      { args: [[0, 0, 1, 1, 1, 2, 2, 3, 3, 4]], expected: [0, 1, 2, 3, 4] },
+    ],
+    strongAnswerCovers:
+      "Uses a single forward pass comparing against the last kept value rather than a set or nested loop, and explains why sortedness is what makes this solvable in one linear pass.",
+  },
+  {
+    id: "move-zeroes",
+    pattern: "two-pointers",
+    tiers: ["junior"],
+    title: "Move Zeroes to the End",
+    fn: "move_zeroes",
+    companies: ["Amazon", "Google", "Meta", "Microsoft"],
+    statement:
+      "Given an array of integers, move all zeroes to the end while keeping the relative order of the non-zero elements, and return the resulting array.",
+    example: "[0,1,0,3,12] -> [1,3,12,0,0]",
+    signatures: {
+      python: "def move_zeroes(nums):\n    # your code here\n    pass\n",
+      javascript: "function move_zeroes(nums) {\n  // your code here\n}\n",
+    },
+    tests: [
+      { args: [[0, 1, 0, 3, 12]], expected: [1, 3, 12, 0, 0] },
+      { args: [[0]], expected: [0] },
+      { args: [[1, 2, 3]], expected: [1, 2, 3] },
+      { args: [[0, 0, 0]], expected: [0, 0, 0] },
+      { args: [[]], expected: [] },
+    ],
+    strongAnswerCovers:
+      "Prefers a stable in-place two-pointer swap over building a new array when pushed on space, and explains why relative order of the non-zero elements must be preserved.",
+  },
+  {
+    id: "four-sum",
+    pattern: "two-pointers",
+    tiers: ["mid"],
+    title: "Four Sum",
+    fn: "four_sum",
+    companies: ["Amazon", "Google", "Meta", "Microsoft"],
+    statement:
+      "Given an array of integers and a target, return all unique quadruples [a, b, c, d] from the array whose values sum to the target. Each quadruple's values should be sorted ascending, and no duplicate quadruples should appear.",
+    example: "nums = [1,0,-1,0,-2,2], target = 0 -> [[-2,-1,1,2],[-2,0,0,2],[-1,0,0,1]]",
+    signatures: {
+      python: "def four_sum(nums, target):\n    # your code here\n    pass\n",
+      javascript: "function four_sum(nums, target) {\n  // your code here\n}\n",
+    },
+    tests: [
+      { args: [[1, 0, -1, 0, -2, 2], 0], expected: [[-2, -1, 1, 2], [-2, 0, 0, 2], [-1, 0, 0, 1]], unordered: true },
+      { args: [[2, 2, 2, 2, 2], 8], expected: [[2, 2, 2, 2]], unordered: true },
+      { args: [[], 0], expected: [], unordered: true },
+      { args: [[0, 0, 0, 0], 0], expected: [[0, 0, 0, 0]], unordered: true },
+    ],
+    strongAnswerCovers:
+      "Sorts first, then reduces to two nested loops plus a two-pointer sweep, and explicitly skips duplicates at all three levels to avoid repeated quadruples rather than deduplicating the result afterward.",
+  },
 ];

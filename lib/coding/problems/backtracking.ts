@@ -139,4 +139,28 @@ export const BACKTRACKING: Problem[] = [
     strongAnswerCovers:
       "Backtracking DFS with a visited-marker swapped in and restored on the cell itself (rather than a separate visited set) is the space-efficient version. This is the single-word sibling of Word Search II -- ask when a trie-based multi-word search would be worth the setup cost over running this once per word.",
   },
+  {
+    id: "n-queens-count",
+    pattern: "backtracking",
+    tiers: ["senior"],
+    title: "Count N-Queens Placements",
+    fn: "count_n_queens",
+    companies: ["Amazon", "Google", "Meta", "Microsoft"],
+    statement:
+      "Given an integer n, return the number of distinct ways to place n queens on an n x n chessboard so that no two queens share a row, column, or diagonal.",
+    example: "4 -> 2",
+    signatures: {
+      python: "def count_n_queens(n):\n    # your code here\n    pass\n",
+      javascript: "function count_n_queens(n) {\n  // your code here\n}\n",
+    },
+    tests: [
+      { args: [1], expected: 1 },
+      { args: [2], expected: 0 },
+      { args: [3], expected: 0 },
+      { args: [4], expected: 2 },
+      { args: [5], expected: 10 },
+    ],
+    strongAnswerCovers:
+      "Prunes columns and both diagonals during placement rather than checking the whole board after each attempt, and can state the search's exponential worst case and why pruning matters so much here.",
+  },
 ];

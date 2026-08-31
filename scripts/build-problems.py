@@ -25,7 +25,7 @@ def problem(**kw):
 # ─────────────────────────────────────────────── arrays & hashing
 problem(
     id="two-sum", pattern="arrays-hashing", tiers=["junior"], title="Two Sum",
-    fn="two_sum", companies=["Amazon", "Google", "Meta", "Microsoft"],
+    fn="two_sum", companies=["Amazon", "Google", "Meta", "Microsoft", "Apple"],
     statement="Given an array of integers and a target, return the indices of the two numbers that add up to the target. Each input has exactly one solution, and you may not use the same element twice.",
     example="nums = [2, 7, 11, 15], target = 9 -> [0, 1]",
     params="nums, target",
@@ -42,7 +42,7 @@ def two_sum(nums, target):
 )
 problem(
     id="contains-duplicate", pattern="arrays-hashing", tiers=["junior"], title="Contains Duplicate",
-    fn="has_duplicate", companies=["Amazon", "Apple"],
+    fn="has_duplicate", companies=["Amazon", "Apple", "Google", "Meta", "Microsoft"],
     statement="Given an array of integers, return true if any value appears more than once, and false if every element is distinct.",
     example="[1, 2, 3, 1] -> true",
     params="nums",
@@ -55,7 +55,7 @@ def has_duplicate(nums):
 )
 problem(
     id="valid-anagram", pattern="arrays-hashing", tiers=["junior"], title="Valid Anagram",
-    fn="is_anagram", companies=["Amazon", "Meta"],
+    fn="is_anagram", companies=["Amazon", "Meta", "Google", "Microsoft"],
     statement="Given two strings, return true if the second is a rearrangement of the first using exactly the same letters with the same counts.",
     example='"listen", "silent" -> true',
     params="s, t",
@@ -69,7 +69,7 @@ def is_anagram(s, t):
 )
 problem(
     id="group-anagrams", pattern="arrays-hashing", tiers=["mid"], title="Group Anagrams",
-    fn="group_anagrams", companies=["Amazon", "Uber", "Meta"],
+    fn="group_anagrams", companies=["Amazon", "Uber", "Meta", "Google", "Microsoft", "Apple"],
     statement="Given a list of words, group together the words that are rearrangements of one another. Return the groups in any order.",
     example='["eat","tea","tan","ate"] -> [["eat","tea","ate"],["tan"]]',
     params="words",
@@ -87,7 +87,7 @@ def group_anagrams(words):
 )
 problem(
     id="top-k-frequent", pattern="arrays-hashing", tiers=["mid"], title="Top K Frequent Elements",
-    fn="top_k_frequent", companies=["Amazon", "Meta", "Netflix"],
+    fn="top_k_frequent", companies=["Amazon", "Meta", "Netflix", "Google", "Microsoft", "Apple"],
     statement="Given an array of integers and a number k, return the k values that occur most often. The order of the returned values does not matter.",
     example="nums = [1,1,1,2,2,3], k = 2 -> [1, 2]",
     params="nums, k",
@@ -102,7 +102,7 @@ def top_k_frequent(nums, k):
 )
 problem(
     id="product-except-self", pattern="arrays-hashing", tiers=["mid"], title="Product of Array Except Self",
-    fn="product_except_self", companies=["Amazon", "Meta", "Apple"],
+    fn="product_except_self", companies=["Amazon", "Meta", "Apple", "Google", "Microsoft"],
     statement="Given an array of integers, return an array where each position holds the product of every other element. Solve it without using division.",
     example="[1,2,3,4] -> [24,12,8,6]",
     params="nums",
@@ -125,7 +125,7 @@ def product_except_self(nums):
 )
 problem(
     id="longest-consecutive", pattern="arrays-hashing", tiers=["senior"], title="Longest Consecutive Run",
-    fn="longest_consecutive", companies=["Google", "Meta"],
+    fn="longest_consecutive", companies=["Google", "Meta", "Amazon", "Microsoft", "Apple"],
     statement="Given an unsorted array of integers, find the length of the longest run of consecutive whole numbers present in the array. Aim for linear time.",
     example="[100, 4, 200, 1, 3, 2] -> 4  (the run 1,2,3,4)",
     params="nums",
@@ -150,7 +150,7 @@ def longest_consecutive(nums):
 # ─────────────────────────────────────────────── two pointers
 problem(
     id="valid-palindrome", pattern="two-pointers", tiers=["junior"], title="Valid Palindrome",
-    fn="is_palindrome", companies=["Meta", "Amazon"],
+    fn="is_palindrome", companies=["Meta", "Amazon", "Google", "Microsoft", "Apple"],
     statement="Given a string, return true if it reads the same forwards and backwards once you ignore punctuation and spacing and treat upper and lower case as equal.",
     example='"A man, a plan, a canal: Panama" -> true',
     params="s",
@@ -173,7 +173,7 @@ def is_palindrome(s):
 )
 problem(
     id="two-sum-sorted", pattern="two-pointers", tiers=["junior"], title="Two Sum on a Sorted Array",
-    fn="two_sum_sorted", companies=["Amazon", "Microsoft"],
+    fn="two_sum_sorted", companies=["Amazon", "Microsoft", "Google", "Meta"],
     statement="Given an array sorted in ascending order and a target, return the 1-based positions of the two values that sum to the target. Exactly one pair exists. Use constant extra space.",
     example="[2,7,11,15], target 9 -> [1,2]",
     params="nums, target",
@@ -194,7 +194,7 @@ def two_sum_sorted(nums, target):
 )
 problem(
     id="three-sum", pattern="two-pointers", tiers=["mid", "senior"], title="Three Sum",
-    fn="three_sum", companies=["Meta", "Amazon", "Google"],
+    fn="three_sum", companies=["Meta", "Amazon", "Google", "Microsoft", "Apple"],
     statement="Given an array of integers, find every unique triple of values that sums to zero. Each triple should appear once regardless of the order its members were found in.",
     example="[-1,0,1,2,-1,-4] -> [[-1,-1,2],[-1,0,1]]",
     params="nums",
@@ -226,7 +226,7 @@ def three_sum(nums):
 )
 problem(
     id="container-most-water", pattern="two-pointers", tiers=["mid"], title="Container With Most Water",
-    fn="max_area", companies=["Amazon", "Google", "Bloomberg"],
+    fn="max_area", companies=["Amazon", "Google", "Bloomberg", "Meta", "Microsoft", "Apple"],
     statement="You are given an array where each value is the height of a vertical line at that index. Pick two lines so that the rectangle they form with the horizontal axis holds the most water, and return that area.",
     example="[1,8,6,2,5,4,8,3,7] -> 49",
     params="heights",
@@ -249,7 +249,7 @@ def max_area(heights):
 # ─────────────────────────────────────────────── sliding window
 problem(
     id="best-time-stock", pattern="sliding-window", tiers=["junior"], title="Best Time to Buy and Sell",
-    fn="max_profit", companies=["Amazon", "Meta", "Microsoft"],
+    fn="max_profit", companies=["Amazon", "Meta", "Microsoft", "Google", "Apple"],
     statement="You are given daily prices for one stock. Choose one day to buy and a later day to sell to make the largest profit. If no profit is possible, return 0.",
     example="[7,1,5,3,6,4] -> 5  (buy at 1, sell at 6)",
     params="prices",
@@ -269,7 +269,7 @@ def max_profit(prices):
 )
 problem(
     id="longest-substring-unique", pattern="sliding-window", tiers=["mid"], title="Longest Substring Without Repeats",
-    fn="length_of_longest", companies=["Amazon", "Google", "Meta"],
+    fn="length_of_longest", companies=["Amazon", "Google", "Meta", "Microsoft", "Apple", "Netflix"],
     statement="Given a string, return the length of the longest stretch of consecutive characters that contains no repeats.",
     example='"abcabcbb" -> 3  ("abc")',
     params="s",
@@ -290,7 +290,7 @@ def length_of_longest(s):
 )
 problem(
     id="longest-repeating-replacement", pattern="sliding-window", tiers=["senior"], title="Longest Run After K Replacements",
-    fn="character_replacement", companies=["Google", "Amazon"],
+    fn="character_replacement", companies=["Google", "Amazon", "Meta", "Microsoft"],
     statement="Given a string of uppercase letters and a budget k, you may change up to k characters to any other letter. Return the length of the longest run of one repeated letter you can produce.",
     example='"AABABBA", k = 1 -> 4',
     params="s, k",
@@ -313,7 +313,7 @@ def character_replacement(s, k):
 )
 problem(
     id="min-window-substring", pattern="sliding-window", tiers=["senior"], title="Minimum Window Containing All Characters",
-    fn="min_window", companies=["Meta", "Google", "Uber"],
+    fn="min_window", companies=["Meta", "Google", "Uber", "Amazon", "Microsoft"],
     statement="Given a string and a set of required characters given as a string, return the shortest stretch of the first string that contains every required character including repeats. Return an empty string if none exists.",
     example='"ADOBECODEBANC", "ABC" -> "BANC"',
     params="s, need",
@@ -346,7 +346,7 @@ def min_window(s, need):
 # ─────────────────────────────────────────────── stack
 problem(
     id="valid-parentheses", pattern="stack", tiers=["junior"], title="Valid Parentheses",
-    fn="is_valid", companies=["Amazon", "Meta", "Microsoft"],
+    fn="is_valid", companies=["Amazon", "Meta", "Microsoft", "Google"],
     statement="Given a string containing only the characters ()[]{}, determine if it is balanced. Brackets must close in the correct order and every closing bracket must match the most recent unclosed opening bracket of the same type.",
     example='"{[]}" -> true,  "(]" -> false',
     params="s",
@@ -367,7 +367,7 @@ def is_valid(s):
 )
 problem(
     id="evaluate-rpn", pattern="stack", tiers=["mid"], title="Evaluate Postfix Expression",
-    fn="eval_rpn", companies=["Amazon", "LinkedIn"],
+    fn="eval_rpn", companies=["Amazon", "LinkedIn", "Google", "Meta", "Microsoft"],
     statement="Evaluate an arithmetic expression given in postfix order, where each token is either an integer or one of + - * /. Division truncates toward zero.",
     example='["2","1","+","3","*"] -> 9',
     params="tokens",
@@ -395,7 +395,7 @@ def eval_rpn(tokens):
 )
 problem(
     id="daily-temperatures", pattern="stack", tiers=["mid"], title="Days Until a Warmer Day",
-    fn="daily_temperatures", companies=["Amazon", "Google"],
+    fn="daily_temperatures", companies=["Amazon", "Google", "Meta", "Microsoft"],
     statement="Given daily temperatures, return an array where each position holds how many days you must wait for a warmer temperature. Use 0 where no warmer day follows.",
     example="[73,74,75,71,69,72,76,73] -> [1,1,4,2,1,1,0,0]",
     params="temps",
@@ -415,7 +415,7 @@ def daily_temperatures(temps):
 )
 problem(
     id="largest-rectangle-histogram", pattern="stack", tiers=["senior"], title="Largest Rectangle in a Histogram",
-    fn="largest_rectangle", companies=["Google", "Amazon"],
+    fn="largest_rectangle", companies=["Google", "Amazon", "Meta", "Microsoft"],
     statement="Given bar heights of a histogram where every bar has width 1, return the area of the largest rectangle that fits entirely inside the bars.",
     example="[2,1,5,6,2,3] -> 10",
     params="heights",
@@ -439,7 +439,7 @@ def largest_rectangle(heights):
 # ─────────────────────────────────────────────── binary search
 problem(
     id="binary-search", pattern="binary-search", tiers=["junior"], title="Binary Search",
-    fn="search", companies=["Amazon", "Microsoft"],
+    fn="search", companies=["Amazon", "Microsoft", "Google", "Meta"],
     statement="Given a sorted array of distinct integers and a target, return the index of the target or -1 if it is absent. Run in logarithmic time.",
     example="[-1,0,3,5,9,12], target 9 -> 4",
     params="nums, target",
@@ -461,7 +461,7 @@ def search(nums, target):
 )
 problem(
     id="search-rotated", pattern="binary-search", tiers=["mid"], title="Search a Rotated Sorted Array",
-    fn="search_rotated", companies=["Amazon", "Meta", "Google"],
+    fn="search_rotated", companies=["Amazon", "Meta", "Google", "Microsoft"],
     statement="A sorted array of distinct integers has been rotated at an unknown pivot. Given the rotated array and a target, return the target's index or -1. Run in logarithmic time.",
     example="[4,5,6,7,0,1,2], target 0 -> 4",
     params="nums, target",
@@ -489,7 +489,7 @@ def search_rotated(nums, target):
 )
 problem(
     id="find-min-rotated", pattern="binary-search", tiers=["mid"], title="Minimum in a Rotated Sorted Array",
-    fn="find_min", companies=["Amazon", "Microsoft"],
+    fn="find_min", companies=["Amazon", "Microsoft", "Google", "Meta"],
     statement="A sorted array of distinct integers has been rotated at an unknown pivot. Return its smallest value in logarithmic time.",
     example="[4,5,6,7,0,1,2] -> 0",
     params="nums",
@@ -509,7 +509,7 @@ def find_min(nums):
 )
 problem(
     id="koko-bananas", pattern="binary-search", tiers=["senior"], title="Minimum Rate to Finish in Time",
-    fn="min_rate", companies=["Google", "Amazon"],
+    fn="min_rate", companies=["Google", "Amazon", "Meta", "Microsoft", "Apple"],
     statement="You are given pile sizes and a number of hours. Each hour you may consume up to a fixed rate from a single pile, and a partly eaten pile still uses the whole hour. Return the smallest rate that clears every pile within the given hours.",
     example="piles = [3,6,7,11], hours = 8 -> 4",
     params="piles, hours",
@@ -534,7 +534,7 @@ def min_rate(piles, hours):
 # Lists are passed and returned as plain arrays so they stay executable.
 problem(
     id="reverse-linked-list", pattern="linked-list", tiers=["junior"], title="Reverse a Linked List",
-    fn="reverse_list", companies=["Amazon", "Meta", "Microsoft", "Apple"],
+    fn="reverse_list", companies=["Amazon", "Meta", "Microsoft", "Apple", "Google"],
     statement="A singly linked list is given to you as an array of its values in order. Return an array of the values in reversed order. Discuss the pointer manipulation you would use on real nodes.",
     example="[1,2,3,4,5] -> [5,4,3,2,1]",
     params="values",
@@ -550,7 +550,7 @@ def reverse_list(values):
 )
 problem(
     id="merge-two-sorted-lists", pattern="linked-list", tiers=["junior"], title="Merge Two Sorted Lists",
-    fn="merge_sorted", companies=["Amazon", "Microsoft", "Apple"],
+    fn="merge_sorted", companies=["Amazon", "Microsoft", "Apple", "Google", "Meta"],
     statement="Two sorted linked lists are given as arrays of their values. Return one sorted array containing every value from both.",
     example="[1,2,4], [1,3,4] -> [1,1,2,3,4,4]",
     params="a, b",
@@ -571,7 +571,7 @@ def merge_sorted(a, b):
 )
 problem(
     id="linked-list-cycle", pattern="linked-list", tiers=["mid"], title="Detect a Cycle",
-    fn="has_cycle", companies=["Amazon", "Meta", "Bloomberg"],
+    fn="has_cycle", companies=["Amazon", "Meta", "Bloomberg", "Google", "Microsoft"],
     statement="A linked list is described by an array of values plus an index that the last node points back to, or -1 for no cycle. Return true if the list contains a cycle. Explain how you would do it with constant extra space.",
     example="values = [3,2,0,-4], tail connects to index 1 -> true",
     params="values, tail_index",
@@ -584,7 +584,7 @@ def has_cycle(values, tail_index):
 )
 problem(
     id="remove-nth-from-end", pattern="linked-list", tiers=["mid"], title="Remove the Nth Node From the End",
-    fn="remove_nth", companies=["Amazon", "Meta"],
+    fn="remove_nth", companies=["Amazon", "Meta", "Google", "Microsoft"],
     statement="Given a linked list as an array of values and a number n, remove the nth node counting from the end and return the remaining values. Aim to do it in a single pass.",
     example="[1,2,3,4,5], n = 2 -> [1,2,3,5]",
     params="values, n",
@@ -624,7 +624,7 @@ def _build(a):
 """
 problem(
     id="max-depth-tree", pattern="trees", tiers=["junior"], title="Maximum Depth of a Binary Tree",
-    fn="max_depth", companies=["Amazon", "Meta", "Microsoft"],
+    fn="max_depth", companies=["Amazon", "Meta", "Microsoft", "Google"],
     statement="A binary tree is given as a level-order array where null marks a missing child. Return the number of nodes on the longest path from the root down to a leaf.",
     example="[3,9,20,null,null,15,7] -> 3",
     params="tree",
@@ -640,7 +640,7 @@ def max_depth(tree):
 )
 problem(
     id="invert-tree", pattern="trees", tiers=["junior"], title="Invert a Binary Tree",
-    fn="invert_tree", companies=["Google", "Amazon"],
+    fn="invert_tree", companies=["Google", "Amazon", "Meta"],
     statement="A binary tree is given as a level-order array where null marks a missing child. Mirror the tree left-to-right and return the result as a level-order array with trailing nulls removed.",
     example="[4,2,7,1,3,6,9] -> [4,7,2,9,6,3,1]",
     params="tree",
@@ -670,7 +670,7 @@ def invert_tree(tree):
 )
 problem(
     id="same-tree", pattern="trees", tiers=["junior"], title="Identical Trees",
-    fn="is_same_tree", companies=["Amazon", "Apple"],
+    fn="is_same_tree", companies=["Amazon", "Apple", "Google", "Meta", "Microsoft"],
     statement="Two binary trees are given as level-order arrays where null marks a missing child. Return true if they have the same shape and the same values in the same positions.",
     example="[1,2,3] and [1,2,3] -> true",
     params="a, b",
@@ -690,7 +690,7 @@ def is_same_tree(a, b):
 )
 problem(
     id="level-order-traversal", pattern="trees", tiers=["mid"], title="Level Order Traversal",
-    fn="level_order", companies=["Amazon", "Meta", "LinkedIn"],
+    fn="level_order", companies=["Amazon", "Meta", "LinkedIn", "Google", "Microsoft"],
     statement="A binary tree is given as a level-order array where null marks a missing child. Return a list of lists holding the values at each depth, from the root down.",
     example="[3,9,20,null,null,15,7] -> [[3],[9,20],[15,7]]",
     params="tree",
@@ -714,7 +714,7 @@ def level_order(tree):
 )
 problem(
     id="validate-bst", pattern="trees", tiers=["senior"], title="Validate a Binary Search Tree",
-    fn="is_valid_bst", companies=["Amazon", "Meta", "Google"],
+    fn="is_valid_bst", companies=["Amazon", "Meta", "Google", "Microsoft"],
     statement="A binary tree is given as a level-order array where null marks a missing child. Return true if it is a valid binary search tree: every value in a node's left subtree is smaller than the node, and every value in its right subtree is larger.",
     example="[5,1,4,null,null,3,6] -> false",
     params="tree",
@@ -734,7 +734,7 @@ def is_valid_bst(tree):
 )
 problem(
     id="lowest-common-ancestor-bst", pattern="trees", tiers=["mid"], title="Lowest Common Ancestor in a BST",
-    fn="lca_bst", companies=["Amazon", "Meta"],
+    fn="lca_bst", companies=["Amazon", "Meta", "Google", "Microsoft"],
     statement="A binary search tree is given as a level-order array where null marks a missing child, along with two values present in it. Return the value of the deepest node that has both of them as descendants, where a node may be its own descendant.",
     example="[6,2,8,0,4,7,9], p = 2, q = 8 -> 6",
     params="tree, p, q",
@@ -756,7 +756,7 @@ def lca_bst(tree, p, q):
 # ─────────────────────────────────────────────── tries
 problem(
     id="longest-common-prefix", pattern="tries", tiers=["junior"], title="Longest Common Prefix",
-    fn="longest_common_prefix", companies=["Amazon", "Google"],
+    fn="longest_common_prefix", companies=["Amazon", "Google", "Meta", "Microsoft", "Apple"],
     statement="Given a list of words, return the longest starting string that all of them share. Return an empty string if there is none.",
     example='["flower","flow","flight"] -> "fl"',
     params="words",
@@ -807,7 +807,7 @@ def count_by_prefix(words, prefixes):
 )
 problem(
     id="word-search-grid", pattern="tries", tiers=["senior"], title="Find Words in a Letter Grid",
-    fn="find_words", companies=["Amazon", "Meta", "Google"],
+    fn="find_words", companies=["Amazon", "Meta", "Google", "Microsoft"],
     statement="Given a grid of letters and a list of target words, return which of those words can be spelled by walking between horizontally or vertically adjacent cells without reusing a cell in a single word.",
     example='grid [["o","a"],["e","t"]], words ["oat","ate"] -> ["oat","ate"]',
     params="grid, words",
@@ -840,7 +840,7 @@ def find_words(grid, words):
 # ─────────────────────────────────────────────── heap
 problem(
     id="kth-largest", pattern="heap", tiers=["mid"], title="Kth Largest Element",
-    fn="find_kth_largest", companies=["Amazon", "Meta", "Netflix"],
+    fn="find_kth_largest", companies=["Amazon", "Meta", "Netflix", "Google", "Microsoft", "Apple"],
     statement="Given an unsorted array of integers and a number k, return the kth largest value counting duplicates as separate entries.",
     example="[3,2,1,5,6,4], k = 2 -> 5",
     params="nums, k",
@@ -869,7 +869,7 @@ def k_closest(points, k):
 )
 problem(
     id="task-scheduler", pattern="heap", tiers=["senior"], title="Task Scheduler With Cooldown",
-    fn="least_interval", companies=["Meta", "Amazon"],
+    fn="least_interval", companies=["Meta", "Amazon", "Google", "Microsoft", "Apple"],
     statement="Given a list of task labels and a cooldown n, each unit of time runs one task or idles. The same label cannot run again until n units have passed. Return the fewest units of time needed to run every task.",
     example='["A","A","A","B","B","B"], n = 2 -> 8',
     params="tasks, n",
@@ -890,7 +890,7 @@ def least_interval(tasks, n):
 # ─────────────────────────────────────────────── backtracking
 problem(
     id="subsets", pattern="backtracking", tiers=["mid"], title="All Subsets",
-    fn="subsets", companies=["Amazon", "Meta"],
+    fn="subsets", companies=["Amazon", "Meta", "Google", "Microsoft"],
     statement="Given an array of distinct integers, return every possible subset including the empty one. The order of the subsets does not matter.",
     example="[1,2] -> [[],[1],[2],[1,2]]",
     params="nums",
@@ -907,7 +907,7 @@ def subsets(nums):
 )
 problem(
     id="permutations", pattern="backtracking", tiers=["mid"], title="All Permutations",
-    fn="permutations", companies=["Amazon", "Microsoft"],
+    fn="permutations", companies=["Amazon", "Microsoft", "Google", "Meta"],
     statement="Given an array of distinct integers, return every ordering of them. The order of the results does not matter.",
     example="[1,2,3] -> six orderings",
     params="nums",
@@ -929,7 +929,7 @@ def permutations(nums):
 )
 problem(
     id="combination-sum", pattern="backtracking", tiers=["mid", "senior"], title="Combination Sum",
-    fn="combination_sum", companies=["Amazon", "Meta", "Airbnb"],
+    fn="combination_sum", companies=["Amazon", "Meta", "Airbnb", "Google", "Microsoft"],
     statement="Given distinct positive integers and a target, return every unique combination that sums to the target. A number may be reused any number of times. Combinations differing only in order count as the same.",
     example="[2,3,6,7], target 7 -> [[2,2,3],[7]]",
     params="nums, target",
@@ -953,7 +953,7 @@ def combination_sum(nums, target):
 )
 problem(
     id="generate-parentheses", pattern="backtracking", tiers=["mid"], title="Generate Balanced Parentheses",
-    fn="generate_parens", companies=["Amazon", "Google", "Uber"],
+    fn="generate_parens", companies=["Amazon", "Google", "Uber", "Meta", "Microsoft"],
     statement="Given a count n, return every string of n opening and n closing brackets that is balanced. The order of the results does not matter.",
     example='n = 2 -> ["(())","()()"]',
     params="n",
@@ -978,7 +978,7 @@ def generate_parens(n):
 # ─────────────────────────────────────────────── graphs
 problem(
     id="number-of-islands", pattern="graphs", tiers=["mid"], title="Number of Islands",
-    fn="num_islands", companies=["Amazon", "Meta", "Google", "Microsoft"],
+    fn="num_islands", companies=["Amazon", "Meta", "Google", "Microsoft", "Apple"],
     statement='Given a grid of "1" for land and "0" for water, count the separate land masses. Cells join only horizontally or vertically.',
     example='[["1","1","0"],["0","1","0"],["0","0","1"]] -> 2',
     params="grid",
@@ -1011,7 +1011,7 @@ def num_islands(grid):
 )
 problem(
     id="max-area-island", pattern="graphs", tiers=["mid"], title="Largest Island",
-    fn="max_area_island", companies=["Amazon", "Google"],
+    fn="max_area_island", companies=["Amazon", "Google", "Meta"],
     statement="Given a grid of 1 for land and 0 for water, return the number of cells in the largest connected land mass. Cells join only horizontally or vertically. Return 0 if there is no land.",
     example="[[1,1,0],[0,1,0],[0,0,1]] -> 3",
     params="grid",
@@ -1043,7 +1043,7 @@ def max_area_island(grid):
 )
 problem(
     id="course-schedule", pattern="graphs", tiers=["senior"], title="Course Prerequisites",
-    fn="can_finish", companies=["Amazon", "Meta", "Google"],
+    fn="can_finish", companies=["Amazon", "Meta", "Google", "Microsoft", "Apple"],
     statement="Given a number of courses labelled from zero and a list of [course, prerequisite] pairs, return true if there is an order that lets you take every course.",
     example="2 courses, [[1,0]] -> true;  [[1,0],[0,1]] -> false",
     params="n, prereqs",
@@ -1070,7 +1070,7 @@ def can_finish(n, prereqs):
 )
 problem(
     id="rotting-oranges", pattern="graphs", tiers=["mid"], title="Spreading Rot",
-    fn="oranges_rotting", companies=["Amazon", "Google"],
+    fn="oranges_rotting", companies=["Amazon", "Google", "Meta", "Microsoft"],
     statement="In a grid, 0 is empty, 1 is a fresh orange and 2 is a rotten one. Each minute, every fresh orange horizontally or vertically adjacent to a rotten one also rots. Return the minutes until none are fresh, or -1 if some can never rot.",
     example="[[2,1,1],[1,1,0],[0,1,1]] -> 4",
     params="grid",
@@ -1129,7 +1129,7 @@ def pacific_atlantic(heights):
 # ─────────────────────────────────────────────── dynamic programming
 problem(
     id="climbing-stairs", pattern="dynamic-programming", tiers=["junior"], title="Climbing Stairs",
-    fn="climb_stairs", companies=["Amazon", "Apple"],
+    fn="climb_stairs", companies=["Amazon", "Apple", "Google", "Meta", "Microsoft"],
     statement="You are climbing a staircase of n steps and may take one or two steps at a time. Return how many distinct ways you can reach the top.",
     example="n = 4 -> 5",
     params="n",
@@ -1145,7 +1145,7 @@ def climb_stairs(n):
 )
 problem(
     id="house-robber", pattern="dynamic-programming", tiers=["mid"], title="Non-Adjacent Maximum Sum",
-    fn="rob", companies=["Amazon", "Google"],
+    fn="rob", companies=["Amazon", "Google", "Meta", "Microsoft"],
     statement="Given an array of non-negative numbers, choose a subset with the largest possible sum such that no two chosen entries are adjacent. Return that sum.",
     example="[2,7,9,3,1] -> 12",
     params="nums",
@@ -1161,7 +1161,7 @@ def rob(nums):
 )
 problem(
     id="coin-change", pattern="dynamic-programming", tiers=["mid", "senior"], title="Fewest Coins",
-    fn="coin_change", companies=["Amazon", "Meta", "Google"],
+    fn="coin_change", companies=["Amazon", "Meta", "Google", "Microsoft"],
     statement="Given coin denominations available in unlimited quantity and a target amount, return the fewest coins that sum exactly to the amount, or -1 if it cannot be made.",
     example="coins [1,2,5], amount 11 -> 3",
     params="coins, amount",
@@ -1180,7 +1180,7 @@ def coin_change(coins, amount):
 )
 problem(
     id="longest-increasing-subsequence", pattern="dynamic-programming", tiers=["senior"], title="Longest Increasing Subsequence",
-    fn="length_of_lis", companies=["Google", "Amazon", "Microsoft"],
+    fn="length_of_lis", companies=["Google", "Amazon", "Microsoft", "Meta"],
     statement="Given an array of integers, return the length of the longest strictly increasing subsequence. The chosen elements need not be adjacent.",
     example="[10,9,2,5,3,7,101,18] -> 4",
     params="nums",
@@ -1201,7 +1201,7 @@ def length_of_lis(nums):
 )
 problem(
     id="word-break", pattern="dynamic-programming", tiers=["senior"], title="Word Break",
-    fn="word_break", companies=["Amazon", "Meta", "Google"],
+    fn="word_break", companies=["Amazon", "Meta", "Google", "Microsoft"],
     statement="Given a string and a dictionary of words, return true if the string can be split into a sequence of dictionary words. Words may be reused.",
     example='"applepen", ["apple","pen"] -> true',
     params="s, words",
@@ -1221,7 +1221,7 @@ def word_break(s, words):
 )
 problem(
     id="unique-paths", pattern="dynamic-programming", tiers=["junior", "mid"], title="Unique Grid Paths",
-    fn="unique_paths", companies=["Amazon", "Google"],
+    fn="unique_paths", companies=["Amazon", "Google", "Meta", "Microsoft"],
     statement="A robot starts at the top-left of an m by n grid and may move only right or down. Return how many distinct paths reach the bottom-right corner.",
     example="3 by 7 -> 28",
     params="m, n",
@@ -1238,7 +1238,7 @@ def unique_paths(m, n):
 )
 problem(
     id="edit-distance", pattern="dynamic-programming", tiers=["senior"], title="Edit Distance",
-    fn="min_distance", companies=["Google", "Amazon", "Microsoft"],
+    fn="min_distance", companies=["Google", "Amazon", "Microsoft", "Meta", "Apple"],
     statement="Given two strings, return the fewest single-character insertions, deletions or substitutions needed to turn the first into the second.",
     example='"horse" -> "ros" is 3',
     params="a, b",
@@ -1262,7 +1262,7 @@ def min_distance(a, b):
 # ─────────────────────────────────────────────── intervals
 problem(
     id="merge-intervals", pattern="intervals", tiers=["mid"], title="Merge Overlapping Intervals",
-    fn="merge_intervals", companies=["Amazon", "Meta", "Google", "Bloomberg"],
+    fn="merge_intervals", companies=["Amazon", "Meta", "Google", "Bloomberg", "Microsoft", "Apple"],
     statement="Given a list of [start, end] intervals, merge every set that overlaps and return the resulting list sorted by start. Intervals that merely touch at an endpoint count as overlapping.",
     example="[[1,3],[2,6],[8,10]] -> [[1,6],[8,10]]",
     params="intervals",
@@ -1283,7 +1283,7 @@ def merge_intervals(intervals):
 )
 problem(
     id="insert-interval", pattern="intervals", tiers=["mid"], title="Insert an Interval",
-    fn="insert_interval", companies=["Google", "Amazon", "LinkedIn"],
+    fn="insert_interval", companies=["Google", "Amazon", "LinkedIn", "Meta", "Microsoft"],
     statement="Given a list of non-overlapping [start, end] intervals sorted by start, insert one new interval and merge where needed. Return the resulting list.",
     example="[[1,3],[6,9]], insert [2,5] -> [[1,5],[6,9]]",
     params="intervals, new_interval",
@@ -1306,7 +1306,7 @@ def insert_interval(intervals, new_interval):
 )
 problem(
     id="meeting-rooms", pattern="intervals", tiers=["mid", "senior"], title="Minimum Meeting Rooms",
-    fn="min_rooms", companies=["Amazon", "Meta", "Google", "Uber"],
+    fn="min_rooms", companies=["Amazon", "Meta", "Google", "Uber", "Microsoft", "Apple"],
     statement="Given meeting times as [start, end] intervals, return the smallest number of rooms needed so that no two meetings share a room at the same time. A meeting ending exactly when another begins can reuse the room.",
     example="[[0,30],[5,10],[15,20]] -> 2",
     params="intervals",
@@ -1328,7 +1328,7 @@ def min_rooms(intervals):
 )
 problem(
     id="non-overlapping-intervals", pattern="intervals", tiers=["senior"], title="Fewest Removals to Remove Overlap",
-    fn="erase_overlap", companies=["Google", "Amazon"],
+    fn="erase_overlap", companies=["Google", "Amazon", "Microsoft"],
     statement="Given a list of [start, end] intervals, return the minimum number you must remove so that none of the remainder overlap. Touching endpoints do not count as overlap.",
     example="[[1,2],[2,3],[3,4],[1,3]] -> 1",
     params="intervals",
@@ -1350,7 +1350,7 @@ def erase_overlap(intervals):
 # ─────────────────────────────────────────────── greedy
 problem(
     id="maximum-subarray", pattern="greedy", tiers=["junior", "mid"], title="Maximum Subarray Sum",
-    fn="max_subarray", companies=["Amazon", "Meta", "Microsoft", "LinkedIn"],
+    fn="max_subarray", companies=["Amazon", "Meta", "Microsoft", "LinkedIn", "Google", "Apple"],
     statement="Given an array of integers, return the largest sum obtainable from any contiguous non-empty run of elements.",
     example="[-2,1,-3,4,-1,2,1,-5,4] -> 6",
     params="nums",
@@ -1367,7 +1367,7 @@ def max_subarray(nums):
 )
 problem(
     id="jump-game", pattern="greedy", tiers=["mid"], title="Jump Game",
-    fn="can_jump", companies=["Amazon", "Meta"],
+    fn="can_jump", companies=["Amazon", "Meta", "Google", "Microsoft"],
     statement="Given an array where each value is the maximum number of positions you may advance from that index, starting at index 0, return true if you can reach the final index.",
     example="[2,3,1,1,4] -> true;  [3,2,1,0,4] -> false",
     params="nums",
@@ -1385,7 +1385,7 @@ def can_jump(nums):
 )
 problem(
     id="gas-station", pattern="greedy", tiers=["senior"], title="Circular Route Start",
-    fn="can_complete_circuit", companies=["Amazon", "Google"],
+    fn="can_complete_circuit", companies=["Amazon", "Google", "Meta", "Microsoft"],
     statement="Stations are arranged in a circle. Each has an amount of fuel available and a cost to travel to the next one. Starting empty, return the index you must begin at to complete one full loop, or -1 if no start works. A solution is unique when it exists.",
     example="gas [1,2,3,4,5], cost [3,4,5,1,2] -> 3",
     params="gas, cost",
@@ -1406,7 +1406,7 @@ def can_complete_circuit(gas, cost):
 
 problem(
     id="merge-k-sorted-lists", pattern="linked-list", tiers=["senior"], title="Merge K Sorted Lists",
-    fn="merge_k", companies=["Amazon", "Google", "Meta", "Uber"],
+    fn="merge_k", companies=["Amazon", "Google", "Meta", "Uber", "Microsoft", "Apple"],
     statement="You are given several sorted linked lists, each as an array of its values. Return one sorted array containing every value from all of them.",
     example="[[1,4,5],[1,3,4],[2,6]] -> [1,1,2,3,4,4,5,6]",
     params="lists",
@@ -1430,7 +1430,7 @@ def merge_k(lists):
 )
 problem(
     id="reorder-list", pattern="linked-list", tiers=["mid", "senior"], title="Reorder a List",
-    fn="reorder", companies=["Meta", "Amazon"],
+    fn="reorder", companies=["Meta", "Amazon", "Google", "Microsoft"],
     statement="A linked list is given as an array of its values. Reorder it by interleaving the first half with the reversed second half: first element, last element, second element, second-to-last, and so on. Return the resulting array.",
     example="[1,2,3,4,5] -> [1,5,2,4,3]",
     params="values",
@@ -1451,7 +1451,7 @@ def reorder(values):
 )
 problem(
     id="lru-cache", pattern="linked-list", tiers=["senior"], title="LRU Cache Behaviour",
-    fn="lru_results", companies=["Amazon", "Meta", "Google", "Microsoft"],
+    fn="lru_results", companies=["Amazon", "Meta", "Google", "Microsoft", "Apple", "Netflix"],
     statement='You are given a capacity and a list of operations, each either ["put", key, value] or ["get", key]. Apply them to a cache that evicts the least recently used entry once it is over capacity. Both get and put count as a use. Return the list of results from the get operations, using -1 for a miss.',
     example='capacity 2, [["put",1,1],["put",2,2],["get",1],["put",3,3],["get",2]] -> [1,-1]',
     params="capacity, ops",
@@ -1487,7 +1487,7 @@ def lru_results(capacity, ops):
 )
 problem(
     id="partition-labels", pattern="greedy", tiers=["mid"], title="Partition a String Into Distinct Blocks",
-    fn="partition_labels", companies=["Amazon", "Meta"],
+    fn="partition_labels", companies=["Amazon", "Meta", "Microsoft"],
     statement="Given a string, split it into the largest possible number of contiguous pieces so that no letter appears in more than one piece. Return the length of each piece in order.",
     example='"ababcbacadefegde" -> [9, 7]',
     params="s",
@@ -1508,7 +1508,7 @@ def partition_labels(s):
 )
 problem(
     id="min-stack-ops", pattern="stack", tiers=["mid"], title="Stack With Constant-Time Minimum",
-    fn="min_stack_results", companies=["Amazon", "Google", "Bloomberg"],
+    fn="min_stack_results", companies=["Amazon", "Google", "Bloomberg", "Meta", "Microsoft"],
     statement='You are given a list of operations, each one of ["push", value], ["pop"], ["top"] or ["min"]. Apply them to a stack and return the results of the top and min operations in order. Every operation must run in constant time.',
     example='[["push",-2],["push",0],["push",-3],["min"],["pop"],["top"],["min"]] -> [-3,0,-2]',
     params="ops",
@@ -1546,7 +1546,7 @@ def min_stack_results(ops):
 # file from P) does not silently delete them.
 problem(
     id="kth-smallest-matrix", pattern="heap", tiers=["mid"], title="Kth Smallest in a Sorted Matrix",
-    fn="kth_smallest_matrix", companies=["Google", "Amazon", "Bloomberg"],
+    fn="kth_smallest_matrix", companies=["Google", "Amazon", "Bloomberg", "Meta"],
     statement="Given an n x n matrix where every row and every column is sorted in ascending order, return the kth smallest element in the matrix.",
     example="[[1,5,9],[10,11,13],[12,13,15]], k = 8 -> 13",
     params="matrix, k",
@@ -1571,7 +1571,7 @@ def kth_smallest_matrix(matrix, k):
 )
 problem(
     id="top-k-frequent-words", pattern="heap", tiers=["mid"], title="Top K Frequent Words",
-    fn="top_k_frequent_words", companies=["Amazon", "Bloomberg"],
+    fn="top_k_frequent_words", companies=["Amazon", "Bloomberg", "Google"],
     statement="Given a list of words and a number k, return the k most frequent words, ordered by frequency (highest first). Break ties alphabetically.",
     example='["i","love","leetcode","i","love","coding"], k = 2 -> ["i","love"]',
     params="words, k",
@@ -1591,7 +1591,7 @@ def top_k_frequent_words(words, k):
 )
 problem(
     id="find-median-stream", pattern="heap", tiers=["senior"], title="Running Median of a Number Stream",
-    fn="find_medians", companies=["Amazon", "Google", "Meta"],
+    fn="find_medians", companies=["Amazon", "Google", "Meta", "Microsoft", "Apple"],
     statement="Numbers arrive one at a time. After each one is added, return the median of every number seen so far. Return the list of running medians, in the order the numbers arrived.",
     example="[5, 15, 1] -> [5.0, 10.0, 5.0]",
     params="nums",
@@ -1716,7 +1716,7 @@ def max_xor(nums):
 # ─────────────────────────────────────────────── matrix (new pattern)
 problem(
     id="rotate-image", pattern="matrix", tiers=["mid"], title="Rotate Image 90 Degrees",
-    fn="rotate_image", companies=["Amazon", "Microsoft", "Apple"],
+    fn="rotate_image", companies=["Amazon", "Microsoft", "Apple", "Google", "Meta"],
     statement="Given an n x n matrix, return a new matrix rotated 90 degrees clockwise.",
     example="[[1,2,3],[4,5,6],[7,8,9]] -> [[7,4,1],[8,5,2],[9,6,3]]",
     params="matrix",
@@ -1734,7 +1734,7 @@ def rotate_image(matrix):
 )
 problem(
     id="spiral-matrix", pattern="matrix", tiers=["mid"], title="Spiral Matrix Traversal",
-    fn="spiral_order", companies=["Google", "Microsoft", "Amazon"],
+    fn="spiral_order", companies=["Google", "Microsoft", "Amazon", "Meta", "Apple"],
     statement="Given an m x n matrix, return all elements in spiral order, starting from the top-left and moving right.",
     example="[[1,2,3],[4,5,6],[7,8,9]] -> [1,2,3,6,9,8,7,4,5]",
     params="matrix",
@@ -1772,7 +1772,7 @@ def spiral_order(matrix):
 )
 problem(
     id="set-matrix-zeroes", pattern="matrix", tiers=["mid"], title="Set Matrix Zeroes",
-    fn="set_zeroes", companies=["Microsoft", "Amazon"],
+    fn="set_zeroes", companies=["Microsoft", "Amazon", "Google", "Meta"],
     statement="Given an m x n matrix, return a new matrix where any row or column that contained a 0 in the original is entirely zeroed out.",
     example="[[1,1,1],[1,0,1],[1,1,1]] -> [[1,0,1],[0,0,0],[1,0,1]]",
     params="matrix",
@@ -1801,7 +1801,7 @@ def set_zeroes(matrix):
 # ─────────────────────────────────────────────── two-pointers / arrays additions
 problem(
     id="trapping-rain-water", pattern="two-pointers", tiers=["mid"], title="Trapping Rain Water",
-    fn="trap", companies=["Google", "Amazon", "Apple", "Microsoft", "Netflix"],
+    fn="trap", companies=["Google", "Amazon", "Apple", "Microsoft", "Netflix", "Meta"],
     statement="Given a list of non-negative integers representing an elevation map where each bar has width 1, return how much water it can trap after raining.",
     example="[0,1,0,2,1,0,1,3,2,1,2,1] -> 6",
     params="heights",
@@ -1834,7 +1834,7 @@ def trap(heights):
 )
 problem(
     id="next-permutation", pattern="arrays-hashing", tiers=["mid"], title="Next Lexicographic Permutation",
-    fn="next_permutation", companies=["Meta", "Microsoft"],
+    fn="next_permutation", companies=["Meta", "Microsoft", "Amazon", "Google"],
     statement="Given a list of numbers representing a permutation, return the next permutation in lexicographic order. If it is already the highest possible, return the lowest (sorted ascending).",
     example="[1,2,3] -> [1,3,2]",
     params="nums",
@@ -1863,7 +1863,7 @@ def next_permutation(nums):
 )
 problem(
     id="letter-combinations-phone", pattern="backtracking", tiers=["mid"], title="Letter Combinations of a Phone Number",
-    fn="letter_combinations", companies=["Meta", "Microsoft"],
+    fn="letter_combinations", companies=["Meta", "Microsoft", "Amazon", "Google", "Apple"],
     statement="Given a string of digits 2-9, return every possible letter combination the digits could represent on a phone keypad, in any order.",
     example='"23" -> ["ad","ae","af","bd","be","bf","cd","ce","cf"]',
     params="digits",
@@ -1894,7 +1894,7 @@ def letter_combinations(digits):
 )
 problem(
     id="word-search", pattern="backtracking", tiers=["mid"], title="Find a Single Word in a Letter Grid",
-    fn="word_exists", companies=["Amazon", "Microsoft", "Netflix"],
+    fn="word_exists", companies=["Amazon", "Microsoft", "Netflix", "Google", "Meta"],
     statement="Given a grid of letters and a single target word, return whether the word can be spelled by walking between horizontally or vertically adjacent cells without reusing a cell.",
     example='[["A","B","C","E"],["S","F","C","S"],["A","D","E","E"]], "ABCCED" -> true',
     params="grid, word",
@@ -1931,7 +1931,7 @@ def word_exists(grid, word):
 # ─────────────────────────────────────────────── dynamic programming additions
 problem(
     id="decode-ways", pattern="dynamic-programming", tiers=["mid"], title="Count Ways to Decode a Digit String",
-    fn="num_decodings", companies=["Meta", "Amazon"],
+    fn="num_decodings", companies=["Meta", "Amazon", "Google", "Microsoft"],
     statement="A string of digits was encoded from letters A-Z using 1=A ... 26=Z. Return the number of ways it could have been decoded. A leading zero in any group makes that decoding invalid.",
     example='"226" -> 3',
     params="s",
@@ -1964,7 +1964,7 @@ def num_decodings(s):
 )
 problem(
     id="maximum-product-subarray", pattern="dynamic-programming", tiers=["mid"], title="Maximum Product Subarray",
-    fn="max_product", companies=["Amazon"],
+    fn="max_product", companies=["Amazon", "Google", "Meta", "Microsoft"],
     statement="Given an array of integers, return the largest product of any contiguous subarray.",
     example="[2,3,-2,4] -> 6",
     params="nums",
@@ -1994,7 +1994,7 @@ def max_product(nums):
 # ─────────────────────────────────────────────── linked-list / two-pointers additions
 problem(
     id="merge-sorted-array", pattern="two-pointers", tiers=["junior"], title="Merge Two Sorted Arrays",
-    fn="merge_sorted", companies=["Microsoft"],
+    fn="merge_sorted", companies=["Microsoft", "Amazon", "Google", "Meta"],
     statement="Given two arrays already sorted in ascending order, return one merged array in ascending order.",
     example="[1,2,3], [2,5,6] -> [1,2,2,3,5,6]",
     params="nums1, nums2",
@@ -2021,7 +2021,7 @@ def merge_sorted(nums1, nums2):
 )
 problem(
     id="sort-colors", pattern="two-pointers", tiers=["mid"], title="Sort an Array of Three Values",
-    fn="sort_colors", companies=["Microsoft"],
+    fn="sort_colors", companies=["Microsoft", "Amazon", "Google", "Meta", "Apple"],
     statement="Given an array containing only the values 0, 1 and 2, return it sorted in a single pass without using a separate counting or sorting step.",
     example="[2,0,2,1,1,0] -> [0,0,1,1,2,2]",
     params="nums",
@@ -2050,7 +2050,7 @@ def sort_colors(nums):
 )
 problem(
     id="first-missing-positive", pattern="arrays-hashing", tiers=["senior"], title="First Missing Positive Integer",
-    fn="first_missing_positive", companies=["Meta", "Microsoft"],
+    fn="first_missing_positive", companies=["Meta", "Microsoft", "Amazon", "Google"],
     statement="Given an unsorted array of integers, return the smallest positive integer that does not appear in it. Must run in O(n) time and O(1) extra space.",
     example="[3,4,-1,1] -> 2",
     params="nums",
@@ -2078,7 +2078,7 @@ def first_missing_positive(nums):
 )
 problem(
     id="add-two-numbers", pattern="linked-list", tiers=["junior"], title="Add Two Numbers as Linked Lists",
-    fn="add_two_numbers", companies=["Microsoft"],
+    fn="add_two_numbers", companies=["Microsoft", "Amazon", "Google", "Meta"],
     statement="Two non-negative integers are given as lists of digits in reverse order (least significant digit first), one digit per node. Return their sum in the same reverse-digit-order form.",
     example="[2,4,3] + [5,6,4] -> [7,0,8]  (342 + 465 = 807)",
     params="l1, l2",
@@ -2108,7 +2108,7 @@ def add_two_numbers(l1, l2):
 # ─────────────────────────────────────────────── tree additions
 problem(
     id="symmetric-tree", pattern="trees", tiers=["junior"], title="Symmetric Binary Tree",
-    fn="is_symmetric", companies=["Microsoft"],
+    fn="is_symmetric", companies=["Microsoft", "Amazon", "Google", "Meta"],
     statement="A binary tree is given as a level-order array where null marks a missing child. Return true if it is a mirror of itself around its center.",
     example="[1,2,2,3,4,4,3] -> true",
     params="tree",
@@ -2133,7 +2133,7 @@ def is_symmetric(tree):
 )
 problem(
     id="lowest-common-ancestor-tree", pattern="trees", tiers=["mid"], title="Lowest Common Ancestor in a Binary Tree",
-    fn="lca_general", companies=["Meta", "Apple"],
+    fn="lca_general", companies=["Meta", "Apple", "Amazon", "Google"],
     statement="A binary tree (not necessarily a search tree) is given as a level-order array where null marks a missing child, along with two values present in it, assumed unique. Return the value of the deepest node that has both as descendants, where a node may be its own descendant.",
     example="[3,5,1,6,2,0,8,null,null,7,4], p = 5, q = 1 -> 3",
     params="tree, p, q",
@@ -2160,7 +2160,7 @@ def lca_general(tree, p, q):
 )
 problem(
     id="binary-tree-max-path-sum", pattern="trees", tiers=["senior"], title="Maximum Path Sum in a Binary Tree",
-    fn="max_path_sum", companies=["Google"],
+    fn="max_path_sum", companies=["Google", "Amazon", "Meta", "Microsoft"],
     statement="A binary tree is given as a level-order array where null marks a missing child. A path is any sequence of nodes connected by edges, not necessarily passing through the root, and does not need to include the whole tree. Return the largest sum of node values along any path.",
     example="[-10,9,20,null,null,15,7] -> 42",
     params="tree",
@@ -2188,7 +2188,7 @@ def max_path_sum(tree):
 )
 problem(
     id="construct-tree-preorder-inorder", pattern="trees", tiers=["senior"], title="Build a Tree From Preorder and Inorder Traversals",
-    fn="build_tree", companies=["Microsoft"],
+    fn="build_tree", companies=["Microsoft", "Amazon", "Google"],
     statement="Given the preorder and inorder traversals of a binary tree with unique values, reconstruct the tree. Return it as a level-order array with trailing nulls removed.",
     example="preorder [3,9,20,15,7], inorder [9,3,15,20,7] -> [3,9,20,null,null,15,7]",
     params="preorder, inorder",
@@ -2227,6 +2227,486 @@ def build_tree(preorder, inorder):
     return out
 """,
     covers="Preorder gives roots in the order to build them; inorder gives, for a known root, exactly which values fall in its left versus right subtree. A hash map from value to inorder index turns the naive O(n) subtree search into O(1), which is the difference between an O(n^2) and an O(n) solution.",
+)
+
+
+# ─────────────────────────────────────────────── leetcode-companywise additions
+problem(
+    id="subarray-sum-k", pattern="arrays-hashing", tiers=["mid"], title="Subarray Sum Equals K",
+    fn="subarray_sum_k", companies=["Amazon", "Google", "Meta", "Microsoft", "Apple"],
+    statement="Given an array of integers (which may include negative numbers) and a target k, return how many contiguous subarrays sum to exactly k.",
+    example="nums = [1, 1, 1], k = 2 -> 2 (the two subarrays [1,1])",
+    params="nums, k",
+    tests=[[[1,1,1],2],[[1,2,3],3],[[1,-1,0],0],[[-1,-1,1],0],[[3,4,7,2,-3,1,4,2],7]],
+    solution="""
+def subarray_sum_k(nums, k):
+    count = 0
+    running = 0
+    seen = {0: 1}
+    for n in nums:
+        running += n
+        count += seen.get(running - k, 0)
+        seen[running] = seen.get(running, 0) + 1
+    return count
+""",
+    covers="Recognizes the need for a running sum with a hash map of seen sums rather than a nested O(n^2) scan. Explains why seeding the map with {0: 1} is necessary, and handles negative numbers correctly.",
+)
+problem(
+    id="median-two-sorted-arrays", pattern="binary-search", tiers=["senior"], title="Median of Two Sorted Arrays",
+    fn="find_median_sorted_arrays", companies=["Amazon", "Google", "Meta", "Microsoft", "Apple"],
+    statement="Given two sorted arrays, return the median of the combined set of numbers as a single number, averaging the two middle values when the total count is even.",
+    example="nums1 = [1, 3], nums2 = [2] -> 2",
+    params="nums1, nums2",
+    tests=[[[1,3],[2]],[[1,2],[3,4]],[[],[1]],[[0,0],[0,0]],[[1,2,3],[4,5,6,7]]],
+    solution="""
+def find_median_sorted_arrays(nums1, nums2):
+    merged = sorted(nums1 + nums2)
+    n = len(merged)
+    mid = n // 2
+    if n % 2 == 1:
+        return merged[mid]
+    return (merged[mid - 1] + merged[mid]) / 2
+""",
+    covers="States the brute-force merge-and-index approach first, then discusses the O(log(min(m,n))) binary-search partition approach when pushed to do better. Handles empty-array and even/odd-length edge cases explicitly.",
+)
+problem(
+    id="search-range", pattern="binary-search", tiers=["junior"], title="Find First and Last Position of a Target",
+    fn="search_range", companies=["Amazon", "Google", "Meta", "Microsoft", "Apple"],
+    statement="Given a sorted array and a target value, return the first and last index at which the target appears, as [first, last]. Return [-1, -1] if it does not appear.",
+    example="nums = [5, 7, 7, 8, 8, 10], target = 8 -> [3, 4]",
+    params="nums, target",
+    tests=[[[5,7,7,8,8,10],8],[[5,7,7,8,8,10],6],[[],0],[[1],1],[[2,2],2]],
+    solution="""
+def search_range(nums, target):
+    first = -1
+    last = -1
+    for i, n in enumerate(nums):
+        if n == target:
+            if first == -1:
+                first = i
+            last = i
+    return [first, last]
+""",
+    covers="Reaches for two separate binary searches (one for the left boundary, one for the right) to hit O(log n) rather than a linear scan, and can explain why a single binary search cannot find both ends.",
+)
+problem(
+    id="search-2d-matrix", pattern="binary-search", tiers=["junior"], title="Search a Sorted 2D Grid",
+    fn="search_matrix", companies=["Amazon", "Google", "Meta", "Microsoft"],
+    statement="Given a grid of integers where each row is sorted left to right and the first value of each row is greater than the last value of the previous row, return true if a target value exists anywhere in the grid.",
+    example="matrix = [[1,3,5,7],[10,11,16,20],[23,30,34,60]], target = 3 -> true",
+    params="matrix, target",
+    tests=[[[[1,3,5,7],[10,11,16,20],[23,30,34,60]],3],[[[1,3,5,7],[10,11,16,20],[23,30,34,60]],13],[[[1]],1],[[[1]],2],[[[],[]],1]],
+    solution="""
+def search_matrix(matrix, target):
+    for row in matrix:
+        if row and row[0] <= target <= row[-1]:
+            return target in row
+    return False
+""",
+    covers="Treats the grid as a single sorted sequence and binary searches the virtual flattened index rather than scanning row by row, and can convert a flat index back to row/column coordinates.",
+)
+problem(
+    id="rotate-array", pattern="two-pointers", tiers=["junior"], title="Rotate an Array",
+    fn="rotate_array", companies=["Amazon", "Google", "Meta", "Microsoft", "Apple"],
+    statement="Given an array and a number k, rotate the array to the right by k steps and return the resulting array.",
+    example="nums = [1,2,3,4,5,6,7], k = 3 -> [5,6,7,1,2,3,4]",
+    params="nums, k",
+    tests=[[[1,2,3,4,5,6,7],3],[[1,2],3],[[1],0],[[],5],[[1,2,3,4],4]],
+    solution="""
+def rotate_array(nums, k):
+    n = len(nums)
+    if n == 0:
+        return nums[:]
+    k = k % n
+    return nums[-k:] + nums[:-k] if k else nums[:]
+""",
+    covers="Reaches for the reverse-three-times in-place trick (or explicitly discusses the space/time trade-off of a fresh array) rather than rotating one step at a time, and correctly reduces k modulo the array length.",
+)
+problem(
+    id="remove-duplicates-sorted", pattern="two-pointers", tiers=["junior"], title="Deduplicate a Sorted Array",
+    fn="remove_duplicates", companies=["Amazon", "Google", "Meta", "Microsoft"],
+    statement="Given a sorted array of integers, return a new array with duplicate values removed, keeping only the first occurrence of each value in order.",
+    example="[1,1,2,2,3] -> [1,2,3]",
+    params="nums",
+    tests=[[[1,1,2,2,3]],[[]],[[1]],[[1,1,1,1]],[[0,0,1,1,1,2,2,3,3,4]]],
+    solution="""
+def remove_duplicates(nums):
+    out = []
+    for n in nums:
+        if not out or out[-1] != n:
+            out.append(n)
+    return out
+""",
+    covers="Uses a single forward pass comparing against the last kept value rather than a set or nested loop, and explains why sortedness is what makes this solvable in one linear pass.",
+)
+problem(
+    id="move-zeroes", pattern="two-pointers", tiers=["junior"], title="Move Zeroes to the End",
+    fn="move_zeroes", companies=["Amazon", "Google", "Meta", "Microsoft"],
+    statement="Given an array of integers, move all zeroes to the end while keeping the relative order of the non-zero elements, and return the resulting array.",
+    example="[0,1,0,3,12] -> [1,3,12,0,0]",
+    params="nums",
+    tests=[[[0,1,0,3,12]],[[0]],[[1,2,3]],[[0,0,0]],[[]]],
+    solution="""
+def move_zeroes(nums):
+    non_zero = [n for n in nums if n != 0]
+    return non_zero + [0] * (len(nums) - len(non_zero))
+""",
+    covers="Prefers a stable in-place two-pointer swap over building a new array when pushed on space, and explains why relative order of the non-zero elements must be preserved.",
+)
+problem(
+    id="four-sum", pattern="two-pointers", tiers=["mid"], title="Four Sum",
+    fn="four_sum", companies=["Amazon", "Google", "Meta", "Microsoft"],
+    statement="Given an array of integers and a target, return all unique quadruples [a, b, c, d] from the array whose values sum to the target. Each quadruple's values should be sorted ascending, and no duplicate quadruples should appear.",
+    example="nums = [1,0,-1,0,-2,2], target = 0 -> [[-2,-1,1,2],[-2,0,0,2],[-1,0,0,1]]",
+    params="nums, target",
+    tests=[[[1,0,-1,0,-2,2],0],[[2,2,2,2,2],8],[[],0],[[0,0,0,0],0]],
+    unordered=True,
+    solution="""
+def four_sum(nums, target):
+    nums = sorted(nums)
+    n = len(nums)
+    res = []
+    for i in range(n - 3):
+        if i > 0 and nums[i] == nums[i - 1]:
+            continue
+        for j in range(i + 1, n - 2):
+            if j > i + 1 and nums[j] == nums[j - 1]:
+                continue
+            lo, hi = j + 1, n - 1
+            while lo < hi:
+                total = nums[i] + nums[j] + nums[lo] + nums[hi]
+                if total == target:
+                    res.append([nums[i], nums[j], nums[lo], nums[hi]])
+                    lo += 1
+                    hi -= 1
+                    while lo < hi and nums[lo] == nums[lo - 1]:
+                        lo += 1
+                    while lo < hi and nums[hi] == nums[hi + 1]:
+                        hi -= 1
+                elif total < target:
+                    lo += 1
+                else:
+                    hi -= 1
+    return res
+""",
+    covers="Sorts first, then reduces to two nested loops plus a two-pointer sweep, and explicitly skips duplicates at all three levels to avoid repeated quadruples rather than deduplicating the result afterward.",
+)
+problem(
+    id="permutation-in-string", pattern="sliding-window", tiers=["mid"], title="Permutation in a String",
+    fn="check_inclusion", companies=["Amazon", "Google", "Meta", "Microsoft", "Apple"],
+    statement="Given two strings s1 and s2, return true if s2 contains a contiguous substring that is a character rearrangement of s1.",
+    example='s1 = "ab", s2 = "eidbaooo" -> true, because "ba" is a substring of s2 and a rearrangement of "ab"',
+    params="s1, s2",
+    tests=[["ab","eidbaooo"],["ab","eidboaoo"],["a","a"],["adc","dcda"],["abc","ccccbbbbaaaa"]],
+    solution="""
+def check_inclusion(s1, s2):
+    from collections import Counter
+    need = Counter(s1)
+    window = len(s1)
+    if window > len(s2):
+        return False
+    have = Counter(s2[:window])
+    if have == need:
+        return True
+    for i in range(window, len(s2)):
+        have[s2[i]] += 1
+        left = s2[i - window]
+        have[left] -= 1
+        if have[left] == 0:
+            del have[left]
+        if have == need:
+            return True
+    return False
+""",
+    covers="Uses a fixed-size sliding window with an incrementally updated character count rather than re-counting the window from scratch at every position, and explains why the window size must equal len(s1).",
+)
+problem(
+    id="sliding-window-maximum", pattern="sliding-window", tiers=["senior"], title="Sliding Window Maximum",
+    fn="max_sliding_window", companies=["Amazon", "Google", "Meta", "Microsoft"],
+    statement="Given an array of integers and a window size k, return an array of the maximum value in each contiguous window of size k as it slides from left to right across the array.",
+    example="nums = [1,3,-1,-3,5,3,6,7], k = 3 -> [3,3,5,5,6,7]",
+    params="nums, k",
+    tests=[[[1,3,-1,-3,5,3,6,7],3],[[1],1],[[9,11],2],[[4,-2],1],[[1,-1],1]],
+    solution="""
+def max_sliding_window(nums, k):
+    from collections import deque
+    dq = deque()
+    res = []
+    for i, n in enumerate(nums):
+        while dq and nums[dq[-1]] <= n:
+            dq.pop()
+        dq.append(i)
+        if dq[0] <= i - k:
+            dq.popleft()
+        if i >= k - 1:
+            res.append(nums[dq[0]])
+    return res
+""",
+    covers="Reaches for a monotonic deque of indices rather than recomputing each window's maximum from scratch, and can explain why the deque stays in decreasing value order and why stale indices fall off the front.",
+)
+problem(
+    id="longest-valid-parentheses", pattern="stack", tiers=["senior"], title="Longest Valid Parentheses Run",
+    fn="longest_valid_parens", companies=["Amazon", "Google", "Meta", "Microsoft"],
+    statement="Given a string containing only '(' and ')', return the length of the longest contiguous substring that forms valid, properly matched parentheses.",
+    example='"(()" -> 2',
+    params="s",
+    tests=[["(()"],[")()())"],[""],["()(()"],["()()"]],
+    solution="""
+def longest_valid_parens(s):
+    stack = [-1]
+    best = 0
+    for i, c in enumerate(s):
+        if c == '(':
+            stack.append(i)
+        else:
+            stack.pop()
+            if not stack:
+                stack.append(i)
+            else:
+                best = max(best, i - stack[-1])
+    return best
+""",
+    covers="Uses a stack of indices (or a DP array) rather than a naive running balance counter, and can explain why seeding the stack with -1 correctly handles a valid run that starts at index 0.",
+)
+problem(
+    id="best-time-stock-ii", pattern="greedy", tiers=["junior"], title="Best Time to Buy and Sell, Unlimited Trades",
+    fn="max_profit_multi", companies=["Amazon", "Google", "Meta", "Microsoft", "Apple"],
+    statement="Given an array of daily stock prices, return the maximum profit achievable by buying and selling any number of times, holding at most one share at a time.",
+    example="[7,1,5,3,6,4] -> 7, buying at 1 and selling at 5 (profit 4), then buying at 3 and selling at 6 (profit 3)",
+    params="prices",
+    tests=[[[7,1,5,3,6,4]],[[1,2,3,4,5]],[[7,6,4,3,1]],[[]],[[5]]],
+    solution="""
+def max_profit_multi(prices):
+    profit = 0
+    for i in range(1, len(prices)):
+        if prices[i] > prices[i - 1]:
+            profit += prices[i] - prices[i - 1]
+    return profit
+""",
+    covers="Recognizes that summing every positive day-over-day gain is equivalent to buying at every local minimum and selling at every local maximum, without tracking explicit buy/sell state.",
+)
+problem(
+    id="valid-sudoku", pattern="arrays-hashing", tiers=["mid"], title="Validate a Sudoku Board",
+    fn="is_valid_sudoku", companies=["Amazon", "Google", "Meta", "Microsoft", "Apple"],
+    statement="Given a 9x9 Sudoku board as a grid of single-character strings (with '.' marking an empty cell), return true if the filled-in cells satisfy Sudoku's rules: no repeated digit 1-9 in any row, column, or 3x3 sub-box. The board does not need to be solvable overall, only currently consistent.",
+    example="A board with two '5's in the same row is invalid -> false",
+    params="board",
+    tests=[
+        [[["5","3","4","6","7","8","9","1","2"],["6","7","2","1","9","5","3","4","8"],["1","9","8","3","4","2","5","6","7"],["8","5","9","7","6","1","4","2","3"],["4","2","6","8","5","3","7","9","1"],["7","1","3","9","2","4","8","5","6"],["9","6","1","5","3","7","2","8","4"],["2","8","7","4","1","9","6","3","5"],["3","4","5","2","8","6","1","7","9"]]],
+        [[["5","3","4","6","7","8","9","1","5"],["6","7","2","1","9","5","3","4","8"],["1","9","8","3","4","2","5","6","7"],["8","5","9","7","6","1","4","2","3"],["4","2","6","8","5","3","7","9","1"],["7","1","3","9","2","4","8","5","6"],["9","6","1","5","3","7","2","8","4"],["2","8","7","4","1","9","6","3","5"],["3","4","5","2","8","6","1","7","9"]]],
+        [[[".",".",".",".",".",".",".",".","."],[".",".",".",".",".",".",".",".","."],[".",".",".",".",".",".",".",".","."],[".",".",".",".",".",".",".",".","."],[".",".",".",".",".",".",".",".","."],[".",".",".",".",".",".",".",".","."],[".",".",".",".",".",".",".",".","."],[".",".",".",".",".",".",".",".","."],[".",".",".",".",".",".",".",".","."]]],
+    ],
+    solution="""
+def is_valid_sudoku(board):
+    rows = [set() for _ in range(9)]
+    cols = [set() for _ in range(9)]
+    boxes = [set() for _ in range(9)]
+    for r in range(9):
+        for c in range(9):
+            v = board[r][c]
+            if v == '.':
+                continue
+            b = (r // 3) * 3 + c // 3
+            if v in rows[r] or v in cols[c] or v in boxes[b]:
+                return False
+            rows[r].add(v)
+            cols[c].add(v)
+            boxes[b].add(v)
+    return True
+""",
+    covers="Tracks seen digits per row, column, and 3x3 box in a single pass rather than three separate passes, and gets the box-index formula (row // 3) * 3 + col // 3 right without trial and error.",
+)
+problem(
+    id="majority-element", pattern="arrays-hashing", tiers=["junior"], title="Find the Majority Element",
+    fn="majority_element", companies=["Amazon", "Google", "Meta", "Microsoft"],
+    statement="Given an array of integers where one value appears more than n/2 times, return that value.",
+    example="[2,2,1,1,1,2,2] -> 2",
+    params="nums",
+    tests=[[[2,2,1,1,1,2,2]],[[3,2,3]],[[1]],[[6,5,5]],[[1,1,1,2,2]]],
+    solution="""
+def majority_element(nums):
+    from collections import Counter
+    counts = Counter(nums)
+    return counts.most_common(1)[0][0]
+""",
+    covers="Reaches for Boyer-Moore voting for O(1) space when pushed to do better than a hash map, and can explain why a guaranteed majority element keeps the running counter from ever fully cancelling out.",
+)
+problem(
+    id="nodes-distance-k", pattern="trees", tiers=["senior"], title="All Nodes at Distance K",
+    fn="nodes_at_distance_k", companies=["Amazon", "Meta", "Microsoft", "Apple"],
+    statement="A binary tree is given as a level-order array where null marks a missing child, along with a target value present in the tree and a distance k. Return the values of all nodes that are exactly k edges away from the target node, in any order.",
+    example="[3,5,1,6,2,0,8,null,null,7,4], target = 5, k = 2 -> [7, 4, 1] (order may vary)",
+    params="tree, target, k",
+    tests=[[[3,5,1,6,2,0,8,None,None,7,4],5,2],[[3,5,1,6,2,0,8,None,None,7,4],5,0],[[1],1,0],[[1],1,1],[[0,1],0,1]],
+    unordered=True,
+    solution=TREE_HELPERS + """
+def nodes_at_distance_k(tree, target, k):
+    from collections import deque
+    root = _build(tree)
+    parent = {}
+    target_node = None
+    q = deque([root])
+    while q:
+        n = q.popleft()
+        if n.val == target:
+            target_node = n
+        for c in (n.left, n.right):
+            if c:
+                parent[id(c)] = n
+                q.append(c)
+    visited = {id(target_node)}
+    frontier = [target_node]
+    dist = 0
+    while frontier and dist < k:
+        nxt = []
+        for n in frontier:
+            for nb in (n.left, n.right, parent.get(id(n))):
+                if nb and id(nb) not in visited:
+                    visited.add(id(nb))
+                    nxt.append(nb)
+        frontier = nxt
+        dist += 1
+    return [n.val for n in frontier]
+""",
+    covers="Recognizes a tree alone only supports downward traversal, so parent pointers (or treating it as an undirected graph) are needed to search in every direction, then runs a plain BFS out from the target.",
+)
+problem(
+    id="diameter-binary-tree", pattern="trees", tiers=["mid"], title="Diameter of a Binary Tree",
+    fn="diameter_of_tree", companies=["Amazon", "Google", "Meta", "Microsoft"],
+    statement="A binary tree is given as a level-order array where null marks a missing child. Return the length, in edges, of the longest path between any two nodes in the tree -- the path does not need to pass through the root.",
+    example="[1,2,3,4,5] -> 3",
+    params="tree",
+    tests=[[[1,2,3,4,5]],[[1]],[[]],[[1,2]],[[1,None,2,None,3]]],
+    solution=TREE_HELPERS + """
+def diameter_of_tree(tree):
+    root = _build(tree)
+    best = [0]
+    def depth(n):
+        if not n:
+            return 0
+        l = depth(n.left)
+        r = depth(n.right)
+        best[0] = max(best[0], l + r)
+        return 1 + max(l, r)
+    depth(root)
+    return best[0]
+""",
+    covers="Recognizes the diameter is a path through some node's left and right subtrees, not necessarily the root, and computes it in one post-order pass rather than recomputing height at every node separately.",
+)
+problem(
+    id="right-side-view", pattern="trees", tiers=["mid"], title="Binary Tree Right Side View",
+    fn="right_side_view", companies=["Amazon", "Google", "Meta", "Microsoft"],
+    statement="A binary tree is given as a level-order array where null marks a missing child. Return the values visible when looking at the tree from the right side, ordered from the top level down -- the last node processed at each level.",
+    example="[1,2,3,null,5,null,4] -> [1, 3, 4]",
+    params="tree",
+    tests=[[[1,2,3,None,5,None,4]],[[1,None,3]],[[]],[[1,2]],[[1,2,3,4]]],
+    solution=TREE_HELPERS + """
+def right_side_view(tree):
+    from collections import deque
+    root = _build(tree)
+    if not root:
+        return []
+    res = []
+    q = deque([root])
+    while q:
+        n = len(q)
+        for i in range(n):
+            node = q.popleft()
+            if i == n - 1:
+                res.append(node.val)
+            if node.left:
+                q.append(node.left)
+            if node.right:
+                q.append(node.right)
+    return res
+""",
+    covers="Performs a level-order BFS and keeps the last node processed at each level, rather than a right-first DFS -- should be able to explain the DFS version too if asked to avoid the queue.",
+)
+problem(
+    id="n-queens-count", pattern="backtracking", tiers=["senior"], title="Count N-Queens Placements",
+    fn="count_n_queens", companies=["Amazon", "Google", "Meta", "Microsoft"],
+    statement="Given an integer n, return the number of distinct ways to place n queens on an n x n chessboard so that no two queens share a row, column, or diagonal.",
+    example="4 -> 2",
+    params="n",
+    tests=[[1],[2],[3],[4],[5]],
+    solution="""
+def count_n_queens(n):
+    count = 0
+    cols = set()
+    diag1 = set()
+    diag2 = set()
+    def backtrack(r):
+        nonlocal count
+        if r == n:
+            count += 1
+            return
+        for c in range(n):
+            if c in cols or (r - c) in diag1 or (r + c) in diag2:
+                continue
+            cols.add(c); diag1.add(r - c); diag2.add(r + c)
+            backtrack(r + 1)
+            cols.remove(c); diag1.remove(r - c); diag2.remove(r + c)
+    backtrack(0)
+    return count
+""",
+    covers="Prunes columns and both diagonals during placement rather than checking the whole board after each attempt, and can state the search's exponential worst case and why pruning matters so much here.",
+)
+problem(
+    id="word-ladder-length", pattern="graphs", tiers=["senior"], title="Shortest Word Transformation",
+    fn="ladder_length", companies=["Amazon", "Google", "Meta", "Microsoft", "Apple"],
+    statement="Given a start word, an end word, and a list of allowed words, return the number of words in the shortest transformation sequence from start to end, changing exactly one letter per step, where every intermediate word must be in the allowed list. Return 0 if no such sequence exists.",
+    example='begin = "hit", end = "cog", words = ["hot","dot","dog","lot","log","cog"] -> 5',
+    params="begin_word, end_word, word_list",
+    tests=[
+        ["hit","cog",["hot","dot","dog","lot","log","cog"]],
+        ["hit","cog",["hot","dot","dog","lot","log"]],
+        ["a","c",["a","b","c"]],
+        ["hot","dog",["hot","dog"]],
+        ["same","same",["same"]],
+    ],
+    solution="""
+def ladder_length(begin_word, end_word, word_list):
+    from collections import deque
+    words = set(word_list)
+    if end_word not in words:
+        return 0
+    q = deque([(begin_word, 1)])
+    visited = {begin_word}
+    alphabet = "abcdefghijklmnopqrstuvwxyz"
+    while q:
+        word, steps = q.popleft()
+        if word == end_word:
+            return steps
+        for i in range(len(word)):
+            for ch in alphabet:
+                if ch == word[i]:
+                    continue
+                nxt = word[:i] + ch + word[i + 1:]
+                if nxt in words and nxt not in visited:
+                    visited.add(nxt)
+                    q.append((nxt, steps + 1))
+    return 0
+""",
+    covers="Treats this as shortest-path-in-an-unweighted-graph and reaches for BFS rather than DFS to guarantee the minimum step count, and can discuss the cost of generating each word's 26xlength neighbors.",
+)
+problem(
+    id="find-peak-element", pattern="binary-search", tiers=["mid"], title="Find the Peak Element",
+    fn="find_peak", companies=["Amazon", "Google", "Meta", "Microsoft"],
+    statement="Given an array of integers with no two adjacent elements equal and exactly one peak (an element strictly greater than both neighbors, treating positions outside the array as negative infinity), return the index of that peak.",
+    example="[1,3,5,4,2] -> 2, the index of value 5",
+    params="nums",
+    tests=[[[1,3,5,4,2]],[[1]],[[1,2]],[[2,1]],[[1,2,3,4,5]]],
+    solution="""
+def find_peak(nums):
+    n = len(nums)
+    for i in range(n):
+        left_ok = (i == 0) or nums[i - 1] < nums[i]
+        right_ok = (i == n - 1) or nums[i] > nums[i + 1]
+        if left_ok and right_ok:
+            return i
+    return -1
+""",
+    covers="Reaches for binary search using the slope between adjacent elements to discard half the array each step, once pushed to beat the O(n) linear scan.",
 )
 
 
