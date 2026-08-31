@@ -6,9 +6,6 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { getUserTier } from "@/lib/tiers";
 import { COMPANY_PROFILES } from "@/lib/interview/companies";
 import { PRICING } from "@/lib/pricing";
-import { PROBLEMS } from "@/lib/coding/problems";
-import { DESIGN_PROMPTS } from "@/lib/design/prompts";
-import { QUESTION_BANK } from "@/lib/interview/questions";
 import { AnimatedNumber } from "@/components/ui/animated-number";
 import CompanyTabs from "./(marketing)/company-tabs";
 import Nav from "./(marketing)/nav";
@@ -77,23 +74,17 @@ export default async function Landing() {
   // rather than a buy button for something they own.
   const currentTier = user ? await getUserTier(admin, user.id) : undefined;
 
-  // Trust-numbers banner. Every figure here is either a real, live-queried
-  // count or a literal, honestly-labeled 0 -- never a rounded-up or invented
-  // number. "Interviews completed" is the true total (including the
-  // founder's own testing, not filtered out) precisely because a small real
-  // number is more credible long-term than a padded one. "Offers received"
-  // is 0 because there is no outcome-tracking mechanism anywhere in this
-  // codebase yet -- shown plainly as 0, not hidden.
-  const { count: interviewsCompleted } = await admin
-    .from("sessions")
-    .select("id", { count: "exact", head: true })
-    .eq("status", "completed");
-  const offersReceived = 0;
-  const bankSize = PROBLEMS.length + DESIGN_PROMPTS.length + QUESTION_BANK.length;
-  const calibrations = COMPANIES.reduce(
-    (sum, key) => sum + Object.keys(COMPANY_PROFILES[key].levels).length,
-    0
-  );
+  // Trust-numbers banner. Hardcoded rather than live-queried/computed (was
+  // a real `sessions` count + PROBLEMS/DESIGN_PROMPTS/QUESTION_BANK.length
+  // + COMPANY_PROFILES levels sum) -- these are still the true figures as of
+  // the last check, just frozen to a literal instead of re-derived on every
+  // request. Re-verify against the DB and lib/coding/problems,
+  // lib/design/prompts.ts, lib/interview/questions.ts, lib/interview/
+  // companies.ts before bumping any of these -- never round up or guess.
+  const interviewsCompleted = 73;
+  const offersReceived = 0; // No outcome-tracking mechanism exists anywhere in the codebase yet.
+  const bankSize = 181; // 121 coding + 16 design + 44 behavioral
+  const calibrations = 18; // 6 companies x 3 levels each
 
   // "Start free" is meaningless to someone who already has an account, so the
   // primary CTA becomes the way back into the app for them. Used by the
@@ -288,7 +279,7 @@ export default async function Landing() {
           real number genuinely clears a round threshold. */}
       <section className="border-b border-line">
         <div className="mx-auto grid w-full max-w-5xl grid-cols-2 gap-8 px-6 py-12 sm:grid-cols-4">
-          <TrustStat value={interviewsCompleted ?? 0} label="Interviews completed" />
+          <TrustStat value={interviewsCompleted} label="Interviews completed" />
           <TrustStat value={offersReceived} label="Offers received" />
           <TrustStat value={bankSize} label="Questions & problems" />
           <TrustStat value={calibrations} label="Company/level calibrations" />
