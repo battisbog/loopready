@@ -117,37 +117,37 @@ export default function RoundsShowcase() {
                 <motion.span
                   layout="position"
                   className={cn(
-                    "truncate text-sm font-semibold",
+                    "text-sm font-semibold",
                     isActive ? "text-accent" : "text-primary"
                   )}
                 >
                   {r.title}
                 </motion.span>
-                <AnimatePresence>
-                  {isActive && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      exit={{ opacity: 0, height: 0 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <p className="mt-1.5 text-sm leading-relaxed text-secondary">
-                        {r.body}
-                      </p>
-                      <ul className="mt-3 space-y-1.5">
-                        {r.points.map((p) => (
-                          <li
-                            key={p}
-                            className="flex items-start gap-2 text-xs text-secondary"
-                          >
-                            <span className="mt-0.5 text-accent">✓</span>
-                            {p}
-                          </li>
-                        ))}
-                      </ul>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                {/* Inactive tiles always render their own body text (just
+                    clamped shorter) instead of nothing -- an empty box below
+                    a title reads as broken, not as "collapsed". */}
+                {isActive ? (
+                  <div>
+                    <p className="mt-1.5 text-sm leading-relaxed text-secondary">
+                      {r.body}
+                    </p>
+                    <ul className="mt-3 space-y-1.5">
+                      {r.points.map((p) => (
+                        <li
+                          key={p}
+                          className="flex items-start gap-2 text-xs text-secondary"
+                        >
+                          <span className="mt-0.5 text-accent">✓</span>
+                          {p}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : (
+                  <p className="mt-1.5 line-clamp-3 text-sm leading-relaxed text-secondary">
+                    {r.body}
+                  </p>
+                )}
               </motion.button>
             );
           })}
