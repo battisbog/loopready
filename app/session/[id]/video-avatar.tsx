@@ -129,6 +129,7 @@ export default function VideoAvatar({
           const commit = () => {
             if (revealedRef.current || !alive) return;
             revealedRef.current = true;
+            if (videoEl) videoEl.muted = false;
             setState("live");
           };
           if (!videoEl) {
@@ -168,6 +169,11 @@ export default function VideoAvatar({
           const stream = new MediaStream();
           if (video) stream.addTrack(video);
           if (audio) stream.addTrack(audio);
+          // Muted until scheduleReveal's commit() unmutes it, so the
+          // interviewer's voice never starts before the candidate can see
+          // them -- otherwise the reveal delay that hides choppy first
+          // frames makes the voice arrive noticeably ahead of the face.
+          if (video && !revealedRef.current) videoRef.current.muted = true;
           videoRef.current.srcObject = stream;
           void videoRef.current.play().catch(() => {
             /* autoplay is unlocked by the mic gate's click */
