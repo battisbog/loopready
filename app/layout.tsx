@@ -17,11 +17,11 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL(getSiteUrl()),
   title: {
-    default: "LoopReady: Voice mock interviews for your FAANG loop",
+    default: "LoopReady: Voice and video mock interviews for your FAANG loop",
     template: "%s · LoopReady",
   },
   description:
-    "Practice a real behavioral interview out loud. An AI interviewer that probes vague answers, calibrated to your target company and level, plus an honest debrief telling you where you'd get dinged.",
+    "Practice a full FAANG interview loop out loud — behavioral, coding, and system design. An AI interviewer that probes vague answers, calibrated to your target company and level, plus an honest debrief telling you where you'd get dinged.",
   keywords: [
     "mock interview",
     "behavioral interview practice",
