@@ -121,15 +121,17 @@ export default function VideoAvatar({
          * watched that ramp-up directly: the reported "choppy for the first
          * 3 seconds" symptom. Now the cover stays up until the video element
          * has actually started rendering frames (the "playing" event), plus a
-         * short settle delay to clear that ramp-up, so the candidate only
-         * ever sees smooth video.
+         * short 200ms settle delay to clear the roughest of that ramp-up.
+         * Audio is never touched -- muting a live stream discards whatever
+         * plays while muted rather than delaying it, so an earlier version of
+         * this fix silently ate the start of the interviewer's greeting. Only
+         * the visual cover is ever delayed.
          */
         const scheduleReveal = (videoEl: HTMLVideoElement | null) => {
           if (revealedRef.current || revealTimerRef.current) return;
           const commit = () => {
             if (revealedRef.current || !alive) return;
             revealedRef.current = true;
-            if (videoEl) videoEl.muted = false;
             setState("live");
           };
           if (!videoEl) {
@@ -139,7 +141,7 @@ export default function VideoAvatar({
           }
           const onPlaying = () => {
             videoEl.removeEventListener("playing", onPlaying);
-            revealTimerRef.current = setTimeout(commit, 800);
+            revealTimerRef.current = setTimeout(commit, 200);
           };
           videoEl.addEventListener("playing", onPlaying);
         };
@@ -169,11 +171,12 @@ export default function VideoAvatar({
           const stream = new MediaStream();
           if (video) stream.addTrack(video);
           if (audio) stream.addTrack(audio);
-          // Muted until scheduleReveal's commit() unmutes it, so the
-          // interviewer's voice never starts before the candidate can see
-          // them -- otherwise the reveal delay that hides choppy first
-          // frames makes the voice arrive noticeably ahead of the face.
-          if (video && !revealedRef.current) videoRef.current.muted = true;
+          // NOT muted: this is a live stream, not a recording. Muting it
+          // during the reveal delay doesn't postpone the interviewer's
+          // greeting, it discards whatever plays while muted -- the
+          // candidate loses the start of "Hi" outright, not just its
+          // sync with the video. Audio plays immediately; only the visual
+          // cover is delayed, via scheduleReveal below.
           videoRef.current.srcObject = stream;
           void videoRef.current.play().catch(() => {
             /* autoplay is unlocked by the mic gate's click */
