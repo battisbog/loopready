@@ -102,7 +102,6 @@ const COMPARISON: {
   { label: "Coding round (live editor + execution)", free: true, voice: true, premium: true },
   { label: "System design round (canvas)", free: true, voice: true, premium: true },
   { label: "Full loop, rounds back to back", free: false, voice: true, premium: true },
-  { label: "Company + level calibration", free: "Generic only", voice: "All 6 companies", premium: "All 6 companies" },
   { label: "Real-time voice interviewer", free: true, voice: true, premium: true },
   { label: "Written debrief", free: true, voice: true, premium: true },
   { label: "Session history", free: "Last session", voice: true, premium: true },
