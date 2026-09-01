@@ -5,10 +5,10 @@ import DodoPayments from "dodopayments";
  * knows how to reach the provider, so nothing else touches an SDK instance
  * or an env var directly.
  *
- * Not wired into any live flow yet -- see the top-level comment in
- * app/api/dodo/*. This exists so the whole parallel integration can be
- * flipped on by pointing checkout UI + the Dodo dashboard webhook URL at
- * these routes, without writing any of this from scratch under pressure.
+ * This is the live checkout path -- app/checkout/page.tsx creates a
+ * checkout session via lib/dodo/checkout.ts and redirects straight to
+ * Dodo's hosted page. PayPal (lib/paypal/client.ts) stays live only for
+ * pre-existing subscribers; every new purchase goes through here.
  */
 
 let cached: DodoPayments | null = null;
