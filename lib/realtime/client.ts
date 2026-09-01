@@ -18,6 +18,7 @@
 import { audioLevels } from "@/lib/audio-levels";
 import { rtLog } from "@/lib/realtime/log";
 import { REALTIME_DEBUG } from "@/lib/realtime/config";
+import { getUnlockedAudioElement } from "@/lib/audio-unlock";
 
 const CALLS_URL = "https://api.openai.com/v1/realtime/calls";
 
@@ -68,6 +69,8 @@ export class RealtimeSession {
   private closed = false;
   /** Whether the remote audio track has arrived. */
   private audioReady = false;
+  /** One-shot retry hook, armed only if the initial autoplay was blocked. */
+  private unlockRetry: (() => void) | null = null;
   /** True between response.created and response.done. */
   private responseActive = false;
   private pendingSpeak: string | null = null;
@@ -94,7 +97,20 @@ export class RealtimeSession {
     this.pc = pc;
 
     // Remote audio: the interviewer's voice.
-    this.audioEl = new Audio();
+    //
+    // Reuse the <audio> element primed synchronously inside the mic gate's
+    // click handler (see lib/audio-unlock.ts), rather than creating a fresh
+    // one here. By the time `ontrack` fires below, several network
+    // round-trips have happened since that click (our session endpoint, the
+    // SDP offer POST, the SDP answer) -- long enough that WebKit no longer
+    // treats a brand-new element's `.play()` as gesture-driven and silently
+    // blocks it. An element that already started playing DURING the click
+    // can have its srcObject swapped and keep playing without a second
+    // gesture. This is WebKit's policy specifically (Safari and every other
+    // iOS browser, which are all WKWebView shells over WebKit), so it
+    // applies identically across all of them -- falling back to a fresh
+    // element on other engines where this distinction doesn't matter.
+    this.audioEl = getUnlockedAudioElement() ?? new Audio();
     this.audioEl.autoplay = true;
     pc.ontrack = (e) => {
       if (this.audioEl) this.audioEl.srcObject = e.streams[0];
@@ -104,10 +120,7 @@ export class RealtimeSession {
       // "interviewer never speaks" bug, so it is a first-class milestone.
       this.audioReady = true;
       rtLog.mark("audio.track", "remote interviewer audio attached");
-      this.audioEl
-        ?.play()
-        .then(() => rtLog.mark("audio.play.ok"))
-        .catch((err) => rtLog.mark("audio.play.blocked", String(err?.name ?? err)));
+      this.playRemoteAudio();
     };
 
     this.stream.getTracks().forEach((t) => pc.addTrack(t, this.stream!));
@@ -149,6 +162,41 @@ export class RealtimeSession {
     }
     await pc.setRemoteDescription({ type: "answer", sdp: await res.text() });
     rtLog.mark("sdp.answer.applied");
+  }
+
+  /**
+   * Plays the remote interviewer track, with a fallback for the case the
+   * unlocked element (or the fresh one, on an engine without this quirk)
+   * still gets blocked: the pre-priming above covers the common case, but
+   * isn't guaranteed on every iOS browser shell, since exactly how gesture
+   * activation propagates from a touch event into WKWebView-hosted page
+   * content is a Chrome-iOS/Firefox-iOS/Edge-iOS implementation detail, not
+   * something this app controls. If `.play()` still rejects, arm a one-shot
+   * listener so the candidate's very next tap anywhere on the page (which
+   * they will almost certainly make, e.g. to use the mic) retries it -- so
+   * a blocked interviewer voice degrades to "one extra tap" instead of
+   * "the interview looks broken."
+   */
+  private playRemoteAudio() {
+    this.audioEl
+      ?.play()
+      .then(() => rtLog.mark("audio.play.ok"))
+      .catch((err) => {
+        rtLog.mark("audio.play.blocked", String(err?.name ?? err));
+        if (this.unlockRetry) return;
+        const retry = () => {
+          document.removeEventListener("pointerdown", retry, true);
+          document.removeEventListener("touchend", retry, true);
+          this.unlockRetry = null;
+          void this.audioEl
+            ?.play()
+            .then(() => rtLog.mark("audio.play.retry.ok"))
+            .catch((e) => rtLog.mark("audio.play.retry.blocked", String(e?.name ?? e)));
+        };
+        this.unlockRetry = retry;
+        document.addEventListener("pointerdown", retry, true);
+        document.addEventListener("touchend", retry, true);
+      });
   }
 
   /** Seeds prior turns so a resumed round has its conversation history. */
@@ -333,6 +381,11 @@ export class RealtimeSession {
     this.closed = true;
     this.pendingSpeak = null;
     this.responseActive = false;
+    if (this.unlockRetry) {
+      document.removeEventListener("pointerdown", this.unlockRetry, true);
+      document.removeEventListener("touchend", this.unlockRetry, true);
+      this.unlockRetry = null;
+    }
     audioLevels.detachAll();
     try {
       this.dc?.close();

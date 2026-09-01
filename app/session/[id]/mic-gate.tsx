@@ -1,8 +1,16 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import { Button, Card } from "@/components/ui";
 import { audioLevels } from "@/lib/audio-levels";
+import { unlockAudioElement } from "@/lib/audio-unlock";
+import { isIOSNonSafari } from "@/lib/platform";
 
 /**
  * Microphone permission and sound check, run BEFORE the interview starts.
@@ -48,8 +56,25 @@ export default function MicGate({
   const streamRef = useRef<MediaStream | null>(null);
   const meterRef = useRef<HTMLDivElement>(null);
   const handedOffRef = useRef(false);
+  // The address-bar permission icon this gate normally points at doesn't
+  // exist the same way in an iOS Chrome/Firefox/Edge shell, so those
+  // browsers need Settings-app instructions instead. Read via
+  // useSyncExternalStore (not a state-setting effect) so SSR reliably
+  // returns false rather than depending on hydration timing -- same
+  // reasoning as the `wantsVideo` read in round-shell.tsx.
+  const iosNonSafari = useSyncExternalStore(
+    () => () => {},
+    () => isIOSNonSafari(),
+    () => false
+  );
 
   const request = useCallback(async () => {
+    // Primed here (synchronously, before any await) so it runs inside
+    // whatever user gesture triggered this call. The live round's remote
+    // audio element reuses this same unlocked element later, once the
+    // WebRTC handshake -- several network round-trips away -- finally
+    // delivers the interviewer's track. See lib/audio-unlock.ts.
+    unlockAudioElement();
     setPhase("requesting");
     setDetail(null);
     try {
@@ -87,9 +112,16 @@ export default function MicGate({
         typeof navigator === "undefined" ||
         !navigator.mediaDevices?.getUserMedia
       ) {
+        // Every iOS browser (Chrome, Firefox, Edge, Safari) is WebKit under
+        // the hood, so "no getUserMedia" here isn't a Safari-only problem --
+        // it means this specific browser shell hasn't wired up media capture
+        // (older iOS versions, or some in-app/embedded browsers). Telling
+        // Chrome/Firefox/Edge users to "use Safari" when the real fix is
+        // often just updating iOS or leaving an embedded webview was
+        // actively wrong, so this no longer names a specific browser.
         setPhase("unavailable");
         setDetail(
-          "This browser cannot access a microphone. On iOS, Safari is required."
+          "This browser cannot access a microphone. Try updating iOS, or open this page in your regular browser rather than an in-app/embedded one."
         );
         return;
       }
@@ -150,6 +182,10 @@ export default function MicGate({
   function start() {
     const stream = streamRef.current;
     if (!stream) return;
+    // Re-prime on the actual "Start interview" tap too -- the closest
+    // possible gesture to when the round's remote audio element will need
+    // to start playing.
+    unlockAudioElement();
     handedOffRef.current = true;
     onReady(stream);
   }
@@ -241,14 +277,25 @@ export default function MicGate({
                 The interview is spoken, so it cannot run without a microphone.
                 To enable it:
               </p>
-              <ol className="mt-3 list-decimal space-y-1.5 pl-5 text-sm text-secondary">
-                <li>
-                  Click the icon at the left of the address bar (a padlock, a
-                  slider, or a crossed-out microphone).
-                </li>
-                <li>Set Microphone to Allow.</li>
-                <li>Reload this page.</li>
-              </ol>
+              {iosNonSafari ? (
+                <ol className="mt-3 list-decimal space-y-1.5 pl-5 text-sm text-secondary">
+                  <li>
+                    Open the iOS Settings app, then find this browser in the
+                    app list (not this browser&rsquo;s own in-page settings).
+                  </li>
+                  <li>Turn Microphone on for it.</li>
+                  <li>Reload this page.</li>
+                </ol>
+              ) : (
+                <ol className="mt-3 list-decimal space-y-1.5 pl-5 text-sm text-secondary">
+                  <li>
+                    Click the icon at the left of the address bar (a padlock, a
+                    slider, or a crossed-out microphone).
+                  </li>
+                  <li>Set Microphone to Allow.</li>
+                  <li>Reload this page.</li>
+                </ol>
+              )}
               {detail && <p className="mt-3 text-xs text-muted">{detail}</p>}
               <div className="mt-4 flex gap-2">
                 <Button
