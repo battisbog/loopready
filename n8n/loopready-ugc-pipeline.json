@@ -1,0 +1,184 @@
+{
+  "name": "LoopReady UGC Video Pipeline",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "triggerAtDay": [1],
+              "triggerAtHour": 9
+            }
+          ]
+        }
+      },
+      "id": "trigger-schedule",
+      "name": "Weekly Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [-220, 300]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a1",
+              "name": "script",
+              "value": "You're not failing the coding round. You're failing the ninety seconds before it. Most people read the problem and start typing. Restate the problem. State your assumptions out loud. Say your approach before you write a line. The interviewer can't read your mind. If you didn't say it, you didn't do it.",
+              "type": "string"
+            },
+            {
+              "id": "a2",
+              "name": "avatar_id",
+              "value": "REPLACE_WITH_YOUR_AVATAR_ID",
+              "type": "string"
+            },
+            {
+              "id": "a3",
+              "name": "voice_id",
+              "value": "REPLACE_WITH_YOUR_VOICE_ID",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "set-config",
+      "name": "Script + Avatar Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [0, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.heygen.com/v2/video/generate",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Api-Key",
+              "value": "={{ $env.HEYGEN_API_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  video_inputs: [\n    {\n      character: {\n        type: \"avatar\",\n        avatar_id: $json.avatar_id,\n        avatar_style: \"normal\"\n      },\n      voice: {\n        type: \"text\",\n        input_text: $json.script,\n        voice_id: $json.voice_id\n      },\n      background: { type: \"color\", value: \"#09090b\" }\n    }\n  ],\n  dimension: { width: 1080, height: 1920 }\n}) }}",
+        "options": {}
+      },
+      "id": "heygen-generate",
+      "name": "HeyGen: Generate Video",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [220, 300]
+    },
+    {
+      "parameters": {
+        "amount": 90
+      },
+      "id": "wait-render",
+      "name": "Wait for Render",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [440, 300],
+      "webhookId": "loopready-ugc-wait"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.heygen.com/v1/video_status.get?video_id={{ $('HeyGen: Generate Video').item.json.data.video_id }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Api-Key",
+              "value": "={{ $env.HEYGEN_API_KEY }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "heygen-status",
+      "name": "HeyGen: Check Status",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [660, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $json.data.status }}",
+              "rightValue": "completed",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-ready",
+      "name": "Render Complete?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [880, 300]
+    },
+    {
+      "parameters": {
+        "fromEmail": "hello@loopready.io",
+        "toEmail": "ishkiwashka@gmail.com",
+        "subject": "New LoopReady video ready for review",
+        "emailFormat": "text",
+        "text": "=A new UGC video finished rendering and is ready for your review before posting.\n\nScript:\n{{ $('Script + Avatar Config').item.json.script }}\n\nVideo URL (expires — download it):\n{{ $json.data.video_url }}\n\nReview it, then post manually to TikTok / Reels / Shorts.",
+        "options": {}
+      },
+      "id": "notify-review",
+      "name": "Email for Review",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [1100, 200]
+    }
+  ],
+  "connections": {
+    "Weekly Trigger": {
+      "main": [[{ "node": "Script + Avatar Config", "type": "main", "index": 0 }]]
+    },
+    "Script + Avatar Config": {
+      "main": [[{ "node": "HeyGen: Generate Video", "type": "main", "index": 0 }]]
+    },
+    "HeyGen: Generate Video": {
+      "main": [[{ "node": "Wait for Render", "type": "main", "index": 0 }]]
+    },
+    "Wait for Render": {
+      "main": [[{ "node": "HeyGen: Check Status", "type": "main", "index": 0 }]]
+    },
+    "HeyGen: Check Status": {
+      "main": [[{ "node": "Render Complete?", "type": "main", "index": 0 }]]
+    },
+    "Render Complete?": {
+      "main": [
+        [{ "node": "Email for Review", "type": "main", "index": 0 }],
+        [{ "node": "Wait for Render", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {}
+}
