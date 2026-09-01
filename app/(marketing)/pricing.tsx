@@ -102,7 +102,6 @@ const COMPARISON: {
   { label: "Coding round (live editor + execution)", free: true, voice: true, premium: true },
   { label: "System design round (canvas)", free: true, voice: true, premium: true },
   { label: "Full loop, rounds back to back", free: false, voice: true, premium: true },
-  { label: "Company + level calibration", free: "Generic only", voice: "All 6 companies", premium: "All 6 companies" },
   { label: "Real-time voice interviewer", free: true, voice: true, premium: true },
   { label: "Written debrief", free: true, voice: true, premium: true },
   { label: "Session history", free: "Last session", voice: true, premium: true },
@@ -385,7 +384,12 @@ function Cell({ value, accent }: { value: string | boolean; accent?: boolean }) 
   return (
     <td className="px-4 py-4">
       {value === true ? (
-        <Check className={cn("h-4 w-4", accent ? "text-accent" : "text-secondary")} />
+        // text-success (green), unconditionally -- the third deliberate
+        // green touch on the page. "This is included" is exactly the
+        // semantic --success already carries elsewhere (pass/fail in the
+        // coding mockup), and a green check is the one universally-read
+        // convention this restrained neutral system can afford to keep.
+        <Check className="h-4 w-4 text-success" />
       ) : value === false ? (
         <Minus className="h-4 w-4 text-muted" />
       ) : (
