@@ -1,252 +1,69 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 type Purchase =
   | { kind: "subscription"; plan: "voice" | "premium" }
   | { kind: "order"; product: "video-pack"; quantity: number };
 
-/** Minimal shape of the bits of the PayPal SDK we use. */
-interface PayPalSdk {
-  Buttons: (opts: Record<string, unknown>) => {
-    render: (target: HTMLElement) => Promise<void>;
-    isEligible: () => boolean;
-    close?: () => void;
-  };
-  /** Funding source constants, used to render each button on its own. */
-  FUNDING: Record<string, string>;
-}
-declare global {
-  interface Window {
-    paypal?: PayPalSdk;
-  }
-}
-
-function loadSdk(clientId: string, subscription: boolean): Promise<PayPalSdk> {
-  return new Promise((resolve, reject) => {
-    // Subscriptions and one-time orders need different SDK intents, so a
-    // previously-loaded script for the other mode has to be replaced.
-    const existing = document.querySelector<HTMLScriptElement>("script[data-paypal]");
-    if (existing?.dataset.mode === (subscription ? "sub" : "order") && window.paypal) {
-      return resolve(window.paypal);
-    }
-    existing?.remove();
-
-    const params = new URLSearchParams({
-      "client-id": clientId,
-      currency: "USD",
-      components: "buttons",
-      ...(subscription
-        ? { intent: "subscription", vault: "true" }
-        : { intent: "capture" }),
-    });
-
-    const script = document.createElement("script");
-    script.src = `https://www.paypal.com/sdk/js?${params.toString()}`;
-    script.dataset.paypal = "true";
-    script.dataset.mode = subscription ? "sub" : "order";
-    script.onload = () =>
-      window.paypal ? resolve(window.paypal) : reject(new Error("SDK missing"));
-    script.onerror = () => reject(new Error("Could not load PayPal"));
-    document.body.appendChild(script);
-  });
-}
-
+/**
+ * Dodo's checkout is a hosted page, not an embedded SDK widget like
+ * PayPal's -- this just asks our server for a checkout_url and redirects
+ * the browser there. No client-side provider SDK, no funding-source
+ * eligibility dance, no iframe styling workarounds.
+ */
 export default function CheckoutButtons({
-  clientId,
   purchase,
   discountCode,
 }: {
-  clientId: string;
   purchase: Purchase;
   /** Applied via /api/discount/check before rendering; re-validated and
-   *  actually redeemed server-side when the subscription is created. */
+   *  actually redeemed server-side when the checkout session is created. */
   discountCode?: string;
 }) {
-  const router = useRouter();
-  const paypalMount = useRef<HTMLDivElement>(null);
-  const cardMount = useRef<HTMLDivElement>(null);
-  const [status, setStatus] = useState<"loading" | "ready" | "working" | "error">(
-    "loading"
-  );
+  const [status, setStatus] = useState<"idle" | "working" | "error">("idle");
   const [error, setError] = useState<string | null>(null);
 
-  // Video pack's quantity stepper creates a new `purchase` object on every
-  // click. createOrder reads this ref instead of `purchase` directly so a
-  // quantity change doesn't have to appear in the effect's own deps below --
-  // it always sees the latest quantity without the PayPal SDK re-mounting
-  // (which tore the buttons down and replayed their load-in animation on
-  // every single + or - click).
-  const purchaseRef = useRef(purchase);
-  purchaseRef.current = purchase;
-
-  // Only the KIND of purchase (which plan, which product) should remount the
-  // SDK -- quantity is deliberately excluded so it stays out of the deps
-  // array below.
-  const purchaseIdentity =
-    purchase.kind === "subscription"
-      ? `sub:${purchase.plan}`
-      : `order:${purchase.product}`;
-
-  useEffect(() => {
-    let cancelled = false;
-    const isSubscription = purchaseRef.current.kind === "subscription";
-
-    /** Handlers are identical for every funding source. */
-    const flow = isSubscription
-      ? {
-          createSubscription: async () => {
-            const res = await fetch("/api/paypal/subscription", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                plan: (purchaseRef.current as { plan: string }).plan,
-                discountCode: discountCode || undefined,
-              }),
-            });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error ?? "Could not start");
-            return data.subscriptionId;
-          },
-          onApprove: async () => {
-            setStatus("working");
-            // The webhook grants the tier; this just moves the user on.
-            router.push("/billing?checkout=success");
-          },
+  async function startCheckout() {
+    setStatus("working");
+    setError(null);
+    try {
+      const isSubscription = purchase.kind === "subscription";
+      const res = await fetch(
+        isSubscription ? "/api/dodo/subscription" : "/api/dodo/order",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(
+            isSubscription
+              ? { plan: purchase.plan, discountCode: discountCode || undefined }
+              : { product: purchase.product, quantity: purchase.quantity }
+          ),
         }
-      : {
-          createOrder: async () => {
-            const current = purchaseRef.current as {
-              product: string;
-              quantity?: number;
-            };
-            const res = await fetch("/api/paypal/order", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                product: current.product,
-                quantity: current.quantity,
-              }),
-            });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error ?? "Could not start");
-            return data.orderId;
-          },
-          onApprove: async (data: { orderID: string }) => {
-            setStatus("working");
-            const res = await fetch("/api/paypal/order/capture", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ orderId: data.orderID }),
-            });
-            const body = await res.json();
-            if (!res.ok) {
-              setStatus("error");
-              setError(body.error ?? "Payment could not be completed.");
-              return;
-            }
-            router.push("/billing?checkout=success");
-          },
-        };
-
-    const shared = {
-      style: { shape: "rect", label: "pay", height: 45 } as Record<string, unknown>,
-      ...flow,
-      onCancel: () => {
-        setStatus("ready");
-        setError(null);
-      },
-      onError: (e: unknown) => {
-        console.error("[paypal] button error:", e);
+      );
+      const data = await res.json();
+      if (!res.ok || !data.checkoutUrl) {
         setStatus("error");
-        setError("Something went wrong with PayPal. You have not been charged.");
-      },
-    };
-
-    loadSdk(clientId, isSubscription)
-      .then(async (paypal) => {
-        if (cancelled) return;
-
-        /**
-         * Each funding source is rendered on its own.
-         *
-         * layout:"vertical" puts every funding source inside ONE PayPal
-         * iframe, and the spacing between them lives in PayPal's own DOM --
-         * unreachable from our stylesheet, which is why tightening
-         * .paypal-buttons did nothing. Naming a fundingSource renders exactly
-         * one button per container, so the gap between them becomes ours.
-         *
-         * isEligible() is checked first because render() throws on an
-         * ineligible source, and eligibility genuinely varies: the standalone
-         * card button is not always offered for subscriptions. Skipping one
-         * quietly is correct -- PayPal's own flow still takes cards for guests.
-         */
-        const targets = [
-          { funding: paypal.FUNDING.PAYPAL, mount: paypalMount.current },
-          { funding: paypal.FUNDING.CARD, mount: cardMount.current },
-        ];
-
-        let rendered = 0;
-        for (const t of targets) {
-          if (!t.mount || !t.funding) continue;
-          t.mount.innerHTML = "";
-          const button = paypal.Buttons({ ...shared, fundingSource: t.funding });
-          if (!button.isEligible()) continue;
-          try {
-            await button.render(t.mount);
-            rendered += 1;
-          } catch {
-            // One unavailable source must not take the whole checkout down.
-          }
-        }
-
-        if (cancelled) return;
-        if (rendered === 0) {
-          setStatus("error");
-          setError("PayPal could not display the payment options.");
-          return;
-        }
-        setStatus("ready");
-      })
-      .catch(() => {
-        if (cancelled) return;
-        setStatus("error");
-        setError("Could not load PayPal. Check your connection and retry.");
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [clientId, purchaseIdentity, router, discountCode]);
+        setError(data.error ?? "Could not start checkout.");
+        return;
+      }
+      window.location.href = data.checkoutUrl;
+    } catch {
+      setStatus("error");
+      setError("Could not reach the payment provider. Please try again.");
+    }
+  }
 
   return (
     <div>
-      {status === "loading" && (
-        <div className="flex items-center justify-center gap-2 py-6 text-sm text-secondary">
-          <span className="h-2 w-2 animate-pulse rounded-full bg-accent" />
-          Loading payment options…
-        </div>
-      )}
-      {status === "working" && (
-        <div className="flex items-center justify-center gap-2 py-6 text-sm text-secondary">
-          <span className="h-2 w-2 animate-pulse rounded-full bg-accent" />
-          Confirming your payment…
-        </div>
-      )}
-
-      {/* One container per funding source, so the spacing between the buttons
-          is ours rather than PayPal's. Kept mounted: PayPal renders into these
-          and re-rendering would tear them down. */}
-      <div className={`space-y-2 ${status === "working" ? "hidden" : ""}`}>
-        {/* overflow-hidden + a matching radius clips the corners of PayPal's
-            iframe, whose background is opaque white. The button inside is
-            rounded, so without this the square white box behind it shows
-            through at each corner. Nothing inside the frame is stylable from
-            here, so clipping from the outside is the only lever we have. */}
-        <div ref={paypalMount} className="overflow-hidden rounded-md" />
-        <div ref={cardMount} className="overflow-hidden rounded-md" />
-      </div>
+      <button
+        type="button"
+        onClick={startCheckout}
+        disabled={status === "working"}
+        className="flex h-11 w-full items-center justify-center rounded-md bg-accent text-sm font-medium text-accent-fg transition-colors hover:bg-accent-hover disabled:opacity-60"
+      >
+        {status === "working" ? "Redirecting to checkout…" : "Continue to payment"}
+      </button>
 
       {error && (
         <p className="mt-3 text-center text-sm text-error" role="alert">

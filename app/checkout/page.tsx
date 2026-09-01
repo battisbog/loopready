@@ -4,9 +4,10 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import AppNav from "@/components/app-nav";
 import { Badge, Card, PageShell } from "@/components/ui";
-import { PRICING, planId } from "@/lib/pricing";
+import { PRICING } from "@/lib/pricing";
 import { VIDEO_PACK_CREDITS, getUserTier } from "@/lib/tiers";
-import { paypalConfigured } from "@/lib/paypal/client";
+import { dodoConfigured } from "@/lib/dodo/client";
+import { dodoProductId, dodoVideoPackProductId } from "@/lib/dodo/products";
 import SubscriptionCheckout from "./subscription-checkout";
 import VideoPackCheckout from "./video-pack-checkout";
 
@@ -102,11 +103,11 @@ export default async function CheckoutPage({
   const admin = createAdminClient();
   const tier = await getUserTier(admin, user.id);
 
-  const clientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID;
   const configured =
-    paypalConfigured() &&
-    Boolean(clientId) &&
-    (purchase.kind === "order" || Boolean(planId(purchase.plan)));
+    dodoConfigured() &&
+    (purchase.kind === "order"
+      ? Boolean(dodoVideoPackProductId())
+      : Boolean(dodoProductId(purchase.plan)));
 
   const alreadyOnPlan =
     purchase.kind === "subscription" && tier === purchase.plan;
@@ -151,7 +152,6 @@ export default async function CheckoutPage({
             state that a single fixed purchase.dueToday can't express. */}
         {purchase.kind === "order" ? (
           <VideoPackCheckout
-            clientId={clientId ?? ""}
             configured={configured}
             unitPrice={PRICING.videoPack.amount}
             creditsPerPack={VIDEO_PACK_CREDITS}
@@ -243,10 +243,11 @@ export default async function CheckoutPage({
               ) : (
                 <>
                   <p className="text-sm font-medium text-primary">
-                    Pay with PayPal
+                    Pay securely
                   </p>
                   <p className="mt-1 text-xs leading-relaxed text-muted">
-                    Use a PayPal balance or any debit or credit card.
+                    Card, wallet, or local payment methods, handled by our
+                    payment provider.
                   </p>
                   <div className="mt-4">
                     {/* This branch only ever renders for a subscription now --
@@ -255,7 +256,6 @@ export default async function CheckoutPage({
                         this shared grid. */}
                     <SubscriptionCheckout
                       plan={purchase.plan}
-                      clientId={clientId!}
                       regularPrice={PRICING[purchase.plan].amount}
                     />
                   </div>
@@ -265,7 +265,7 @@ export default async function CheckoutPage({
 
             <ul className="mt-4 space-y-2.5 px-1">
               {[
-                "Card details go to PayPal, never to LoopReady",
+                "Card details go to our payment provider, never to LoopReady",
                 isSubscription
                   ? "Cancel anytime. Access runs to the end of the period you paid for"
                   : "Credits are added to your account immediately",

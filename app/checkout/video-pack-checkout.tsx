@@ -18,12 +18,10 @@ function formatUsd(amount: number): string {
 }
 
 export default function VideoPackCheckout({
-  clientId,
   configured,
   unitPrice,
   creditsPerPack,
 }: {
-  clientId: string;
   configured: boolean;
   /** "19.00", from PRICING.videoPack.amount. */
   unitPrice: string;
@@ -144,13 +142,13 @@ export default function VideoPackCheckout({
             </div>
           ) : (
             <>
-              <p className="text-sm font-medium text-primary">Pay with PayPal</p>
+              <p className="text-sm font-medium text-primary">Pay securely</p>
               <p className="mt-1 text-xs leading-relaxed text-muted">
-                Use a PayPal balance or any debit or credit card.
+                Card, wallet, or local payment methods, handled by our
+                payment provider.
               </p>
               <div className="mt-4">
                 <CheckoutButtons
-                  clientId={clientId}
                   purchase={{ kind: "order", product: "video-pack", quantity }}
                 />
               </div>
@@ -160,7 +158,7 @@ export default function VideoPackCheckout({
 
         <ul className="mt-4 space-y-2.5 px-1">
           {[
-            "Card details go to PayPal, never to LoopReady",
+            "Card details go to our payment provider, never to LoopReady",
             "Credits are added to your account immediately",
             "Access unlocks the moment payment clears",
           ].map((t) => (

@@ -6,7 +6,7 @@ import CheckoutButtons from "./checkout-buttons";
 
 /**
  * Payment-panel content for a subscription checkout: the discount field, a
- * confirmation line once a code is applied, and the PayPal buttons. Kept
+ * confirmation line once a code is applied, and the checkout button. Kept
  * entirely within the payment panel rather than also updating the order
  * summary card's price -- that card shows what the PLAN costs, which stays
  * true regardless of a one-time discount on this specific purchase, and
@@ -15,11 +15,9 @@ import CheckoutButtons from "./checkout-buttons";
  */
 export default function SubscriptionCheckout({
   plan,
-  clientId,
   regularPrice,
 }: {
   plan: "voice" | "premium";
-  clientId: string;
   /** Full monthly price, e.g. "19.00". */
   regularPrice: string;
 }) {
@@ -47,7 +45,6 @@ export default function SubscriptionCheckout({
 
       <div className="mt-4">
         <CheckoutButtons
-          clientId={clientId}
           purchase={{ kind: "subscription", plan }}
           discountCode={discount?.code}
         />
