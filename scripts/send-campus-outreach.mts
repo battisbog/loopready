@@ -143,9 +143,38 @@ function markSent(school: string, status: "sent" | "failed") {
   writeFileSync(MASTER_PATH, [header, ...updated].join("\n") + "\n");
 }
 
+/**
+ * Schools that have explicitly asked not to be contacted again.
+ *
+ * Read from the master file's status column rather than a hardcoded list, so
+ * recording an opt-out in one place is enough to permanently protect it. This
+ * is a hard guard, not a convenience: re-running an old batch CSV that still
+ * lists an opted-out school must never re-email them, in dry run or otherwise.
+ * Lafayette College is the first -- they replied asking for no follow-ups.
+ */
+function doNotContactSet(): Set<string> {
+  const out = new Set<string>();
+  if (!existsSync(MASTER_PATH)) return out;
+  const [header, ...rows] = readFileSync(MASTER_PATH, "utf8").trim().split("\n");
+  const cols = header.split(",");
+  const schoolIdx = cols.indexOf("school");
+  const statusIdx = cols.indexOf("status");
+  if (schoolIdx === -1 || statusIdx === -1) return out;
+  for (const row of rows) {
+    const values = row.split(",");
+    if (values[statusIdx]?.startsWith("replied-do-not-contact")) {
+      out.add(values[schoolIdx]);
+    }
+  }
+  return out;
+}
+
 async function main() {
   const contacts = parseCsv(readFileSync(csvPath, "utf8")).slice(0, LIMIT);
-  console.log(`${contacts.length} contact(s) loaded from ${csvPath}. Mode: ${SEND ? "SENDING" : "DRY RUN"}\n`);
+  const blocked = doNotContactSet();
+  console.log(`${contacts.length} contact(s) loaded from ${csvPath}. Mode: ${SEND ? "SENDING" : "DRY RUN"}`);
+  if (blocked.size) console.log(`${blocked.size} school(s) on the do-not-contact list will be skipped.`);
+  console.log();
 
   const logPath = "scripts/campus-outreach-log.csv";
   if (SEND && !existsSync(logPath)) {
@@ -153,6 +182,10 @@ async function main() {
   }
 
   for (const c of contacts) {
+    if (blocked.has(c.school)) {
+      console.log(`SKIP (asked not to be contacted): ${c.school}`);
+      continue;
+    }
     if (!c.email || !c.email.includes("@")) {
       console.log(`SKIP (no valid email): ${c.school}`);
       continue;
