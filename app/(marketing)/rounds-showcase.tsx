@@ -1,236 +1,120 @@
 "use client";
 
-import { useState } from "react";
-import { AnimatePresence, motion } from "motion/react";
 import { BrowserChrome } from "./dashboard-mockup";
-import { Badge } from "@/components/ui";
 import { cn } from "@/lib/cn";
 
 /**
- * Replaces three identical "icon, title, bullet list" cards with a tabbed
- * live-preview: pick a round on the left, see what it actually looks like on
- * the right. The three rounds are LoopReady's whole differentiator, so they
- * get a showcase rather than the same card shape as every other SaaS
- * features section on the internet.
+ * FIG-column layout (linear.app's reference pattern) -- replaces the earlier
+ * tabbed/expanding-card design entirely, not a restyle of it. Deliberately
+ * structurally different: no interactive state, no shared component between
+ * the three columns, no truncation-prone tab bar. All three columns render
+ * unconditionally and simultaneously on desktop; mobile gets a native
+ * scroll-snap carousel instead of a tab switcher. There is nothing here that
+ * can render as an "empty box" the way the old expanding tabs could, because
+ * nothing is conditionally hidden -- every column always has its full
+ * content.
  */
 interface RoundDef {
   key: "coding" | "system_design" | "behavioral";
+  fig: string;
   title: string;
-  /** Shorter label for the mobile pill tab bar, where all three labels must
-   *  fit on one line -- "System design" is the only one long enough to need
-   *  this. Falls back to `title` when absent. */
-  mobileTitle?: string;
-  body: string;
-  points: string[];
+  description: string;
 }
 
 const ROUNDS: RoundDef[] = [
   {
     key: "coding",
+    fig: "01",
     title: "Coding",
-    body: "A live editor the interviewer reads as you type, running your code against real test cases, with the same questions about approach and complexity you get on the day.",
-    points: [
-      "Python and JavaScript",
-      "Real execution against tests",
-      "Probes approach before code",
-    ],
+    description:
+      "A live editor the interviewer reads as you type, running your code against real test cases.",
   },
   {
     key: "system_design",
+    fig: "02",
     title: "System design",
-    mobileTitle: "System",
-    body: "An architecture canvas the interviewer can see and push back on, referencing your components by name and challenging hand-waving about scale.",
-    points: [
-      "Drag-and-drop components",
-      "Interviewer reads your diagram",
-      "Pushes on bottlenecks and trade-offs",
-    ],
+    description:
+      "An architecture canvas the interviewer can see and push back on, challenging hand-waving about scale.",
   },
   {
     key: "behavioral",
+    fig: "03",
     title: "Behavioral",
-    body: "Three questions across different competencies, each with real follow-up probing. Answered by voice, graded against your target company's values.",
-    points: [
-      "Voice in, voice out",
-      "Up to two probes per question",
-      "18-question bank across 6 competencies",
-    ],
+    description:
+      "Real follow-up probing by voice, graded against your target company's actual values.",
   },
 ];
 
 export default function RoundsShowcase() {
-  const [active, setActive] = useState<RoundDef["key"]>("coding");
-  const round = ROUNDS.find((r) => r.key === active)!;
-
   return (
-    // relative + the two absolutely-positioned blurred blobs below give the
-    // whole showcase ambient depth instead of floating flat against the page
-    // background -- kept inside THIS wrapper (not the overflow-hidden preview
-    // card) specifically so the blur is free to bleed past the card's own
-    // edges rather than being clipped by it.
     <div className="relative mt-12">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -top-16 right-0 h-72 w-72 rounded-full bg-accent-muted blur-[100px]"
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -bottom-16 left-1/4 h-56 w-56 rounded-full bg-accent-muted blur-[100px] opacity-60"
-      />
+      {/* ---- Desktop: three flat columns, hairline dividers between them ----
+          divide-x puts the 1px line BETWEEN columns only (never around the
+          outside), and there is no bg/border-radius/shadow on the columns
+          themselves -- flat against the page, matching the reference. */}
+      <div className="hidden lg:grid lg:grid-cols-3 lg:divide-x lg:divide-line">
+        {ROUNDS.map((r) => (
+          <FigColumn key={r.key} round={r} className="lg:px-8 lg:first:pl-0 lg:last:pr-0" />
+        ))}
+      </div>
 
-      <div className="relative">
-        {/* ---- Expanding tab row ----
-            Three tabs share one row, in a fixed left-to-right order that
-            never changes -- only each one's WIDTH changes on click. The
-            active tab claims most of the row (full title + description +
-            checklist); the other two collapse to a narrow title-only strip,
-            still fully visible and clickable, not hidden behind a chevron
-            or dropdown. `layout` on each button is what makes the width
-            change animate smoothly instead of snapping -- Framer Motion
-            (already a dependency here) interpolates the actual flexbox
-            geometry between renders, which is the standard way to build
-            this "shared position, one grows, others shrink" interaction. */}
-        <div className="hidden gap-3 lg:flex">
-          {ROUNDS.map((r) => {
-            const isActive = r.key === active;
-            return (
-              <motion.button
-                key={r.key}
-                layout
-                transition={{ type: "spring", stiffness: 260, damping: 28 }}
-                type="button"
-                onClick={() => setActive(r.key)}
-                aria-pressed={isActive}
-                className={cn(
-                  // isolate: this card always gets its own stacking context,
-                  // so nothing painted inside a SIBLING card (an unrelated
-                  // element entirely) can ever be composited as if it
-                  // belonged to this one, while several independent
-                  // animations (this layout spring, the preview's crossfade,
-                  // the caret blink) are all running at once nearby.
-                  "isolate flex min-w-0 flex-col overflow-hidden rounded-lg border border-l-2 px-4 py-3.5 text-left transition-colors duration-200",
-                  isActive
-                    ? "flex-[3] border-line-strong border-l-accent bg-accent-muted"
-                    : "flex-1 border-line border-l-line hover:border-line-strong hover:border-l-line-strong hover:bg-elevated"
-                )}
-              >
-                <motion.span
-                  layout="position"
-                  className={cn(
-                    "truncate text-sm font-semibold",
-                    isActive ? "text-accent" : "text-primary"
-                  )}
-                >
-                  {r.title}
-                </motion.span>
-                <AnimatePresence>
-                  {isActive && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      exit={{ opacity: 0, height: 0 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <p className="mt-1.5 text-sm leading-relaxed text-secondary">
-                        {r.body}
-                      </p>
-                      <ul className="mt-3 space-y-1.5">
-                        {r.points.map((p) => (
-                          <li
-                            key={p}
-                            className="flex items-start gap-2 text-xs text-secondary"
-                          >
-                            <span className="mt-0.5 text-accent">✓</span>
-                            {p}
-                          </li>
-                        ))}
-                      </ul>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </motion.button>
-            );
-          })}
-        </div>
+      {/* ---- Mobile: native horizontal scroll-snap carousel ----
+          No JS drag library, no active/inactive state -- the browser's own
+          scroll-snap handles the swipe, and every card always shows its full
+          label/title/description at readable size. w-[82%] is what makes the
+          next card peek in from the right edge as the swipe affordance. */}
+      <div className="-mx-6 flex snap-x snap-mandatory gap-4 overflow-x-auto px-6 pb-2 lg:hidden">
+        {ROUNDS.map((r) => (
+          <FigColumn
+            key={r.key}
+            round={r}
+            className="w-[82%] shrink-0 snap-start"
+          />
+        ))}
+      </div>
 
-        {/* ---- Mobile tab bar + content panel ----
-            Below `lg`, the expanding-tab-row above is hidden entirely and
-            replaced with two genuinely SEPARATE elements: a single-row pill
-            tab bar containing only short labels (never card content, never
-            an empty box for the inactive tabs -- the bug this replaces), and
-            one content panel below it that renders only the active round.
-            Content here is intentionally shorter than the desktop card
-            (fewer bullets, clamped body) so the live-preview mockup right
-            below it is reachable without a full extra screen of scrolling. */}
-        <div className="lg:hidden">
-          <div className="flex w-full gap-1 rounded-full border border-line bg-surface p-1">
-            {ROUNDS.map((r) => {
-              const isActive = r.key === active;
-              return (
-                <button
-                  key={r.key}
-                  type="button"
-                  onClick={() => setActive(r.key)}
-                  aria-pressed={isActive}
-                  className={cn(
-                    "flex-1 rounded-full px-2 py-2 text-center text-xs font-medium transition-colors duration-200",
-                    isActive
-                      ? "bg-accent text-accent-fg"
-                      : "text-muted hover:text-secondary"
-                  )}
-                >
-                  {r.mobileTitle ?? r.title}
-                </button>
-              );
-            })}
-          </div>
-
-          <div className="mt-4 rounded-lg border border-line-strong border-l-2 border-l-accent bg-accent-muted px-4 py-3.5">
-            <p className="line-clamp-2 text-sm leading-relaxed text-secondary">
-              {round.body}
-            </p>
-            <ul className="mt-2.5 space-y-1.5">
-              {round.points.slice(0, 2).map((p) => (
-                <li key={p} className="flex items-start gap-2 text-xs text-secondary">
-                  <span className="mt-0.5 text-accent">✓</span>
-                  {p}
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-
-        {/* ---- Live preview ---- */}
-        <div className="isolate mt-6 overflow-hidden rounded-lg border border-line bg-base shadow-xl shadow-[var(--shadow-md)] lg:mt-8">
-          <BrowserChrome url={`loopready.io/session · ${round.title.toLowerCase().replace(" ", "-")}`} />
-          <div className="relative min-h-[18rem] lg:min-h-[24rem]">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={active}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-                className="absolute inset-0"
-              >
-                {active === "coding" && <CodingPreview />}
-                {active === "system_design" && <SystemDesignPreview />}
-                {active === "behavioral" && <BehavioralPreview />}
-              </motion.div>
-            </AnimatePresence>
-          </div>
+      {/* ---- Live preview ----
+          Static now rather than swapping with a selected tab -- there is no
+          longer a "selected" round to follow. Coding is kept as the one
+          representative preview: it is the only round whose panel shows the
+          interviewer, the work surface, AND the signal rail at once, which is
+          the actual claim the three columns above are making. */}
+      <div className="isolate mt-10 overflow-hidden rounded-lg border border-line bg-base shadow-xl shadow-[var(--shadow-md)] lg:mt-14">
+        <BrowserChrome url="loopready.io/session · coding" />
+        <div className="min-h-[18rem] lg:min-h-[24rem]">
+          <CodingPreview />
         </div>
       </div>
     </div>
   );
 }
 
-/** Condensed editor + console, now with two more panels flanking it: a
- *  compact interviewer column on the left (who's asking) and a Signal rail
- *  on the right (what the interviewer is quietly keeping score of). Three
- *  columns rather than one, because the product's whole pitch is that
- *  something is watching and judging while you work -- a single code panel
- *  cannot show that, no matter how well it renders Python. */
+function FigColumn({
+  round,
+  className,
+}: {
+  round: RoundDef;
+  className?: string;
+}) {
+  return (
+    <div className={cn("py-2", className)}>
+      <p className="font-mono text-xs text-muted">FIG {round.fig}</p>
+      <h3 className="mt-4 text-xl font-semibold tracking-tight text-primary">
+        {round.title}
+      </h3>
+      <p className="mt-2 text-sm leading-relaxed text-secondary">
+        {round.description}
+      </p>
+    </div>
+  );
+}
+
+/** Condensed editor + console, with two more panels flanking it: a compact
+ *  interviewer column on the left (who's asking) and a Signal rail on the
+ *  right (what the interviewer is quietly keeping score of). Three columns
+ *  rather than one, because the product's whole pitch is that something is
+ *  watching and judging while you work -- a single code panel cannot show
+ *  that, no matter how well it renders Python. */
 function CodingPreview() {
   return (
     <div className="grid h-full md:grid-cols-[minmax(0,0.62fr)_minmax(0,1.18fr)_minmax(0,0.62fr)]">
@@ -246,11 +130,6 @@ function CodingPreview() {
             Run tests
           </span>
         </div>
-        {/* No flex-1 here anymore: it used to stretch this block to fill
-            whatever height the taller flanking columns needed, leaving a
-            large blank gap between line 5 and the console output. Natural
-            height plus a blinking caret at the end of the last line reads
-            as "mid-thought", not "ran out of content". */}
         <pre className="overflow-x-auto bg-inset px-4 py-3 font-mono text-xs leading-relaxed">
           <code className="text-primary">
             <span className="text-muted">1 </span>
@@ -266,11 +145,7 @@ function CodingPreview() {
             <span className="text-accent-cool">if</span> c <span className="text-accent-cool">in</span> <span className="text-accent">&quot;([{"{"}&quot;</span>:{"\n"}
             <span className="text-muted">5 </span>
             {"            "}stack.append(c)
-            <motion.span
-              className="ml-px inline-block h-3 w-px translate-y-[2px] bg-accent"
-              animate={{ opacity: [1, 1, 0, 0] }}
-              transition={{ duration: 1.1, repeat: Infinity, times: [0, 0.5, 0.5, 1] }}
-            />
+            <span className="ml-px inline-block h-3 w-px translate-y-[2px] bg-accent" />
           </code>
         </pre>
         <div className="space-y-1 border-t border-line px-4 py-3 font-mono text-[11px]">
@@ -281,9 +156,6 @@ function CodingPreview() {
             <span className="text-error">✕</span> is_valid(&quot;(]&quot;) → expected False, got True
           </p>
         </div>
-        {/* Same bottom-anchored footer treatment as the interviewer and
-            signal columns either side, so all three read as one deliberate
-            set instead of two "finished" panels around one that trails off. */}
         <p className="mt-auto flex items-center gap-1.5 border-t border-line px-4 py-2.5 text-[10px] text-muted">
           <span className="h-1 w-1 rounded-full bg-success" />
           Auto-saved just now
@@ -302,8 +174,8 @@ function CodingPreview() {
 /**
  * Compact stand-in for the interviewer, sized for a THIRD of a panel rather
  * than the hero's full column. A static "LR" badge would read as decoration;
- * the pulsing ring plus the question underneath is what makes this column
- * earn its place instead of just being a smaller logo.
+ * the ring plus the question underneath is what makes this column earn its
+ * place instead of just being a smaller logo.
  */
 function MiniInterviewer({ question }: { question: string }) {
   return (
@@ -317,9 +189,6 @@ function MiniInterviewer({ question }: { question: string }) {
       </div>
       <p className="text-xs leading-relaxed text-secondary">{question}</p>
 
-      {/* Anchors this column to the same bottom edge Signal's status line
-          anchors to, so the two flanking columns read as a matched pair
-          instead of the interviewer side trailing off into empty space. */}
       <p className="mt-auto text-[10px] text-muted">
         Live · calibrated to Amazon SDE II
       </p>
@@ -344,12 +213,6 @@ function SignalRail({
 }) {
   return (
     <div className="flex h-full flex-col gap-4 bg-base p-4">
-      {/* SIGNAL is the panel's own name, so it gets a real heading treatment
-          -- size and weight, not another small muted eyebrow -- while
-          Tracking and Flagged stay eyebrow-scale below it. The first version
-          put all three labels at the same ~10px muted-uppercase weight,
-          which read as three equal headings competing rather than one
-          heading with two subsections under it. */}
       <div className="flex items-center gap-2">
         <span className="relative flex h-2 w-2 shrink-0">
           <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-75" />
@@ -382,138 +245,6 @@ function SignalRail({
       <p className="mt-auto flex items-center gap-1.5 text-[10px] text-muted">
         <span className="h-1 w-1 animate-pulse rounded-full bg-muted" />
         {status}…
-      </p>
-    </div>
-  );
-}
-
-/** A small architecture graph, drawn with real SVG lines rather than an
- *  imported diagram image, so it can sit on the token palette and scale
- *  cleanly like everything else on the page. */
-function SystemDesignPreview() {
-  const nodes = [
-    { id: "client", label: "Client", x: 40, y: 90 },
-    { id: "lb", label: "Load balancer", x: 220, y: 90 },
-    { id: "api", label: "API", x: 400, y: 40 },
-    { id: "cache", label: "Cache", x: 400, y: 140 },
-    { id: "db", label: "Postgres", x: 530, y: 90, w: 100 },
-  ];
-  const edges: [string, string][] = [
-    ["client", "lb"],
-    ["lb", "api"],
-    ["lb", "cache"],
-    ["api", "db"],
-    ["cache", "db"],
-  ];
-  const at = (id: string) => nodes.find((n) => n.id === id)!;
-  const NODE_W = 90;
-
-  return (
-    <div className="flex h-full flex-col">
-      <div className="border-b border-line px-4 py-2 text-[11px] text-muted">
-        Architecture canvas
-      </div>
-      <div className="flex-1 overflow-hidden bg-inset p-4">
-        <svg viewBox="0 0 640 180" className="h-full w-full" aria-hidden>
-          {edges.map(([a, b]) => {
-            const from = at(a);
-            const to = at(b);
-            const fromW = from.w ?? NODE_W;
-            return (
-              <line
-                key={`${a}-${b}`}
-                x1={from.x + fromW}
-                y1={from.y + 14}
-                x2={to.x}
-                y2={to.y + 14}
-                stroke="var(--border-strong)"
-                strokeWidth={1.5}
-              />
-            );
-          })}
-          {nodes.map((n) => (
-            <g key={n.id} transform={`translate(${n.x}, ${n.y})`}>
-              <rect
-                width={n.w ?? NODE_W}
-                height={28}
-                rx={6}
-                fill="var(--bg-surface)"
-                stroke={n.id === "cache" ? "var(--accent-border)" : "var(--border-subtle)"}
-                strokeWidth={1.5}
-              />
-              <text
-                x={(n.w ?? NODE_W) / 2}
-                y={18}
-                textAnchor="middle"
-                fontSize={10}
-                fill={n.id === "cache" ? "var(--accent)" : "var(--text-primary)"}
-                fontFamily="var(--font-geist-sans, sans-serif)"
-              >
-                {n.label}
-              </text>
-            </g>
-          ))}
-        </svg>
-      </div>
-      <div className="mt-auto border-t border-line bg-surface px-4 py-2.5 text-[11px] text-secondary">
-        &ldquo;You added a cache. What invalidates it when Postgres changes?&rdquo;
-      </div>
-    </div>
-  );
-}
-
-/** Transcript with competency badges, distinct from the free-text lines used
- *  in the hero panel so this round reads as its own thing at a glance. */
-function BehavioralPreview() {
-  return (
-    <div className="flex h-full flex-col">
-      <div className="flex items-center gap-2 border-b border-line px-4 py-2 text-[11px] text-muted">
-        <Badge tone="outline">Ownership</Badge>
-        <Badge tone="outline">Amazon · SDE II</Badge>
-      </div>
-      <div className="flex-1 space-y-4 px-4 py-4">
-        <TranscriptLine role="interviewer">
-          Tell me about a time you owned something that failed.
-        </TranscriptLine>
-        <TranscriptLine role="candidate">
-          A migration I led caused a partial outage. I rolled it back,
-          root-caused a missing index, and shipped the fix within the day.
-        </TranscriptLine>
-        <TranscriptLine role="interviewer">
-          What would have happened if you had been on vacation that week?
-        </TranscriptLine>
-      </div>
-      <div className="mt-auto border-t border-line bg-surface px-4 py-2.5 text-[11px] text-secondary">
-        Probing for ownership without a safety net — a second follow-up, not
-        the first.
-      </div>
-    </div>
-  );
-}
-
-function TranscriptLine({
-  role,
-  children,
-}: {
-  role: "interviewer" | "candidate";
-  children: string;
-}) {
-  const interviewer = role === "interviewer";
-  return (
-    <div className="flex gap-2.5">
-      <span
-        className={cn(
-          "mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full",
-          interviewer ? "bg-accent" : "bg-accent-cool"
-        )}
-      />
-      <p
-        className={cn(
-          "text-sm leading-relaxed",
-          interviewer ? "text-secondary" : "text-primary"
-        )}
-      >
-        {children}
       </p>
     </div>
   );
