@@ -1,87 +1,182 @@
 "use client";
 
+import { motion } from "motion/react";
+import type { ComponentType } from "react";
 import { BrowserChrome } from "./dashboard-mockup";
-import { cn } from "@/lib/cn";
+import { ExchangeArcs, IsoBlocks, NodeWeb } from "./line-art";
 
 /**
- * FIG-column layout (linear.app's reference pattern) -- replaces the earlier
- * tabbed/expanding-card design entirely, not a restyle of it. Deliberately
- * structurally different: no interactive state, no shared component between
- * the three columns, no truncation-prone tab bar. All three columns render
- * unconditionally and simultaneously on desktop; mobile gets a native
- * scroll-snap carousel instead of a tab switcher. There is nothing here that
- * can render as an "empty box" the way the old expanding tabs could, because
- * nothing is conditionally hidden -- every column always has its full
- * content.
+ * The three rounds, as a flat three-column figure set.
+ *
+ * This replaced a tabbed/expanding-card version. The tabs were doing real
+ * damage: two of the three rounds were always collapsed to a title, so the
+ * section spent its space animating rather than saying what the product
+ * does, and the mobile variant needed a whole second layout to stay legible.
+ * Three plain columns say all three things at once, in less space, with no
+ * interaction to discover.
+ *
+ * Deliberately flat -- no card fill, no radius, no shadow, hairline dividers
+ * only. The columns are typography and line-art on the page background; the
+ * one boxed element in this section is the product mockup below, which is
+ * where the visual weight belongs.
  */
 interface RoundDef {
   key: "coding" | "system_design" | "behavioral";
+  /** Plate number, in the manner of a figure in a manual. */
   fig: string;
   title: string;
-  description: string;
+  /** The single line under the title. One sentence, hard limit -- the whole
+   *  point of this layout is that all three are scannable at a glance. */
+  blurb: string;
+  Icon: ComponentType<{ className?: string }>;
+  /**
+   * Long-form copy from the previous card design. Nothing renders these now;
+   * they are kept because the detail is accurate and hard-won, and re-siting
+   * it (a comparison table, the /pricing feature list, a docs page) should be
+   * a copy-paste rather than a rewrite. Delete if it is still unused once
+   * that decision is made.
+   */
+  body: string;
+  points: string[];
 }
 
 const ROUNDS: RoundDef[] = [
   {
     key: "coding",
-    fig: "01",
+    fig: "FIG 0.1",
     title: "Coding",
-    description:
-      "A live editor the interviewer reads as you type, running your code against real test cases.",
+    blurb: "A live editor the interviewer reads as you type, running against real tests.",
+    Icon: IsoBlocks,
+    body: "A live editor the interviewer reads as you type, running your code against real test cases, with the same questions about approach and complexity you get on the day.",
+    points: [
+      "Python and JavaScript",
+      "Real execution against tests",
+      "Probes approach before code",
+    ],
   },
   {
     key: "system_design",
-    fig: "02",
+    fig: "FIG 0.2",
     title: "System design",
-    description:
-      "An architecture canvas the interviewer can see and push back on, challenging hand-waving about scale.",
+    blurb: "An architecture canvas the interviewer can see, name components on, and push back against.",
+    Icon: NodeWeb,
+    body: "An architecture canvas the interviewer can see and push back on, referencing your components by name and challenging hand-waving about scale.",
+    points: [
+      "Drag-and-drop components",
+      "Interviewer reads your diagram",
+      "Pushes on bottlenecks and trade-offs",
+    ],
   },
   {
     key: "behavioral",
-    fig: "03",
+    fig: "FIG 0.3",
     title: "Behavioral",
-    description:
-      "Real follow-up probing by voice, graded against your target company's actual values.",
+    blurb: "Questions across competencies, answered by voice, with real follow-up probing.",
+    Icon: ExchangeArcs,
+    body: "Three questions across different competencies, each with real follow-up probing. Answered by voice, graded against your target company's values.",
+    points: [
+      "Voice in, voice out",
+      "Up to two probes per question",
+      "18-question bank across 6 competencies",
+    ],
   },
 ];
 
+/** One column. Identical markup in both layouts -- only the wrapper that
+ *  positions it (grid cell vs. carousel slide) differs. */
+function RoundFigure({ round }: { round: RoundDef }) {
+  const { Icon } = round;
+  return (
+    <>
+      <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted">
+        {round.fig}
+      </span>
+      {/* text-muted, not text-line-strong: at a 1px stroke on near-black,
+          border-weight grey reads as a smudge rather than a drawing. Muted
+          still sits a step below the blurb's --text-secondary, so the
+          hierarchy runs title > blurb > figure as intended. */}
+      <Icon className="mt-7 h-24 w-24 text-muted" />
+      <h3 className="mt-7 text-lg font-semibold tracking-tight text-primary">
+        {round.title}
+      </h3>
+      <p className="mt-2 max-w-[34ch] text-sm leading-relaxed text-secondary">
+        {round.blurb}
+      </p>
+    </>
+  );
+}
+
 export default function RoundsShowcase() {
   return (
+    // relative + the two absolutely-positioned blurred blobs below give the
+    // whole showcase ambient depth instead of floating flat against the page
+    // background -- kept inside THIS wrapper (not the overflow-hidden preview
+    // card) specifically so the blur is free to bleed past the card's own
+    // edges rather than being clipped by it.
     <div className="relative mt-12">
-      {/* ---- Desktop: three flat columns, hairline dividers between them ----
-          divide-x puts the 1px line BETWEEN columns only (never around the
-          outside), and there is no bg/border-radius/shadow on the columns
-          themselves -- flat against the page, matching the reference. */}
-      <div className="hidden lg:grid lg:grid-cols-3 lg:divide-x lg:divide-line">
-        {ROUNDS.map((r) => (
-          <FigColumn key={r.key} round={r} className="lg:px-8 lg:first:pl-0 lg:last:pr-0" />
-        ))}
-      </div>
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -top-16 right-0 h-72 w-72 rounded-full bg-accent-muted blur-[100px]"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -bottom-16 left-1/4 h-56 w-56 rounded-full bg-accent-muted blur-[100px] opacity-60"
+      />
 
-      {/* ---- Mobile: native horizontal scroll-snap carousel ----
-          No JS drag library, no active/inactive state -- the browser's own
-          scroll-snap handles the swipe, and every card always shows its full
-          label/title/description at readable size. w-[82%] is what makes the
-          next card peek in from the right edge as the swipe affordance. */}
-      <div className="-mx-6 flex snap-x snap-mandatory gap-4 overflow-x-auto px-6 pb-2 lg:hidden">
-        {ROUNDS.map((r) => (
-          <FigColumn
-            key={r.key}
-            round={r}
-            className="w-[82%] shrink-0 snap-start"
-          />
-        ))}
-      </div>
+      <div className="relative">
+        {/* ---- Figures: three columns, md and up ----
+            divide-x draws the hairline BETWEEN columns only (no border on
+            the outer edges), which is the whole look -- three things sharing
+            one plane, not three boxes. Padding is symmetric except at the
+            two ends, so the first column's text starts flush with the
+            section's left edge and the last ends flush with its right. */}
+        <div className="hidden grid-cols-3 divide-x divide-line md:grid">
+          {ROUNDS.map((r) => (
+            <div
+              key={r.key}
+              className="flex flex-col px-7 first:pl-0 last:pr-0"
+            >
+              <RoundFigure round={r} />
+            </div>
+          ))}
+        </div>
 
-      {/* ---- Live preview ----
-          Static now rather than swapping with a selected tab -- there is no
-          longer a "selected" round to follow. Coding is kept as the one
-          representative preview: it is the only round whose panel shows the
-          interviewer, the work surface, AND the signal rail at once, which is
-          the actual claim the three columns above are making. */}
-      <div className="isolate mt-10 overflow-hidden rounded-lg border border-line bg-base shadow-xl shadow-[var(--shadow-md)] lg:mt-14">
-        <BrowserChrome url="loopready.io/session · coding" />
-        <div className="min-h-[18rem] lg:min-h-[24rem]">
+        {/* ---- Figures: carousel, below md ----
+            Three columns will not fit on a phone at a readable size, and
+            stacking them costs a full screen of scrolling before the mockup
+            below is reachable. A snap carousel keeps the set to one screen
+            and keeps all three equally available -- the peek of the next
+            column past the right edge is the affordance that says so.
+
+            Width is under 100% ON PURPOSE: that remainder IS the peek. */}
+        <div
+          className="flex snap-x snap-mandatory gap-0 overflow-x-auto pb-2 md:hidden [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        >
+          {ROUNDS.map((r) => (
+            <div
+              key={r.key}
+              className="flex w-[82%] shrink-0 snap-start flex-col border-l border-line pl-6 pr-6 first:border-l-0 first:pl-0"
+            >
+              <RoundFigure round={r} />
+            </div>
+          ))}
+        </div>
+
+        {/* ---- Product mockup ----
+            One static panel now rather than one per round. With the tabs
+            gone there is no selection for it to follow, and cycling it on a
+            timer would be movement the reader did not ask for. The coding
+            round is the one shown because it is the only round whose panel
+            demonstrates all three things at once -- interviewer, work
+            surface, and the signal rail scoring it -- which is the claim the
+            figures above are making. */}
+        <div className="isolate mt-10 overflow-hidden rounded-lg border border-line bg-base shadow-xl shadow-[var(--shadow-md)] lg:mt-12">
+          <BrowserChrome url="loopready.io/session · coding" />
+          {/* No min-height. The tabbed version needed one because its panels
+              were absolutely positioned for the crossfade and so had no
+              height of their own; a single static panel sizes itself, and
+              forcing the old floor here just left dead space under the
+              shortest column. */}
           <CodingPreview />
         </div>
       </div>
@@ -89,32 +184,12 @@ export default function RoundsShowcase() {
   );
 }
 
-function FigColumn({
-  round,
-  className,
-}: {
-  round: RoundDef;
-  className?: string;
-}) {
-  return (
-    <div className={cn("py-2", className)}>
-      <p className="font-mono text-xs text-muted">FIG {round.fig}</p>
-      <h3 className="mt-4 text-xl font-semibold tracking-tight text-primary">
-        {round.title}
-      </h3>
-      <p className="mt-2 text-sm leading-relaxed text-secondary">
-        {round.description}
-      </p>
-    </div>
-  );
-}
-
-/** Condensed editor + console, with two more panels flanking it: a compact
- *  interviewer column on the left (who's asking) and a Signal rail on the
- *  right (what the interviewer is quietly keeping score of). Three columns
- *  rather than one, because the product's whole pitch is that something is
- *  watching and judging while you work -- a single code panel cannot show
- *  that, no matter how well it renders Python. */
+/** Condensed editor + console, now with two more panels flanking it: a
+ *  compact interviewer column on the left (who's asking) and a Signal rail
+ *  on the right (what the interviewer is quietly keeping score of). Three
+ *  columns rather than one, because the product's whole pitch is that
+ *  something is watching and judging while you work -- a single code panel
+ *  cannot show that, no matter how well it renders Python. */
 function CodingPreview() {
   return (
     <div className="grid h-full md:grid-cols-[minmax(0,0.62fr)_minmax(0,1.18fr)_minmax(0,0.62fr)]">
@@ -130,6 +205,11 @@ function CodingPreview() {
             Run tests
           </span>
         </div>
+        {/* No flex-1 here anymore: it used to stretch this block to fill
+            whatever height the taller flanking columns needed, leaving a
+            large blank gap between line 5 and the console output. Natural
+            height plus a blinking caret at the end of the last line reads
+            as "mid-thought", not "ran out of content". */}
         <pre className="overflow-x-auto bg-inset px-4 py-3 font-mono text-xs leading-relaxed">
           <code className="text-primary">
             <span className="text-muted">1 </span>
@@ -145,7 +225,11 @@ function CodingPreview() {
             <span className="text-accent-cool">if</span> c <span className="text-accent-cool">in</span> <span className="text-accent">&quot;([{"{"}&quot;</span>:{"\n"}
             <span className="text-muted">5 </span>
             {"            "}stack.append(c)
-            <span className="ml-px inline-block h-3 w-px translate-y-[2px] bg-accent" />
+            <motion.span
+              className="ml-px inline-block h-3 w-px translate-y-[2px] bg-accent"
+              animate={{ opacity: [1, 1, 0, 0] }}
+              transition={{ duration: 1.1, repeat: Infinity, times: [0, 0.5, 0.5, 1] }}
+            />
           </code>
         </pre>
         <div className="space-y-1 border-t border-line px-4 py-3 font-mono text-[11px]">
@@ -156,6 +240,9 @@ function CodingPreview() {
             <span className="text-error">✕</span> is_valid(&quot;(]&quot;) → expected False, got True
           </p>
         </div>
+        {/* Same bottom-anchored footer treatment as the interviewer and
+            signal columns either side, so all three read as one deliberate
+            set instead of two "finished" panels around one that trails off. */}
         <p className="mt-auto flex items-center gap-1.5 border-t border-line px-4 py-2.5 text-[10px] text-muted">
           <span className="h-1 w-1 rounded-full bg-success" />
           Auto-saved just now
@@ -174,8 +261,8 @@ function CodingPreview() {
 /**
  * Compact stand-in for the interviewer, sized for a THIRD of a panel rather
  * than the hero's full column. A static "LR" badge would read as decoration;
- * the ring plus the question underneath is what makes this column earn its
- * place instead of just being a smaller logo.
+ * the pulsing ring plus the question underneath is what makes this column
+ * earn its place instead of just being a smaller logo.
  */
 function MiniInterviewer({ question }: { question: string }) {
   return (
@@ -189,6 +276,9 @@ function MiniInterviewer({ question }: { question: string }) {
       </div>
       <p className="text-xs leading-relaxed text-secondary">{question}</p>
 
+      {/* Anchors this column to the same bottom edge Signal's status line
+          anchors to, so the two flanking columns read as a matched pair
+          instead of the interviewer side trailing off into empty space. */}
       <p className="mt-auto text-[10px] text-muted">
         Live · calibrated to Amazon SDE II
       </p>
@@ -213,10 +303,20 @@ function SignalRail({
 }) {
   return (
     <div className="flex h-full flex-col gap-4 bg-base p-4">
+      {/* SIGNAL is the panel's own name, so it gets a real heading treatment
+          -- size and weight, not another small muted eyebrow -- while
+          Tracking and Flagged stay eyebrow-scale below it. The first version
+          put all three labels at the same ~10px muted-uppercase weight,
+          which read as three equal headings competing rather than one
+          heading with two subsections under it. */}
+      {/* bg-success (green), not bg-accent (white) -- this pulsing dot IS the
+          "live and watching" cue, the same green already used two lines
+          below for Auto-saved. A neutral-white ping loses that meaning; this
+          is one of the few deliberate green touches on the page. */}
       <div className="flex items-center gap-2">
         <span className="relative flex h-2 w-2 shrink-0">
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-75" />
-          <span className="relative inline-flex h-2 w-2 rounded-full bg-accent" />
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-75" />
+          <span className="relative inline-flex h-2 w-2 rounded-full bg-success" />
         </span>
         <span className="text-sm font-semibold text-primary">Signal</span>
       </div>
@@ -249,3 +349,4 @@ function SignalRail({
     </div>
   );
 }
+

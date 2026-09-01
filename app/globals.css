@@ -18,16 +18,29 @@
   --border-subtle: #232328;
   --border-strong: #33333c;
 
-  /* Emerald accent */
-  --accent: #10b981;
-  --accent-hover: #34d399;
-  --accent-muted: rgb(16 185 129 / 0.12);
-  --accent-border: rgb(16 185 129 / 0.32);
-  --accent-fg: #052e21; /* text on a solid accent fill */
+  /* Neutral accent.
 
-  /* Cool counterpart to the accent. Used where the candidate, rather than the
-     interviewer, holds the floor, so the two voices never read as the same. */
-  --accent-cool: #22d3ee;
+     These token NAMES are historical -- they were an emerald green until the
+     palette went fully neutral (black/white/gray, Linear-style). The names
+     are kept because ~50 files reference them; only the VALUES changed, so
+     "accent" here now means "the brightest, most emphatic neutral", not a
+     hue. Anything that needs actual colour must use the semantic tokens
+     (--success/--warn/--error) below instead, which stay chromatic on
+     purpose because their hue carries meaning.
+
+     --accent is deliberately the same near-white as --text-primary: a solid
+     --accent fill with --accent-fg text is the white pill CTA, and text-accent
+     on the dark page is simply emphatic white. */
+  --accent: #fafafa;
+  --accent-hover: #ffffff;
+  --accent-muted: rgb(250 250 250 / 0.08); /* tinted fill for active/selected */
+  --accent-border: rgb(250 250 250 / 0.22);
+  --accent-fg: #09090b; /* text on a solid accent fill -- near-black on white */
+
+  /* Quieter counterpart to the accent. Used where the candidate, rather than
+     the interviewer, holds the floor, so the two voices never read as the
+     same -- now separated by lightness rather than hue. */
+  --accent-cool: #a1a1aa;
 
   /* Text scale */
   --text-primary: #fafafa;
@@ -53,7 +66,10 @@
   --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
   --shadow-md: 0 4px 16px -4px rgb(0 0 0 / 0.5);
   --shadow-lg: 0 16px 48px -12px rgb(0 0 0 / 0.6);
-  --shadow-accent: 0 0 40px -10px rgb(16 185 129 / 0.55);
+  /* Soft white glow, low opacity -- the neutral replacement for what was a
+     saturated green bloom. Kept (rather than dropped) so a primary CTA still
+     lifts off the page, but at a fraction of the old intensity. */
+  --shadow-accent: 0 0 40px -12px rgb(250 250 250 / 0.20);
 }
 
 /* Expose tokens as Tailwind utilities: bg-surface, text-secondary, etc. */
