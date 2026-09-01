@@ -140,17 +140,13 @@ export default async function Landing() {
           replaces the old "blob with a blurred edge" look -- a gradient
           fades by definition, so there is no shape boundary to soften.
 
-          Now a soft white wash rather than the old emerald bloom: the page
-          is a neutral black/white system, so the glow reads as light falling
-          on the page instead of a brand colour sitting on top of it. Lower
-          opacity than the green was, because white carries much further
-          against near-black than a mid-tone hue does. */}
+          An emerald bloom, same accent as the rest of the page. */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-x-0 top-0 z-0 h-[50rem]"
         style={{
           background:
-            "radial-gradient(ellipse 85% 55% at 50% -5%, rgb(250 250 250 / 0.07), rgb(250 250 250 / 0.025) 45%, transparent 72%)",
+            "radial-gradient(ellipse 85% 55% at 50% -5%, rgb(16 185 129 / 0.16), rgb(16 185 129 / 0.05) 45%, transparent 72%)",
         }}
       />
 
@@ -174,9 +170,7 @@ export default async function Landing() {
                 Video interviews · Calibrated to company and level
               </span>
 
-              {/* Scaled up now that nothing shares the viewport with it, and
-                  scaled up again for the neutral palette: with no accent hue
-                  doing the work, SIZE and weight are what carry the hero.
+              {/* Scaled up now that nothing shares the viewport with it.
                   tracking-[-0.03em] is tighter than Tailwind's tracking-tight
                   -- large display type needs proportionally more negative
                   tracking than body text to look correctly spaced. */}
@@ -186,7 +180,7 @@ export default async function Landing() {
               <h1 className="mt-10 text-balance text-5xl font-semibold leading-[1.05] tracking-[-0.03em] sm:text-6xl lg:text-7xl">
                 Practice the interview.
                 <br />
-                <span className="text-secondary">Not the questions.</span>
+                <span className="text-accent">Not the questions.</span>
               </h1>
 
               <p className="mx-auto mt-9 max-w-xl text-lg leading-relaxed text-secondary sm:text-xl">
