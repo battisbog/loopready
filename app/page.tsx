@@ -594,8 +594,8 @@ export default async function Landing() {
             <div className="max-w-xs">
               <span className="text-sm font-semibold">LoopReady</span>
               <p className="mt-2 text-sm text-muted">
-                Voice mock interviews calibrated to what actually passes a FAANG
-                loop.
+                Voice and video mock interviews calibrated to what actually
+                passes a FAANG loop.
               </p>
             </div>
             <div className="flex gap-12">

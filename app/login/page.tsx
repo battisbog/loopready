@@ -140,7 +140,7 @@ export default function LoginPage() {
         </Link>
         <h1 className="mt-4 text-2xl font-semibold tracking-tight">LoopReady</h1>
         <p className="mt-1 text-sm text-secondary">
-          Voice mock interviews, calibrated to what passes a FAANG loop.
+          Voice and video mock interviews, calibrated to what passes a FAANG loop.
         </p>
 
         <div className="mt-8 space-y-3">
