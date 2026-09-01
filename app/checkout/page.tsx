@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { getUserTier } from "@/lib/tiers";
+import { getUserTier, isGoodStanding } from "@/lib/tiers";
 import {
   createSubscriptionCheckoutSession,
   createVideoPackCheckoutSession,
@@ -60,6 +60,29 @@ export default async function CheckoutPage({
   const tier = await getUserTier(admin, user.id);
   if (tier === plan) {
     redirect("/billing");
+  }
+
+  // Guard against double-subscribing: a Voice subscriber clicking "Get
+  // Premium" on /pricing (or vice versa) lands here with tier !== plan and,
+  // without this check, would get a brand-new Dodo checkout session --
+  // creating a SECOND live subscription on top of the one they already have,
+  // rather than changing the existing one. Dodo would then bill both until
+  // someone manually cancels one. There's no in-app plan-change flow yet, so
+  // the safe move is to refuse and send them to /billing to cancel the old
+  // plan first, not to silently double-subscribe them.
+  if (tier === "voice" || tier === "premium") {
+    const { data: profile } = await admin
+      .from("profiles")
+      .select("dodo_subscription_id, subscription_status")
+      .eq("id", user.id)
+      .maybeSingle();
+    if (profile?.dodo_subscription_id && isGoodStanding(profile.subscription_status)) {
+      redirect(
+        `/billing?checkout_error=${encodeURIComponent(
+          "You already have an active subscription. Cancel it from Billing before switching plans, or contact support to change plans without a gap in access."
+        )}`
+      );
+    }
   }
 
   const result = await createSubscriptionCheckoutSession({

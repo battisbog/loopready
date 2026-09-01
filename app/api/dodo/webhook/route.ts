@@ -176,6 +176,14 @@ export async function POST(request: Request) {
       const isPremium = (await resolveTier(admin, userId, purpose)) === "premium";
       tier = isPremium ? "premium" : "voice";
       patch.dodo_subscription_id = sub.subscription_id;
+      // Mirrors the PayPal webhook's ACTIVE write. Without this, Dodo
+      // subscribers keep whatever subscription_status they started with --
+      // null for a first-time subscriber -- forever. lib/tiers.ts's
+      // isGoodStanding(null) happens to also read as "good standing," so
+      // access was never actually broken by the missing write, but
+      // app/(app)/billing/page.tsx shows the raw column and was rendering
+      // "No subscription" for a fully paying, active customer.
+      patch.subscription_status = "ACTIVE";
       if (sub.next_billing_date) patch.current_period_end = sub.next_billing_date;
       if (isPremium) {
         credits = {
@@ -200,6 +208,9 @@ export async function POST(request: Request) {
         .eq("id", userId)
         .maybeSingle();
       tier = prof?.subscription_tier === "premium" ? "premium" : "voice";
+      // A renewal after a recovered on_hold clears the PAST_DUE status set
+      // below back to ACTIVE, same as PayPal's payment-completed handler.
+      patch.subscription_status = "ACTIVE";
       if (sub.next_billing_date) patch.current_period_end = sub.next_billing_date;
       const allowance = Number(prof?.video_plan_allowance ?? 0);
       if (allowance > 0) {
@@ -220,7 +231,12 @@ export async function POST(request: Request) {
         `[dodo] renewal payment failed for user=${userId}, marking past_due (access retained)`
       );
       // Not a downgrade: on_hold is recoverable, exactly like PayPal's
-      // BILLING.SUBSCRIPTION.PAYMENT.FAILED. Access continues.
+      // BILLING.SUBSCRIPTION.PAYMENT.FAILED. Access continues -- tier is
+      // untouched -- but the status column needs to actually say PAST_DUE:
+      // isGoodStanding treats PAST_DUE as good standing already, so this
+      // doesn't change entitlement, it's what makes the billing page show
+      // the retry state instead of silently doing nothing.
+      patch.subscription_status = "PAST_DUE";
       break;
     }
     case "subscription.cancelled": {
@@ -232,16 +248,23 @@ export async function POST(request: Request) {
 
       if (sub.next_billing_date) patch.current_period_end = sub.next_billing_date;
       if (sub.cancel_at_next_billing_date) {
-        // Access is retained until the period end; the row is left alone
-        // and getUserTier resolves from (status, current_period_end) the
-        // same way it does for a PayPal CANCEL_REQUESTED. There is no
-        // scheduled downgrade job -- when the date passes, entitlement
-        // resolution does it on its own.
+        // Access is retained until the period end; tier is left alone and
+        // getUserTier resolves from (status, current_period_end) the same
+        // way it does for a PayPal CANCEL_REQUESTED. That fallback reads
+        // subscription_status, so it has to actually be written here --
+        // /api/dodo/billing/cancel already sets it when the user cancels
+        // in-app, but this event also fires for a cancellation Dodo itself
+        // initiates (or one made directly in the Dodo dashboard), which
+        // never touches our profiles row otherwise. There is no scheduled
+        // downgrade job -- when the date passes, entitlement resolution
+        // does it on its own.
+        patch.subscription_status = "CANCEL_REQUESTED";
         console.log(
           `[dodo] subscription.cancelled for ${userId}: access retained until ${sub.next_billing_date}`
         );
       } else {
         tier = "free";
+        patch.subscription_status = "CANCELLED";
         credits = { mode: "set", amount: 0, reset: null, detail: type };
       }
       break;
@@ -255,6 +278,7 @@ export async function POST(request: Request) {
       if (!userId) break;
 
       tier = "free";
+      patch.subscription_status = type === "subscription.expired" ? "EXPIRED" : "FAILED";
       credits = { mode: "set", amount: 0, reset: null, detail: type };
       break;
     }
@@ -293,6 +317,7 @@ export async function POST(request: Request) {
         };
       } else {
         tier = "free";
+        patch.subscription_status = "REFUNDED";
         credits = { mode: "set", amount: 0, reset: null, detail: type };
       }
       break;
@@ -304,6 +329,14 @@ export async function POST(request: Request) {
   }
 
   if (!userId) {
+    // Release the claim rather than leaving it committed: unlike the
+    // profile-update/credit-grant failures below, this returns 200 (a
+    // genuinely unmappable event -- e.g. metadata stripped in transit --
+    // should not retry-storm forever), but releasing means a *transient*
+    // resolution failure (an admin-client blip, a not-yet-visible profile
+    // row) gets a real second chance on Dodo's redelivery instead of being
+    // silently and permanently dropped after one bad read.
+    await releaseEvent(admin, headerId);
     console.error(`[dodo] ${type}: could not map event to a user`);
     return NextResponse.json({ ok: true, mapped: false });
   }

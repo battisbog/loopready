@@ -22,12 +22,20 @@ const STATUS_TONE: Record<string, "success" | "warn" | "error" | "neutral"> = {
   COMPLETED: "success",
   CANCEL_REQUESTED: "warn",
   SUSPENDED: "warn",
+  PAST_DUE: "warn",
   CANCELLED: "error",
   EXPIRED: "error",
   REFUNDED: "error",
+  FAILED: "error",
 };
 
-export default async function BillingPage() {
+export default async function BillingPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ checkout_error?: string }>;
+}) {
+  const { checkout_error: checkoutError } = await searchParams;
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -64,6 +72,18 @@ export default async function BillingPage() {
         title="Billing & Plan"
         description="Your current plan, credits, and payment history."
       >
+        {/* checkout/page.tsx redirects here with ?checkout_error=... when it
+            refuses to start a second subscription (or, less often, when Dodo
+            checkout-session creation itself fails) -- surface it, otherwise
+            the redirect looks like nothing happened. */}
+        {checkoutError && (
+          <Section>
+            <Card tone="error">
+              <p className="text-sm text-error">{checkoutError}</p>
+            </Card>
+          </Section>
+        )}
+
         <Section>
           <div className="grid gap-4 sm:grid-cols-3">
             <Card accent={paid}>
