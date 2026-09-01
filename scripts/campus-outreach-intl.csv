@@ -1,0 +1,31 @@
+school,country,contact_type,contact_name,email,source
+Oxford,UK,career-center,—,hello@careers.ox.ac.uk,careers.ox.ac.uk
+Cambridge,UK,career-center,—,enquiries@careers.cam.ac.uk,careers.cam.ac.uk
+Imperial College London,UK,career-center,—,careers@imperial.ac.uk,imperial.ac.uk/careers
+UCL,UK,dept,—,cs.undergraduate-students@ucl.ac.uk,ucl.ac.uk/engineering/computer-science
+Edinburgh,UK,career-center,—,careers@ed.ac.uk,ed.ac.uk/students/careers
+Manchester,UK,career-center,—,careers@manchester.ac.uk,careers.manchester.ac.uk
+Warwick,UK,dept,—,job-ads@dcs.warwick.ac.uk,warwick.ac.uk/fac/sci/dcs
+Bristol,UK,dept,—,COMS-student-enquiries@bristol.ac.uk,bristol.ac.uk
+Southampton,UK,dept,—,ecs-studentoffice@soton.ac.uk,ecs.soton.ac.uk
+Durham,UK,dept,Emily Mitchell,emily.j.mitchell@durham.ac.uk,durham.ac.uk/departments/academic/computer-science
+Bath,UK,dept,—,comp-sci-coordinators@bath.ac.uk,bath.ac.uk
+Glasgow,UK,dept,Gail Reat,Gail.Reat@glasgow.ac.uk,gla.ac.uk/schools/computing
+Nottingham,UK,career-center,—,careers-team@nottingham.ac.uk,nottingham.ac.uk/careers
+Sheffield,UK,career-center,—,careers@sheffield.ac.uk,sheffield.ac.uk/careers
+St Andrews,UK,career-center,—,careers@st-andrews.ac.uk,st-andrews.ac.uk/careers/contact
+York,UK,career-center,—,careers@york.ac.uk,york.ac.uk/students/work-volunteering-careers/about
+Waterloo,Canada,career-center,—,careers@uwaterloo.ca,uwaterloo.ca/career-development
+Toronto,Canada,dept,—,cs.undergrad@utoronto.ca,web.cs.toronto.edu/contact-us
+UBC,Canada,career-center,—,career.centre@ubc.ca,students.ubc.ca
+McGill,Canada,career-center,—,careers.caps@mcgill.ca,mcgill.ca/careerresources
+Simon Fraser,Canada,career-center,—,careers@sfu.ca,sfu.ca/students/career
+Western University,Canada,career-center,—,careereducation@uwo.ca,career.uwo.ca
+Queen's University,Canada,career-center,—,mycareer@queensu.ca,careers.queensu.ca/contact
+Melbourne,Australia,career-center,—,careers-services@unimelb.edu.au,students.unimelb.edu.au/careers
+UNSW Sydney,Australia,career-center,—,employability@unsw.edu.au,unsw.edu.au/engineering/cse
+Sydney,Australia,career-center,—,careers.information@sydney.edu.au,sydney.edu.au/careers
+University of Queensland,Australia,career-center,—,employability@uq.edu.au,employability.uq.edu.au
+Trinity College Dublin,Ireland,career-center,—,careers@tcd.ie,tcd.ie/careers
+UCD,Ireland,career-center,—,careers@ucd.ie,ucd.ie/careers
+NUI Galway,Ireland,career-center,—,careers@universityofgalway.ie,universityofgalway.ie/careers-development-centre
