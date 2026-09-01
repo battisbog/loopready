@@ -120,7 +120,7 @@ function Logo() {
         fill="none"
         stroke="currentColor"
         strokeWidth="2.5"
-        className="text-accent"
+        className="text-success"
       />
     </svg>
   );

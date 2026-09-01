@@ -121,7 +121,7 @@ export default function VideoAvatar({
          * watched that ramp-up directly: the reported "choppy for the first
          * 3 seconds" symptom. Now the cover stays up until the video element
          * has actually started rendering frames (the "playing" event), plus a
-         * short 200ms settle delay to clear the roughest of that ramp-up.
+         * short 150ms settle delay to clear the roughest of that ramp-up.
          * Audio is never touched -- muting a live stream discards whatever
          * plays while muted rather than delaying it, so an earlier version of
          * this fix silently ate the start of the interviewer's greeting. Only
@@ -141,7 +141,7 @@ export default function VideoAvatar({
           }
           const onPlaying = () => {
             videoEl.removeEventListener("playing", onPlaying);
-            revealTimerRef.current = setTimeout(commit, 200);
+            revealTimerRef.current = setTimeout(commit, 150);
           };
           videoEl.addEventListener("playing", onPlaying);
         };
