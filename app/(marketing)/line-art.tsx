@@ -163,6 +163,44 @@ export function ExchangeArcs({ className }: { className?: string }) {
   );
 }
 
+/**
+ * The loop itself: three diamond nodes -- one per round -- joined by a
+ * continuous circulating path rather than straight spokes, with a small
+ * chevron on one arc to read as directional flow instead of a static
+ * triangle. Sibling to IsoBlocks/NodeWeb/ExchangeArcs (same three rounds,
+ * same node-diamond vocabulary) but where those three each stand for a
+ * single round, this one stands for the loop that runs through all of them
+ * -- used once, to flank "The whole loop, one engine."
+ */
+export function LoopCycle({ className }: { className?: string }) {
+  const node = (x: number, y: number, r: number) =>
+    `M${x} ${y - r} ${x + r} ${y} ${x} ${y + r} ${x - r} ${y}z`;
+
+  return (
+    <svg
+      viewBox="0 0 120 120"
+      fill="none"
+      aria-hidden
+      className={`pointer-events-none ${className ?? ""}`}
+    >
+      <g stroke="currentColor" strokeWidth="1" strokeLinejoin="round">
+        {/* three arcs bulging outward, meeting at the three nodes -- a
+            rounded triangle rather than straight edges, so it reads as
+            circulation rather than a static frame */}
+        <path d="M60 10Q106 30 100 100" strokeLinecap="round" />
+        <path d="M100 100Q60 124 20 100" strokeLinecap="round" />
+        <path d="M20 100Q14 30 60 10" strokeLinecap="round" />
+        {/* small chevron on the top-right arc -- the one directional cue
+            that says "flow", not "outline" */}
+        <path d="M88 52 96 58 89 65" strokeLinecap="round" />
+        <path d={node(60, 10, 9)} />
+        <path d={node(100, 100, 9)} />
+        <path d={node(20, 100, 9)} />
+      </g>
+    </svg>
+  );
+}
+
 /** A grid of dots that fades out -- texture rather than a shape. */
 export function DotGrid({ className }: { className?: string }) {
   return (

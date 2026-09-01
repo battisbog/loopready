@@ -3,11 +3,13 @@
 import { motion, useReducedMotion } from "motion/react";
 
 /**
- * Replaces three identical cards in a row with a connected sequence: a line
- * that draws left to right as the section scrolls into view, with each step
- * lighting up as the line reaches it. Three cards side by side say "pick
- * one"; a drawn line says "this is an order", which is the actual point --
- * pick a target, then talk, then read the verdict.
+ * Flat numbered steps, Linear-style: plain numerals (no circle/badge
+ * container) sitting on a thin rule that draws left to right as the section
+ * scrolls into view. This replaced an earlier version with round bordered
+ * "01/02/03" node markers threaded by a connecting line -- accurate to the
+ * "pick one, then the next" sequence, but the circular badges read as UI
+ * chrome (steppers, wizards) rather than typography. A bare numeral above a
+ * hairline says the same thing -- this is an order -- with less on the page.
  */
 const STEPS = [
   {
@@ -32,15 +34,19 @@ export default function HowItWorks() {
 
   return (
     <div className="mt-16">
-      <div className="relative grid gap-10 md:grid-cols-3 md:gap-6">
-        {/* The connecting line. Absolutely positioned through the row of
-            number markers rather than three separate segments, so one
-            scaleX animation draws the whole thing continuously instead of
-            three independently-timed pieces that can visibly desync. Hidden
-            below md: three items with no shared row have nothing to connect. */}
+      <div className="relative grid gap-10 md:grid-cols-3 md:gap-10">
+        {/* The connecting rule. One continuous hairline across the full row
+            rather than three column-local ones, so a single scaleX draws it
+            left to right in one motion -- the line IS the sequence, not
+            three coincidentally-aligned segments. success/40 rather than a
+            neutral line-strong: this is the one restrained green touch in
+            the section, on the element that literally represents "the
+            order things happen in". Hidden below md: three stacked items
+            have nothing to connect, so each gets its own rule instead (see
+            border-t on the column below). */}
         <motion.div
           aria-hidden
-          className="absolute left-[16.5%] right-[16.5%] top-6 hidden h-px bg-line-strong md:block"
+          className="absolute left-0 right-0 top-0 hidden h-px bg-success/40 md:block"
           style={{ originX: 0 }}
           initial={reduced ? false : { scaleX: 0 }}
           whileInView={{ scaleX: 1 }}
@@ -51,19 +57,27 @@ export default function HowItWorks() {
         {STEPS.map((step, i) => (
           <motion.div
             key={step.n}
-            className="relative"
+            // Mobile: each column carries its own top hairline, since the
+            // shared rule above is md:block only. Desktop: no border here --
+            // the shared rule already draws across the row above the grid,
+            // and a second one per-column would double it up.
+            className="relative border-t border-line pt-7 md:border-t-0 md:pt-9"
             initial={reduced ? false : { opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.6 }}
             transition={{
               duration: 0.5,
-              // Each marker "lights up" roughly when the drawing line would
-              // reach it, so the line reads as the cause of the reveal.
+              // Each column "lights up" roughly when the drawing rule would
+              // reach it, so the rule reads as the cause of the reveal.
               delay: 0.15 + i * 0.35,
               ease: [0.22, 1, 0.36, 1],
             }}
           >
-            <span className="relative z-10 flex h-12 w-12 items-center justify-center rounded-full border border-accent-border bg-base font-mono text-sm text-accent">
+            {/* Flat numeral, no circle/badge container -- the number is
+                typography sitting on the rule, not an icon floating above
+                it. tabular-nums keeps 01/02/03 the same width so the three
+                titles below still line up. */}
+            <span className="font-mono text-3xl font-semibold tabular-nums text-line-strong sm:text-4xl">
               {step.n}
             </span>
             <h3 className="mt-5 text-lg font-semibold text-primary">

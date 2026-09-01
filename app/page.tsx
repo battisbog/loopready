@@ -16,7 +16,7 @@ import { Reveal } from "./(marketing)/reveal";
 import ScrollCue from "./(marketing)/scroll-cue";
 import HowItWorks from "./(marketing)/how-it-works";
 import RoundsShowcase from "./(marketing)/rounds-showcase";
-import { DiamondStack, DotGrid, IsoCube } from "./(marketing)/line-art";
+import { DiamondStack, DotGrid, IsoCube, LoopCycle } from "./(marketing)/line-art";
 import FaqAccordion from "./(marketing)/faq-accordion";
 
 const FAQ_ITEMS = [
@@ -325,8 +325,17 @@ export default async function Landing() {
       </section>
 
       {/* ---------- Rounds ---------- */}
-      <section id="rounds" className="border-t border-line bg-base/60">
-        <div className="mx-auto w-full max-w-6xl px-6 py-24">
+      <section id="rounds" className="relative overflow-hidden border-t border-line bg-base/60">
+        {/* Same flanking convention as the Companies strip above: quiet
+            line-art filling the gutter beside the heading on a wide screen.
+            LoopCycle rather than another IsoCube/DiamondStack repeat --
+            this is the one section actually about the loop as a whole, so
+            it gets the one figure that draws all three rounds as a single
+            circulating shape instead of a generic decorative fill. */}
+        <LoopCycle
+          className="absolute -right-10 top-16 hidden h-40 w-40 text-line-strong opacity-40 lg:block"
+        />
+        <div className="relative mx-auto w-full max-w-6xl px-6 py-24">
           {/* Heading above rather than beside: the three figures below are
               equal-width columns spanning the full container, so there is no
               side column left to put it in. Capped at max-w-2xl so the copy
