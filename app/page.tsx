@@ -165,7 +165,12 @@ export default async function Landing() {
         <div className="relative mx-auto flex min-h-[calc(100svh-4rem)] w-full max-w-5xl flex-col items-center justify-center px-6 pb-12 pt-16 text-center">
           <div className="rise">
               <span className="inline-flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-1 text-xs text-secondary">
-                <span className="h-1.5 w-1.5 rounded-full bg-accent-hover" />
+                {/* One deliberate green touch on an otherwise neutral page --
+                    a small "this is live" signal, same green as the
+                    Auto-saved/Signal dots in the product mockup below,
+                    reusing --success rather than reintroducing --accent as
+                    a color. */}
+                <span className="h-1.5 w-1.5 rounded-full bg-success" />
                 Video interviews · Calibrated to company and level
               </span>
 

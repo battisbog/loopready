@@ -309,10 +309,14 @@ function SignalRail({
           put all three labels at the same ~10px muted-uppercase weight,
           which read as three equal headings competing rather than one
           heading with two subsections under it. */}
+      {/* bg-success (green), not bg-accent (white) -- this pulsing dot IS the
+          "live and watching" cue, the same green already used two lines
+          below for Auto-saved. A neutral-white ping loses that meaning; this
+          is one of the few deliberate green touches on the page. */}
       <div className="flex items-center gap-2">
         <span className="relative flex h-2 w-2 shrink-0">
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-75" />
-          <span className="relative inline-flex h-2 w-2 rounded-full bg-accent" />
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-75" />
+          <span className="relative inline-flex h-2 w-2 rounded-full bg-success" />
         </span>
         <span className="text-sm font-semibold text-primary">Signal</span>
       </div>
