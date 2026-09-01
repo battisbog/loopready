@@ -49,6 +49,9 @@ export default function VideoAvatar({
   /** Track ids currently attached, so we never reattach the same pair. */
   const attachedRef = useRef<string>("");
   const joinedAtRef = useRef<number | null>(null);
+  /** Guards the "live" reveal so it only ever fires once per mount. */
+  const revealedRef = useRef(false);
+  const revealTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [state, setState] = useState<"joining" | "live" | "ended" | "failed">(
     "joining"
   );
@@ -77,6 +80,8 @@ export default function VideoAvatar({
     let alive = true;
     let call: DailyCall | null = null;
     attachedRef.current = "";
+    revealedRef.current = false;
+    revealTimerRef.current = null;
     const audioTrack = micStream.getAudioTracks()[0];
 
     // Serialised and awaited, because destroy() is ASYNC. The previous version
@@ -103,6 +108,40 @@ export default function VideoAvatar({
           subscribeToTracksAutomatically: true,
         });
         callRef.current = call;
+
+        /**
+         * Reveals the live feed, replacing the "Connecting…" cover.
+         *
+         * Previously this happened on Daily's "joined-meeting" event, which
+         * only means the call object has joined the room -- it fires well
+         * before the replica's video track is attached, and even once
+         * attached, WebRTC's first couple of seconds of frames are typically
+         * choppy while bitrate estimation and the jitter buffer ramp up. The
+         * cover was dropping the moment signaling finished, so the candidate
+         * watched that ramp-up directly: the reported "choppy for the first
+         * 3 seconds" symptom. Now the cover stays up until the video element
+         * has actually started rendering frames (the "playing" event), plus a
+         * short settle delay to clear that ramp-up, so the candidate only
+         * ever sees smooth video.
+         */
+        const scheduleReveal = (videoEl: HTMLVideoElement | null) => {
+          if (revealedRef.current || revealTimerRef.current) return;
+          const commit = () => {
+            if (revealedRef.current || !alive) return;
+            revealedRef.current = true;
+            setState("live");
+          };
+          if (!videoEl) {
+            // No video track to wait out (audio-only update) -- nothing to hide.
+            commit();
+            return;
+          }
+          const onPlaying = () => {
+            videoEl.removeEventListener("playing", onPlaying);
+            revealTimerRef.current = setTimeout(commit, 800);
+          };
+          videoEl.addEventListener("playing", onPlaying);
+        };
 
         /**
          * Attaches the avatar's tracks once the replica publishes them.
@@ -137,13 +176,14 @@ export default function VideoAvatar({
           // Same amplitude bus the ring uses, so shared UI keeps working. This
           // is a read-only tap and never carries the audio that is played.
           if (audio) audioLevels.attachStream("output", new MediaStream([audio]));
+
+          scheduleReveal(video ? videoRef.current : null);
         };
 
         call
           .on("joined-meeting", () => {
             if (!alive) return;
             joinedAtRef.current = Date.now();
-            setState("live");
             onJoined?.(call!);
           })
           .on("participant-joined", (e) => attach(e?.participant))
@@ -182,6 +222,10 @@ export default function VideoAvatar({
 
     return () => {
       alive = false;
+      if (revealTimerRef.current) {
+        clearTimeout(revealTimerRef.current);
+        revealTimerRef.current = null;
+      }
       audioLevels.detach("output");
       const c = call;
       callRef.current = null;
