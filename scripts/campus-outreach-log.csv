@@ -43,3 +43,86 @@ timestamp,school,email,status
 2026-08-30T12:25:57.455Z,"UC Davis",csugadvising@ucdavis.edu,sent
 2026-08-30T12:26:01.653Z,"Baylor",mary_chandler@baylor.edu,sent
 2026-08-30T12:26:05.944Z,"Kent State",ugradinfo@cs.kent.edu,sent
+2026-09-02T00:09:06.696Z,"Oxford",hello@careers.ox.ac.uk,sent
+2026-09-02T00:09:10.930Z,"Cambridge",enquiries@careers.cam.ac.uk,sent
+2026-09-02T00:09:15.144Z,"Imperial College London",careers@imperial.ac.uk,sent
+2026-09-02T00:09:19.341Z,"UCL",cs.undergraduate-students@ucl.ac.uk,sent
+2026-09-02T00:09:23.549Z,"Edinburgh",careers@ed.ac.uk,sent
+2026-09-02T00:09:27.766Z,"Manchester",careers@manchester.ac.uk,sent
+2026-09-02T00:09:31.972Z,"Warwick",job-ads@dcs.warwick.ac.uk,sent
+2026-09-02T00:09:36.177Z,"Bristol",COMS-student-enquiries@bristol.ac.uk,sent
+2026-09-02T00:09:40.381Z,"Southampton",ecs-studentoffice@soton.ac.uk,sent
+2026-09-02T00:09:44.593Z,"Durham",emily.j.mitchell@durham.ac.uk,sent
+2026-09-02T00:09:48.793Z,"Bath",comp-sci-coordinators@bath.ac.uk,sent
+2026-09-02T00:09:53.025Z,"Glasgow",Gail.Reat@glasgow.ac.uk,sent
+2026-09-02T00:09:57.253Z,"Nottingham",careers-team@nottingham.ac.uk,sent
+2026-09-02T00:10:01.463Z,"Sheffield",careers@sheffield.ac.uk,sent
+2026-09-02T00:10:05.774Z,"St Andrews",careers@st-andrews.ac.uk,sent
+2026-09-02T00:10:09.982Z,"York",careers@york.ac.uk,sent
+2026-09-02T00:10:14.189Z,"Waterloo",careers@uwaterloo.ca,sent
+2026-09-02T00:10:18.433Z,"Toronto",cs.undergrad@utoronto.ca,sent
+2026-09-02T00:10:22.627Z,"UBC",career.centre@ubc.ca,sent
+2026-09-02T00:10:26.815Z,"McGill",careers.caps@mcgill.ca,sent
+2026-09-02T00:10:31.007Z,"Simon Fraser",careers@sfu.ca,sent
+2026-09-02T00:10:36.577Z,"Western University",careereducation@uwo.ca,sent
+2026-09-02T00:10:40.784Z,"Queen's University",mycareer@queensu.ca,sent
+2026-09-02T00:10:45.133Z,"Melbourne",careers-services@unimelb.edu.au,sent
+2026-09-02T00:10:49.323Z,"UNSW Sydney",employability@unsw.edu.au,sent
+2026-09-02T00:10:53.517Z,"Sydney",careers.information@sydney.edu.au,sent
+2026-09-02T00:10:57.723Z,"University of Queensland",employability@uq.edu.au,sent
+2026-09-02T00:11:01.995Z,"Trinity College Dublin",careers@tcd.ie,sent
+2026-09-02T00:11:06.311Z,"UCD",careers@ucd.ie,sent
+2026-09-02T00:11:10.525Z,"NUI Galway",careers@universityofgalway.ie,sent
+2026-09-02T00:11:14.725Z,"Victoria University of Wellington",careers-service@vuw.ac.nz,sent
+2026-09-02T00:11:18.942Z,"King's College London",informatics-ug@kcl.ac.uk,sent
+2026-09-02T00:11:23.139Z,"University of Birmingham",csoffice@contacts.bham.ac.uk,sent
+2026-09-02T00:11:27.365Z,"University of Leeds",scsso@leeds.ac.uk,sent
+2026-09-02T00:11:31.558Z,"Queen Mary University of London",a.abuelmaatti@qmul.ac.uk,sent
+2026-09-02T00:11:35.757Z,"University of Leicester",CMSadmin@leicester.ac.uk,sent
+2026-09-02T00:11:39.951Z,"University of Exeter",computerscience-admin@exeter.ac.uk,sent
+2026-09-02T00:11:44.184Z,"Cardiff University",comsc-office@cardiff.ac.uk,sent
+2026-09-02T00:11:48.375Z,"Queen's University Belfast",eeecs@qub.ac.uk,sent
+2026-09-02T00:11:52.602Z,"University of Surrey",administratorCS@surrey.ac.uk,sent
+2026-09-02T00:11:56.816Z,"Lancaster University",scc-ug-enquiries@lancaster.ac.uk,sent
+2026-09-02T00:12:01.024Z,"Loughborough University",sci-progadmin@lboro.ac.uk,sent
+2026-09-02T00:12:05.262Z,"Newcastle University",computing.teaching@newcastle.ac.uk,sent
+2026-09-02T00:12:09.476Z,"University of Liverpool",csstudy@liverpool.ac.uk,sent
+2026-09-02T00:12:13.653Z,"University of Reading",SMPCSplacementyear@reading.ac.uk,sent
+2026-09-02T00:12:17.841Z,"University of Kent",computing@kent.ac.uk,sent
+2026-09-02T00:12:23.512Z,"University of Sussex",Informatics@sussex.ac.uk,sent
+2026-09-02T00:12:27.724Z,"City St George's University of London",stem-placements@city.ac.uk,sent
+2026-09-02T00:12:31.906Z,"University of Strathclyde",cis-enquiries@strath.ac.uk,sent
+2026-09-02T00:12:36.130Z,"Bangor University",cse@bangor.ac.uk,sent
+2026-09-02T00:12:40.325Z,"University of Essex",CSEE-schooloffice@essex.ac.uk,sent
+2026-09-02T00:12:44.531Z,"Maynooth University",computerscience.department@mu.ie,sent
+2026-09-02T00:12:48.815Z,"TU Dublin",school.cs@tudublin.ie,sent
+2026-09-02T00:12:53.059Z,"University College Cork",adrian.oriordan@ucc.ie,sent
+2026-09-02T00:12:57.416Z,"Dublin City University",computingsecretary@dcu.ie,sent
+2026-09-02T00:13:01.612Z,"University of Alberta",csinfo@ualberta.ca,sent
+2026-09-02T00:13:05.830Z,"McMaster University",casug@mcmaster.ca,sent
+2026-09-02T00:13:10.046Z,"Concordia University",reception.ginacody@concordia.ca,sent
+2026-09-02T00:13:14.313Z,"Carleton University",scs.info@carleton.ca,sent
+2026-09-02T00:13:18.509Z,"York University",enquiries@cs.yorku.ca,sent
+2026-09-02T00:13:22.729Z,"University of Calgary",cpsc@ucalgary.ca,sent
+2026-09-02T00:13:26.971Z,"University of Victoria",cscelc@uvic.ca,sent
+2026-09-02T00:13:31.172Z,"Dalhousie University",inquiries@cs.dal.ca,sent
+2026-09-02T00:13:35.414Z,"Toronto Metropolitan University",ask-coop@cs.torontomu.ca,sent
+2026-09-02T00:13:39.600Z,"University of Manitoba",queries@cs.umanitoba.ca,sent
+2026-09-02T00:13:43.817Z,"University of Guelph",officeassist@socs.uoguelph.ca,sent
+2026-09-02T00:13:48.008Z,"University of Windsor",csinfo@uwindsor.ca,sent
+2026-09-02T00:13:52.217Z,"Monash University",fit-ibl@monash.edu,sent
+2026-09-02T00:13:56.410Z,"Australian National University",admin.comp@anu.edu.au,sent
+2026-09-02T00:14:00.623Z,"University of Adelaide",scsit@adelaide.edu.au,sent
+2026-09-02T00:14:04.827Z,"Griffith University",ict-admin@griffith.edu.au,sent
+2026-09-02T00:14:09.032Z,"University of Newcastle",CESE-SCIS-Admin@newcastle.edu.au,sent
+2026-09-02T00:14:13.214Z,"Flinders University",cse.placements@flinders.edu.au,sent
+2026-09-02T00:14:17.426Z,"Western Sydney University",CDMS@westernsydney.edu.au,sent
+2026-09-02T00:14:21.590Z,"Swinburne University of Technology",SoSCETsupport@swinburne.edu.au,sent
+2026-09-02T00:14:25.811Z,"Queensland University of Technology",sef.csenquiry@qut.edu.au,sent
+2026-09-02T00:14:30.008Z,"University of Auckland",office@cs.auckland.ac.nz,sent
+2026-09-02T00:14:34.215Z,"University of Canterbury",CSSEadministration@canterbury.ac.nz,sent
+2026-09-02T00:14:38.408Z,"University of Waikato",stem@waikato.ac.nz,sent
+2026-09-02T00:14:42.612Z,"National University of Singapore",secretary_cs@comp.nus.edu.sg,sent
+2026-09-02T00:14:46.843Z,"Nanyang Technological University",cao_ccds@ntu.edu.sg,sent
+2026-09-02T00:14:51.065Z,"Singapore Management University",scis@smu.edu.sg,sent
+2026-09-02T00:14:55.365Z,"Singapore University of Technology and Design",careers@sutd.edu.sg,sent

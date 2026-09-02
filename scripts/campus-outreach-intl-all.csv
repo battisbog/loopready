@@ -1,0 +1,84 @@
+school,country,contact_type,contact_name,email,source
+Oxford,UK,career-center,—,hello@careers.ox.ac.uk,careers.ox.ac.uk
+Cambridge,UK,career-center,—,enquiries@careers.cam.ac.uk,careers.cam.ac.uk
+Imperial College London,UK,career-center,—,careers@imperial.ac.uk,imperial.ac.uk/careers
+UCL,UK,dept,—,cs.undergraduate-students@ucl.ac.uk,ucl.ac.uk/engineering/computer-science
+Edinburgh,UK,career-center,—,careers@ed.ac.uk,ed.ac.uk/students/careers
+Manchester,UK,career-center,—,careers@manchester.ac.uk,careers.manchester.ac.uk
+Warwick,UK,dept,—,job-ads@dcs.warwick.ac.uk,warwick.ac.uk/fac/sci/dcs
+Bristol,UK,dept,—,COMS-student-enquiries@bristol.ac.uk,bristol.ac.uk
+Southampton,UK,dept,—,ecs-studentoffice@soton.ac.uk,ecs.soton.ac.uk
+Durham,UK,dept,Emily Mitchell,emily.j.mitchell@durham.ac.uk,durham.ac.uk/departments/academic/computer-science
+Bath,UK,dept,—,comp-sci-coordinators@bath.ac.uk,bath.ac.uk
+Glasgow,UK,dept,Gail Reat,Gail.Reat@glasgow.ac.uk,gla.ac.uk/schools/computing
+Nottingham,UK,career-center,—,careers-team@nottingham.ac.uk,nottingham.ac.uk/careers
+Sheffield,UK,career-center,—,careers@sheffield.ac.uk,sheffield.ac.uk/careers
+St Andrews,UK,career-center,—,careers@st-andrews.ac.uk,st-andrews.ac.uk/careers/contact
+York,UK,career-center,—,careers@york.ac.uk,york.ac.uk/students/work-volunteering-careers/about
+Waterloo,Canada,career-center,—,careers@uwaterloo.ca,uwaterloo.ca/career-development
+Toronto,Canada,dept,—,cs.undergrad@utoronto.ca,web.cs.toronto.edu/contact-us
+UBC,Canada,career-center,—,career.centre@ubc.ca,students.ubc.ca
+McGill,Canada,career-center,—,careers.caps@mcgill.ca,mcgill.ca/careerresources
+Simon Fraser,Canada,career-center,—,careers@sfu.ca,sfu.ca/students/career
+Western University,Canada,career-center,—,careereducation@uwo.ca,career.uwo.ca
+Queen's University,Canada,career-center,—,mycareer@queensu.ca,careers.queensu.ca/contact
+Melbourne,Australia,career-center,—,careers-services@unimelb.edu.au,students.unimelb.edu.au/careers
+UNSW Sydney,Australia,career-center,—,employability@unsw.edu.au,unsw.edu.au/engineering/cse
+Sydney,Australia,career-center,—,careers.information@sydney.edu.au,sydney.edu.au/careers
+University of Queensland,Australia,career-center,—,employability@uq.edu.au,employability.uq.edu.au
+Trinity College Dublin,Ireland,career-center,—,careers@tcd.ie,tcd.ie/careers
+UCD,Ireland,career-center,—,careers@ucd.ie,ucd.ie/careers
+NUI Galway,Ireland,career-center,—,careers@universityofgalway.ie,universityofgalway.ie/careers-development-centre
+Victoria University of Wellington,New Zealand,career-center,—,careers-service@vuw.ac.nz,wgtn.ac.nz/careers
+King's College London,UK,dept,—,informatics-ug@kcl.ac.uk,KCL Department of Informatics
+University of Birmingham,UK,dept,—,csoffice@contacts.bham.ac.uk,Birmingham School of Computer Science
+University of Leeds,UK,dept,—,scsso@leeds.ac.uk,Leeds School of Computing student support
+Queen Mary University of London,UK,career-center,Aisha Abuelmaatti,a.abuelmaatti@qmul.ac.uk,QMUL EECS staff
+University of Leicester,UK,dept,—,CMSadmin@leicester.ac.uk,Leicester Computing and Mathematical Sciences
+University of Exeter,UK,dept,—,computerscience-admin@exeter.ac.uk,Exeter Computer Science
+Cardiff University,UK,dept,—,comsc-office@cardiff.ac.uk,Cardiff Computer Science and Informatics
+Queen's University Belfast,UK,dept,—,eeecs@qub.ac.uk,QUB EEECS student contacts
+University of Surrey,UK,dept,—,administratorCS@surrey.ac.uk,Surrey Department of Computer Science
+Lancaster University,UK,dept,—,scc-ug-enquiries@lancaster.ac.uk,Lancaster School of Computing and Communications
+Loughborough University,UK,dept,—,sci-progadmin@lboro.ac.uk,Loughborough Computer Science contacts
+Newcastle University,UK,dept,—,computing.teaching@newcastle.ac.uk,Newcastle School of Computing
+University of Liverpool,UK,dept,—,csstudy@liverpool.ac.uk,Liverpool Computer Science and Informatics
+University of Reading,UK,career-center,Emily Dewell,SMPCSplacementyear@reading.ac.uk,Reading Computer Science placements
+University of Kent,UK,dept,—,computing@kent.ac.uk,Kent School of Computing student administration
+University of Sussex,UK,dept,—,Informatics@sussex.ac.uk,Sussex Engineering and Informatics
+City St George's University of London,UK,career-center,Corporate Relations & Employability Unit,stem-placements@city.ac.uk,City STEM placements and employability
+University of Strathclyde,UK,dept,—,cis-enquiries@strath.ac.uk,Strathclyde Computer & Information Sciences
+Bangor University,UK,dept,—,cse@bangor.ac.uk,Bangor Computer Science and Engineering
+University of Essex,UK,dept,—,CSEE-schooloffice@essex.ac.uk,Essex Computer Science and Electronic Engineering
+Maynooth University,Ireland,dept,—,computerscience.department@mu.ie,Maynooth Computer Science contact
+TU Dublin,Ireland,dept,—,school.cs@tudublin.ie,TU Dublin School of Computer Science
+University College Cork,Ireland,career-center,Adrian O'Riordan,adrian.oriordan@ucc.ie,UCC School of Computer Science & IT contacts
+Dublin City University,Ireland,dept,—,computingsecretary@dcu.ie,DCU School of Computing
+University of Alberta,Canada,dept,—,csinfo@ualberta.ca,UAlberta Computing Science official student guide
+McMaster University,Canada,dept,—,casug@mcmaster.ca,McMaster Computing & Software
+Concordia University,Canada,dept,—,reception.ginacody@concordia.ca,Concordia Gina Cody School contact
+Carleton University,Canada,dept,—,scs.info@carleton.ca,Carleton School of Computer Science
+York University,Canada,dept,—,enquiries@cs.yorku.ca,York EECS contact page
+University of Calgary,Canada,dept,—,cpsc@ucalgary.ca,Calgary Computer Science
+University of Victoria,Canada,career-center,Anthony Estey,cscelc@uvic.ca,UVic Computer Science contacts
+Dalhousie University,Canada,dept,—,inquiries@cs.dal.ca,Dalhousie Faculty of Computer Science
+Toronto Metropolitan University,Canada,career-center,—,ask-coop@cs.torontomu.ca,TMU Computer Science contacts
+University of Manitoba,Canada,dept,—,queries@cs.umanitoba.ca,Manitoba Computer Science
+University of Guelph,Canada,dept,Jacqui DeFreitas,officeassist@socs.uoguelph.ca,Guelph School of Computer Science contacts
+University of Windsor,Canada,dept,—,csinfo@uwindsor.ca,Windsor School of Computer Science
+Monash University,Australia,career-center,Information Technology IBL team,fit-ibl@monash.edu,Monash IT Industry-Based Learning
+Australian National University,Australia,dept,—,admin.comp@anu.edu.au,ANU School of Computing
+University of Adelaide,Australia,dept,—,scsit@adelaide.edu.au,School of Computer Science and IT
+Griffith University,Australia,dept,—,ict-admin@griffith.edu.au,Griffith School of ICT contact
+University of Newcastle,Australia,dept,—,CESE-SCIS-Admin@newcastle.edu.au,Newcastle School of Computer and Information Sciences
+Flinders University,Australia,career-center,College of Science & Engineering WIL/Placements,cse.placements@flinders.edu.au,Flinders Science & Engineering contacts
+Western Sydney University,Australia,dept,—,CDMS@westernsydney.edu.au,Western Sydney Computing Data and Mathematical Sciences
+Swinburne University of Technology,Australia,dept,School of Science Computing and Engineering Technologies support,SoSCETsupport@swinburne.edu.au,Swinburne Computing Technologies contacts
+Queensland University of Technology,Australia,dept,—,sef.csenquiry@qut.edu.au,QUT Computer Science official contact material
+University of Auckland,New Zealand,dept,—,office@cs.auckland.ac.nz,Auckland School of Computer Science
+University of Canterbury,New Zealand,dept,—,CSSEadministration@canterbury.ac.nz,Canterbury Computer Science & Software Engineering
+University of Waikato,New Zealand,dept,—,stem@waikato.ac.nz,Waikato School of Computing & Mathematical Sciences
+National University of Singapore,Singapore,dept,—,secretary_cs@comp.nus.edu.sg,NUS Department of Computer Science
+Nanyang Technological University,Singapore,career-center,CCDS internship team,cao_ccds@ntu.edu.sg,NTU College of Computing and Data Science student enquiries
+Singapore Management University,Singapore,dept,—,scis@smu.edu.sg,SMU School of Computing and Information Systems
+Singapore University of Technology and Design,Singapore,career-center,Career Development Centre,careers@sutd.edu.sg,SUTD Career Development

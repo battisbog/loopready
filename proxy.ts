@@ -25,6 +25,10 @@ const PUBLIC_PATHS = [
   "/api/cron/reddit-scan",
   // Signup must be reachable before a session exists.
   "/api/auth/signup",
+  // TikTok redirects here mid-OAuth, before any LoopReady session exists --
+  // one-time founder-account connection for the marketing agent's posting
+  // capability, not a per-user product feature.
+  "/api/tiktok/callback",
   "/terms",
   "/privacy",
 ];
