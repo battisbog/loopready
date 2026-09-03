@@ -42,19 +42,33 @@ export async function GET(request: Request) {
     }),
   });
 
-  const data = await res.json();
-  if (!res.ok) {
-    return NextResponse.json({ error: "Token exchange failed", detail: data }, { status: 502 });
+  const raw = await res.text();
+  let data: any;
+  try {
+    data = JSON.parse(raw);
+  } catch {
+    return NextResponse.json({ error: "Token exchange returned non-JSON body", status: res.status, raw }, { status: 502 });
+  }
+
+  // TikTok's v2 endpoints are inconsistent about whether the payload is
+  // top-level or nested under `data` (their content-posting endpoints nest,
+  // their oauth endpoint has historically been flat) -- so accept either
+  // shape instead of assuming one.
+  const payload = data.access_token ? data : data.data ?? {};
+  const accessToken = payload.access_token;
+
+  if (!res.ok || !accessToken) {
+    return NextResponse.json({ error: "Token exchange failed or response shape unexpected", status: res.status, raw: data }, { status: 502 });
   }
 
   return new NextResponse(
     `<pre style="font-family: monospace; padding: 24px; white-space: pre-wrap; word-break: break-all;">Connected. Copy these into .env.local:
 
-TIKTOK_ACCESS_TOKEN=${data.access_token}
-TIKTOK_REFRESH_TOKEN=${data.refresh_token}
-TIKTOK_OPEN_ID=${data.open_id}
+TIKTOK_ACCESS_TOKEN=${payload.access_token}
+TIKTOK_REFRESH_TOKEN=${payload.refresh_token}
+TIKTOK_OPEN_ID=${payload.open_id}
 
-(access_token expires in ${data.expires_in}s / ~24h, refresh_token in ${data.refresh_expires_in}s / ~365 days)
+(access_token expires in ${payload.expires_in}s / ~24h, refresh_token in ${payload.refresh_expires_in}s / ~365 days)
 </pre>`,
     { headers: { "Content-Type": "text/html" } }
   );
